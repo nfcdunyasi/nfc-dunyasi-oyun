@@ -1,0 +1,6 @@
+# İşletme QR'ları ve oda davet linkleri oyun sayfasına gider
+/q/:source   /oyun/?kaynak=:source   302
+/oda/:code   /oyun/?oda=:code        302
+
+# Basılı QR kodların ana adresi: oyun sonradan başka yere taşınırsa SADECE bu satırı değiştir
+/oyna   /oyun/   302
