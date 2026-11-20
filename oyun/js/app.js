@@ -1,7 +1,7 @@
-import * as sfx from './sfx.js?v=2026-11-19-c';
-import { $, esc, toast, vibrate, fmtTime } from './ui.js?v=2026-11-19-c';
-import { gameRenderers } from './games/index.js?v=2026-11-19-c';
-import { THEMES, THEME_VARS } from './themes.js?v=2026-11-19-c';
+import * as sfx from './sfx.js?v=2026-11-20-a';
+import { $, esc, toast, vibrate, fmtTime } from './ui.js?v=2026-11-20-a';
+import { gameRenderers } from './games/index.js?v=2026-11-20-a';
+import { THEMES, THEME_VARS } from './themes.js?v=2026-11-20-a';
 
 const SESSION_KEY = 'nfcd:session';
 const NICK_KEY = 'nfcd:nick';
@@ -167,6 +167,7 @@ const DECO = {
   'springfield': ['🌯', '🔥', '🥙', '🌯', '🌶️', '🍟', '🔥', '🌯'],
   'fried-chiko': ['🍗', '🐔', '🍟', '🍗', '🥤', '🐔', '🍔', '🍗'],
   'los-bravos': ['🍗', '🍔', '🍟', '🐔', '🔥', '🥤', '🍔', '🐔'],
+  'eliz': ['🧇', '🍓', '🍫', '🍨', '🍌', '🧇', '🍓', '🥤'],
 };
 function decoUrl(list) {
   const spots = [[34, 44, -18, 46], [150, 30, 14, 40], [262, 58, -8, 50], [78, 142, 20, 52], [208, 150, -22, 44], [20, 246, 10, 42], [130, 262, -14, 54], [262, 252, 18, 46]];

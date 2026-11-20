@@ -3,8 +3,8 @@
 // parçaları (yuvarlak masa ve örtü, sandalye, halı, sarkıt lamba, duvar, çay bardağı...), oturma düzeni, kamera
 // sığdırma ve oyun kabuğu (HUD, kartlar, isim etiketleri, emoji tepkileri, WebGL yaşam döngüsü, 2D yedek görünüm).
 // Kurye Yarışı'nın küçük WebGL motorunu kullanır.
-import { _eng } from './kuryeYarisi.js?v=2026-11-19-c';
-import * as sfx from '../sfx.js?v=2026-11-19-c';
+import { _eng } from './kuryeYarisi.js?v=2026-11-20-a';
+import * as sfx from '../sfx.js?v=2026-11-20-a';
 
 const E = _eng();
 const { limb, ik2, psurf, ctx2d, podiumHTML, placeLabels, EmoteUI, KIT, drawToon, aoOn, detailOn, postFX, shadowBegin, shadowCast, shadowEnd, emitSoft, autoRes, clamp, lerp, damp, esc, hexRGB, C, shade, M, makeGL, MB, freeMesh, makeTexture, updateTexture, useProg, drawMesh, drawSky, drawDynamic, norm3, brandInfo, Res, Snd, pcol, vibrate, medal, ONE3, injectStyle } = E;
@@ -1186,6 +1186,7 @@ const ARENA_BRANDS = {
   'fried-chiko': { fa: '#ffb9ad', fb: '#ffd2c9', rug: '#7a1c14', rugB: '#fff1d0', edge: '#ffcd46', haze: '#ffeeea', top: '#58c4ff', hor: '#ffe0d9', K: ['#d92a1c', '#ffcd46', '#ffffff', '#58120c', '#ff8a5c', '#260c08'] },
   springfield: { fa: '#f6d9a6', fb: '#fbe8c6', rug: '#6c1c28', rugB: '#fff0d0', edge: '#f4b240', haze: '#fff5e4', top: '#58c4ff', hor: '#ffeccc', K: ['#8e2436', '#f4b240', '#fff8ec', '#4e121c', '#e8843c', '#22080e'] },
   'durum-max': { fa: '#ffe07a', fb: '#ffeca2', rug: '#1c1810', rugB: '#facc38', edge: '#1c1810', haze: '#fffbe0', top: '#58c4ff', hor: '#fff6cc', K: ['#1c1810', '#facc38', '#ffffff', '#342c18', '#ffe07a', '#0e0c08'] },
+  eliz: { fa: '#9fe0e6', fb: '#c8eff2', rug: '#0b8ea4', rugB: '#fff6e4', edge: '#ffcc66', haze: '#eefbfc', top: '#58c4ff', hor: '#dff6f8', K: ['#0c96ac', '#ffcc66', '#ffffff', '#5a2c14', '#f0352a', '#06505e'] },
 };
 function arenaOf(cfg, brand) {
   const W = WORLDS[cfg.world || cfg.tag] || WORLDS.kyp;

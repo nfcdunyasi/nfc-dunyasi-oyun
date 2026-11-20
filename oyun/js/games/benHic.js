@@ -1,5 +1,5 @@
-import { esc } from '../ui.js?v=2026-11-19-c';
-import { act, btn, hostOr, center, card, people, progress } from './_kit.js?v=2026-11-19-c';
+import { esc } from '../ui.js?v=2026-11-20-a';
+import { act, btn, hostOr, center, card, people, progress } from './_kit.js?v=2026-11-20-a';
 
 export function destroy() {}
 

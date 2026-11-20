@@ -1,7 +1,7 @@
 // Kurye Yarışı — 3D yarış oyunu (NFC Dünyası Oyun)
 // Dış kütüphane yok: kendi küçük WebGL motoru, düşük poligonlu şehir, işletmenin rengi/logosu/yiyecekleri.
 // Herkes aynı pistte kendi telefonunda sürer; sunucu ilerlemeleri toplar, rakipler "hayalet" olarak görünür.
-import * as sfx from '../sfx.js?v=2026-11-19-c';
+import * as sfx from '../sfx.js?v=2026-11-20-a';
 
 // Ortak çekirdek (sunucudaki botlar da birebir aynı kodu kullanır)
 const KY = (() => {
@@ -1814,6 +1814,44 @@ function foodModel(mb, kind, brand) {
     mb.sphereS(0.06, 0.335, 0.02, 0.05, 0.03, 0.05, C('#e23c2c', -0.45), 8, 5);
     mb.sphereS(-0.05, 0.34, -0.03, 0.06, 0.025, 0.05, C('#4fbf3a', -0.3), 8, 5);
     mb.pop();
+  } else if (kind === 'waffle') {
+    // waffle: kalın, altın sarısı ızgara (kabarık çıtalar, aralarda gözler), üstte akan çikolata ve bütün çilek
+    mb.push().T(0, -0.1, 0, 0.35);
+    mb.rbox(-0.3, -0.07, -0.3, 0.3, 0.05, 0.3, 0.05, C('#c98a35', -0.35), 3);
+    for (let k = -2; k <= 2; k++) {
+      mb.rbox(k * 0.12 - 0.022, 0.03, -0.29, k * 0.12 + 0.022, 0.085, 0.29, 0.016, C('#efb95e', -0.4), 2);
+      mb.rbox(-0.29, 0.03, k * 0.12 - 0.022, 0.29, 0.085, k * 0.12 + 0.022, 0.016, C('#f3c46c', -0.4), 2);
+    }
+    // çikolata: ortada parlak gölet + kenarlardan sarkan damlalar
+    mb.sphereS(0.02, 0.1, -0.02, 0.2, 0.03, 0.17, C('#4a2410', -0.75), 18, 6);
+    [[0.3, 0.02, 0.06], [-0.1, 0.02, 0.3], [0.12, 0.02, 0.3], [-0.3, 0.02, -0.08]].forEach(([x, y, z], i) => {
+      mb.sphereS(x * 0.95, y, z * 0.95, 0.04, 0.09 - (i % 2) * 0.02, 0.04, C('#4a2410', -0.75), 8, 6);
+    });
+    mb.pop();
+    // çilek: koni gövde, sarı çekirdekler, yeşil yapraklar
+    mb.push().T(0.02, 0.06, 0.0, 0.4, 0, 0.25);
+    mb.lathe(0, 0, 0, [[0, 0], [0.06, 0.02], [0.12, 0.08], [0.15, 0.16], [0.14, 0.23], [0.1, 0.27], [0, 0.28]], 18, (i) => (i <= 1 ? C('#d3201b', -0.6) : C('#f0352a', -0.6)));
+    for (let k = 0; k < 12; k++) { const a = k * 2.39996, yy = 0.05 + (k % 4) * 0.05, r = [0.09, 0.13, 0.148, 0.14][k % 4]; mb.sphereS(Math.cos(a) * r, yy, Math.sin(a) * r, 0.012, 0.016, 0.012, C('#ffe27a', -0.3), 5, 3); }
+    for (let k = 0; k < 5; k++) { const a = (k / 5) * Math.PI * 2; mb.push().T(Math.cos(a) * 0.06, 0.28, Math.sin(a) * 0.06, -a, 0, 0.5); mb.sphereS(0.03, 0, 0, 0.07, 0.012, 0.03, C('#3fa339', -0.35), 8, 3); mb.pop(); }
+    mb.pop();
+  } else if (kind === 'cup') {
+    // tatlı kupu: şeffaf görünümlü bardakta kat kat krema ve kek, üstü kakaolu, işletme renginde kaşık
+    const L = [[0, 0], [0.19, 0], [0.2, 0.02], [0.21, 0.12], [0.225, 0.24], [0.24, 0.36], [0.255, 0.48], [0.265, 0.56], [0, 0.56]];
+    const band = ['#5a2c14', '#5a2c14', '#fbeed0', '#7a3c1c', '#fbeed0', '#6b3418', '#fff3dc', '#fff3dc', '#fff3dc'];
+    mb.lathe(0, -0.34, 0, L, 24, (i, a) => {
+      const c = band[Math.min(i, band.length - 1)];
+      return (i === 2 || i === 4 || i === 6) && Math.sin(a * 6) > 0.55 ? C('#7a3c1c', -0.55) : C(c, -0.55);
+    });
+    // kakao kaplı kubbe + üstte serpme
+    mb.sphereS(0, 0.22, 0, 0.255, 0.07, 0.255, null, 22, 7, (x, y, z) => { const n = hs(Math.floor((x + 1) * 19), Math.floor((z + 1) * 19)); return n > 0.7 ? [0.32, 0.17, 0.08, -0.15] : [0.45, 0.25, 0.12, -0.15]; });
+    // bardak ağzı
+    mb.torusN(0, 0.22, 0, 0.268, 0.014, 0.014, 24, 5, C('#e9f7f8', -0.85));
+    // kaşık: sap + çukur
+    const sp = brand ? C(brand, -0.6) : C('#2aa6c8', -0.6);
+    mb.push().T(0.07, 0.24, -0.02, 0, 0, -0.35);
+    mb.rbox(-0.02, 0, -0.012, 0.02, 0.36, 0.012, 0.012, sp, 2);
+    mb.sphereS(0, 0.4, 0, 0.055, 0.075, 0.025, sp, 10, 6);
+    mb.pop();
   } else {
     // kargo/sipariş paketi: yuvarlak köşeli kutu, marka renginde bant ve fiyonk
     const K = C('#c99a62', -0.12);
@@ -3567,10 +3605,11 @@ const FOODS = {
   'los-bravos': ['burger', 'drum'],
   springfield: ['wrap'],
   'durum-max': ['wrap'],
+  eliz: ['waffle', 'cup'],
   nfc: ['box'],
 };
-const FOOD_EMOJI = { drum: '🍗', rice: '🍚', burger: '🍔', wrap: '🌯', box: '📦' };
-const FOOD_NAME = { drum: 'tavuk', rice: 'pilav', burger: 'burger', wrap: 'dürüm', box: 'paket' };
+const FOOD_EMOJI = { drum: '🍗', rice: '🍚', burger: '🍔', wrap: '🌯', box: '📦', waffle: '🧇', cup: '🍨' };
+const FOOD_NAME = { drum: 'tavuk', rice: 'pilav', burger: 'burger', wrap: 'dürüm', box: 'paket', waffle: 'waffle', cup: 'kup' };
 
 function brandInfo(ctx) {
   const t = ctx.theme || null;
@@ -3627,7 +3666,7 @@ class Res {
     this.mk = mk;
     this.scoot = [];
     this.food = {};
-    ['drum', 'rice', 'burger', 'wrap', 'box'].forEach((k) => { this.food[k] = mk((mb) => foodModel(mb, k, brand.boxHex)); });
+    ['drum', 'rice', 'burger', 'wrap', 'box', 'waffle', 'cup'].forEach((k) => { this.food[k] = mk((mb) => foodModel(mb, k, brand.boxHex)); });
     this.shadow = mk(shadowDisc, 'un');
     this.glow = mk(glowDisc, 'un');
     this.flame = mk(flameModel);

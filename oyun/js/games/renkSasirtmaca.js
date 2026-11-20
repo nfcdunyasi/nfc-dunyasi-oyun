@@ -4,8 +4,8 @@
 // ampuller üç kez yanıp söner), sonra kelime çıkar. Basanın konsolundaki lamba yanar (rengi açılışa kadar gizli).
 // Açılışta herkesin bastığı düğme renkli yanar, doğrular yeşil, yanlışlar kırmızı halkayla parlar; tabelanın ampulleri
 // doğru renkte yanıp söner. Masa kiti (masa3d.js) ile çizilir; WebGL yoksa 2D görünüm.
-import { _masa } from './masa3d.js?v=2026-11-19-c';
-import * as sfx from '../sfx.js?v=2026-11-19-c';
+import { _masa } from './masa3d.js?v=2026-11-20-a';
+import * as sfx from '../sfx.js?v=2026-11-20-a';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs } = K;

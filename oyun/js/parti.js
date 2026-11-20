@@ -87,7 +87,7 @@
   var CATS = [['hepsi', '🎮 Hepsi'], ['masa', '♟️ Masa'], ['parti', '🎉 Parti'], ['bilgi', '🧠 Bilgi'], ['refleks', '⚡ Refleks'], ['blof', '🕵️ Blöf'], ['sans', '🍀 Şans']];
   document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-act="cat"]'); if (b) cur = b.dataset.id; }, true);
   // İşletme teması: arka planda uçuşan şekiller o işletmenin yiyecekleri olur
-  var FOOD = { 'los-bravos': ['🍔', '🍗', '🍟', '🥤'], 'chicken-rice-crush': ['🍗', '🍚', '🍛', '🌶️'], 'fried-chiko': ['🍗', '🍟', '🥤', '🐔'], springfield: ['🌯', '🥙', '🌶️', '🍟'], 'durum-max': ['🌯', '🥙', '🔥', '🍟'] };
+  var FOOD = { 'los-bravos': ['🍔', '🍗', '🍟', '🥤'], 'chicken-rice-crush': ['🍗', '🍚', '🍛', '🌶️'], 'fried-chiko': ['🍗', '🍟', '🥤', '🐔'], springfield: ['🌯', '🥙', '🌶️', '🍟'], 'durum-max': ['🌯', '🥙', '🔥', '🍟'], eliz: ['🧇', '🍓', '🍫', '🍨'] };
   try {
     var slug = String(new URLSearchParams(location.search).get('kaynak') || window.OYUN_KAYNAK || '').toLowerCase();
     if (FOOD[slug]) {
