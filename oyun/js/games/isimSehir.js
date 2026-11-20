@@ -1,5 +1,5 @@
-import { esc } from '../ui.js?v=2026-11-20-c';
-import { act, btn, hostOr, center, scoreList, countdown } from './_kit.js?v=2026-11-20-c';
+import { esc } from '../ui.js?v=2026-11-21-a';
+import { act, btn, hostOr, center, scoreList, countdown } from './_kit.js?v=2026-11-21-a';
 
 let tick = null;
 let watch = null;

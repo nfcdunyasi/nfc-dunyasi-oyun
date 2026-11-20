@@ -1,7 +1,7 @@
 // Kurye Yarışı — 3D yarış oyunu (NFC Dünyası Oyun)
 // Dış kütüphane yok: kendi küçük WebGL motoru, düşük poligonlu şehir, işletmenin rengi/logosu/yiyecekleri.
 // Herkes aynı pistte kendi telefonunda sürer; sunucu ilerlemeleri toplar, rakipler "hayalet" olarak görünür.
-import * as sfx from '../sfx.js?v=2026-11-20-c';
+import * as sfx from '../sfx.js?v=2026-11-21-a';
 
 // Ortak çekirdek (sunucudaki botlar da birebir aynı kodu kullanır)
 const KY = (() => {
@@ -3767,6 +3767,7 @@ function brandInfo(ctx) {
     name: t?.name || 'NFC DÜNYASI',
     logo: t?.logo || null,
     round: t ? t.shape !== 'wide' : true,
+    arena: t?.arena || null, // panelden eklenen temalar: 3D masa ortamının renkleri
     boxHex: hex2(box),
     accentHex: hex2(limon),
     css: hex2(box),

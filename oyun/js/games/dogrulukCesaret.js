@@ -4,8 +4,8 @@
 // O kişi doğruluk ya da cesaret seçer; masanın ortasından bir kart uçup önüne dikilir (mavi doğruluk, kırmızı cesaret).
 // Yaptı mı? Konfeti ve alkış; pas mı? Hüzünlü trombon. Masa kiti (masa3d.js) ve Kurye Yarışı motoruyla çizilir;
 // WebGL yoksa 2D görünüm gösterilir.
-import { _masa } from './masa3d.js?v=2026-11-20-c';
-import * as sfx from '../sfx.js?v=2026-11-20-c';
+import { _masa } from './masa3d.js?v=2026-11-21-a';
+import * as sfx from '../sfx.js?v=2026-11-21-a';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs, trophyModel } = K;

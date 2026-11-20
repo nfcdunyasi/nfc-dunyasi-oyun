@@ -1,7 +1,7 @@
-import * as sfx from './sfx.js?v=2026-11-20-c';
-import { $, esc, toast, vibrate, fmtTime } from './ui.js?v=2026-11-20-c';
-import { gameRenderers } from './games/index.js?v=2026-11-20-c';
-import { THEMES, THEME_VARS } from './themes.js?v=2026-11-20-c';
+import * as sfx from './sfx.js?v=2026-11-21-a';
+import { $, esc, toast, vibrate, fmtTime } from './ui.js?v=2026-11-21-a';
+import { gameRenderers } from './games/index.js?v=2026-11-21-a';
+import { THEMES, THEME_VARS } from './themes.js?v=2026-11-21-a';
 
 const SESSION_KEY = 'nfcd:session';
 const NICK_KEY = 'nfcd:nick';
@@ -141,11 +141,15 @@ let currentScreen = null;
 // ---- İşletme teması: sadece QR ile gelenlere (ya da o QR'ın odasındakilere) uygulanır ----
 const qrSlug = String(new URLSearchParams(location.search).get('kaynak') ?? window.OYUN_KAYNAK ?? '').toLowerCase(); // OYUN_KAYNAK: sadece önizleme sayfası kullanır
 // Tema yalnızca bu açılışta ?kaynak=<kod> varsa geçerli olur; kodsuz açılan sayfa her zaman standart görünümdür.
-try { if (THEMES[qrSlug]) sessionStorage.setItem('oyun-tema', qrSlug); else sessionStorage.removeItem('oyun-tema'); } catch { /* gizli sekme */ }
+const SLUG_OK = (x) => /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/.test(x);
+// Panelden eklenen temalar sonradan yüklenir; kod geçerliyse şimdiden saklanır, tema gelince uygulanır
+try { if (THEMES[qrSlug] || SLUG_OK(qrSlug)) sessionStorage.setItem('oyun-tema', qrSlug); else sessionStorage.removeItem('oyun-tema'); } catch { /* gizli sekme */ }
 let themeSlug = null;
 function currentThemeSlug() {
   let saved = ''; try { saved = sessionStorage.getItem('oyun-tema') ?? ''; } catch { /* yok say */ }
+  if (saved && !THEMES[saved] && SLUG_OK(saved)) uzakTema(saved);
   const slug = THEMES[saved] ? saved : String(state.room?.source ?? '').toLowerCase();
+  if (!THEMES[slug] && SLUG_OK(slug)) uzakTema(slug);
   return THEMES[slug] ? slug : null;
 }
 function syncTheme() {
@@ -174,12 +178,55 @@ function decoUrl(list) {
   const txt = spots.map(([x, y, r, z], i) => `<text x="${x}" y="${y}" font-size="${z}" transform="rotate(${r} ${x} ${y})">${list[i % list.length]}</text>`).join('');
   return `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320">${txt}</svg>`)}")`;
 }
+function decoOf(slug) { const d = THEMES[slug]?.deco; return d?.length ? d : DECO[slug]; }
 function applyDeco(slug) {
   let el = document.getElementById('deco');
-  if (!DECO[slug]) { el?.remove(); return; }
+  const list = decoOf(slug);
+  // arka planda uçuşan şekiller (parti.js) panelden eklenen temalarda da işletmenin süsleri olur
+  if (list && THEMES[slug]?.deco?.length) {
+    document.documentElement.setAttribute('data-th', slug);
+    document.querySelectorAll('#bgfx i').forEach((n, k) => { n.textContent = list[k % list.length]; });
+  }
+  if (!list) { el?.remove(); return; }
   if (!el) { el = document.createElement('div'); el.id = 'deco'; el.setAttribute('aria-hidden', 'true'); document.body.prepend(el); }
-  el.style.backgroundImage = decoUrl(DECO[slug]);
+  el.style.backgroundImage = decoUrl(list);
 }
+
+// ---- Yönetici panelinden gelen temalar (/api/tema/<kod>): yerleşik temayı günceller ya da yeni tema ekler ----
+const STATIK = { ...THEMES };
+const UZAK = new Map();
+const hex2 = (rgb) => '#' + String(rgb).split(' ').map((x) => Math.max(0, Math.min(255, +x || 0)).toString(16).padStart(2, '0')).join('');
+const karis = (rgb, to, k) => { const a = String(rgb).split(' ').map(Number); return '#' + a.map((x, i) => Math.round(x + (to[i] - x) * k).toString(16).padStart(2, '0')).join(''); };
+function arenaOto(v) {
+  const W = [255, 255, 255];
+  return { fa: karis(v.gece, W, 0.55), fb: karis(v.gece, W, 0.75), rug: hex2(v.gece), rugB: hex2(v.ortu), edge: hex2(v.limon), haze: karis(v.gece, W, 0.92), top: '#58c4ff', hor: karis(v.gece, W, 0.85), K: [hex2(v.gece), hex2(v.limon), '#ffffff', hex2(v.morarti), hex2(v.cay), hex2(v.murekkep)] };
+}
+function uzakUygula(slug, d) {
+  if (!d || d.yok) { if (STATIK[slug]) THEMES[slug] = STATIK[slug]; else delete THEMES[slug]; return; }
+  if (d.aktif === false || !d.tema?.vars) { delete THEMES[slug]; return; }
+  const b = STATIK[slug] || {}, t = d.tema;
+  THEMES[slug] = { ...b, ...t, logo: t.logo || b.logo, shape: t.shape || undefined, links: { ...(b.links || {}), ...(t.links || {}) }, vars: { ...t.vars }, arena: b.arena || arenaOto(t.vars) };
+}
+function uzakTema(slug) {
+  if (!SLUG_OK(slug)) return Promise.resolve();
+  if (UZAK.has(slug)) return UZAK.get(slug);
+  let onceki = null;
+  try { onceki = JSON.parse(localStorage.getItem('oyun-uzak:' + slug) || 'null'); if (onceki) uzakUygula(slug, onceki); } catch { /* yok say */ }
+  const p = fetch('/api/tema/' + slug, { cache: 'no-cache' })
+    .then((r) => (r.status === 404 ? { yok: true } : r.ok ? r.json() : null))
+    .then((d) => {
+      if (!d || (d.yok && !onceki && !STATIK[slug] && !THEMES[slug])) return;
+      if (JSON.stringify(d) === JSON.stringify(onceki)) return;
+      try { if (d.yok) localStorage.removeItem('oyun-uzak:' + slug); else localStorage.setItem('oyun-uzak:' + slug, JSON.stringify(d)); } catch { /* dolu */ }
+      uzakUygula(slug, d);
+      themeSlug = '\u0000'; render();
+    })
+    .catch(() => {});
+  UZAK.set(slug, p);
+  return p;
+}
+const ilkTema = qrSlug ? uzakTema(qrSlug) : null;
+let temaBekle = !!(qrSlug && !THEMES[qrSlug] && SLUG_OK(qrSlug)); // yeni tema gelene kadar varsayılan görünüm hiç çizilmesin
 // İşletme temasında "Bizi puanla" ve "Bizi takip et" butonları (sadece QR ile gelenlerde)
 function brandLinks() {
   const t = THEMES[themeSlug];
@@ -205,6 +252,7 @@ function brandHero() {
 }
 
 function render() {
+  if (temaBekle) return;
   syncTheme();
   const next = !state.room ? 'home' : state.room.gameId ? `game:${state.room.gameId}` : 'lobby';
 
@@ -719,4 +767,6 @@ document.addEventListener('input', (e) => {
   if (e.target.id === 'code') e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
 });
 
-render();
+// Panelden eklenen yeni bir temayla gelindiyse ilk çizimi tema gelene kadar (en çok 1,8 sn) beklet
+if (temaBekle) Promise.race([ilkTema, new Promise((r) => setTimeout(r, 1800))]).then(() => { temaBekle = false; themeSlug = '\u0000'; render(); });
+else render();

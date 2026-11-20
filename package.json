@@ -1,0 +1,8 @@
+{
+  "name": "nfc-dunyasi-site",
+  "private": true,
+  "description": "nfcdunyasi.com — statik site ve Okut ve Oyna yönetici paneli fonksiyonu",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

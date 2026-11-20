@@ -1,0 +1,14 @@
+# Statik site kökten yayınlanır; yönetici paneli arka ucu netlify/functions içindedir (ücretsiz plan).
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+[[headers]]
+  for = "/yonetim/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "no-referrer"

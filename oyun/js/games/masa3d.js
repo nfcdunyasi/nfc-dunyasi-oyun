@@ -3,8 +3,8 @@
 // parçaları (yuvarlak masa ve örtü, sandalye, halı, sarkıt lamba, duvar, çay bardağı...), oturma düzeni, kamera
 // sığdırma ve oyun kabuğu (HUD, kartlar, isim etiketleri, emoji tepkileri, WebGL yaşam döngüsü, 2D yedek görünüm).
 // Kurye Yarışı'nın küçük WebGL motorunu kullanır.
-import { _eng } from './kuryeYarisi.js?v=2026-11-20-c';
-import * as sfx from '../sfx.js?v=2026-11-20-c';
+import { _eng } from './kuryeYarisi.js?v=2026-11-21-a';
+import * as sfx from '../sfx.js?v=2026-11-21-a';
 
 const E = _eng();
 const { limb, ik2, psurf, ctx2d, podiumHTML, placeLabels, EmoteUI, KIT, drawToon, aoOn, detailOn, postFX, shadowBegin, shadowCast, shadowEnd, emitSoft, autoRes, clamp, lerp, damp, esc, hexRGB, C, shade, M, makeGL, MB, freeMesh, makeTexture, updateTexture, useProg, drawMesh, drawSky, drawDynamic, norm3, brandInfo, Res, Snd, pcol, vibrate, medal, ONE3, injectStyle } = E;
@@ -1192,7 +1192,8 @@ function arenaOf(cfg, brand) {
   const W = WORLDS[cfg.world || cfg.tag] || WORLDS.kyp;
   const A = Object.assign({ floor: 'rays', objs: ['block'], flags: true, fl: 'balloon', star: 'star', night: false }, W);
   // işletme teması: dünyanın biçimi oyundan, renkleri işletmeden
-  if (brand && ARENA_BRANDS[brand.slug]) Object.assign(A, ARENA_BRANDS[brand.slug], { brand: true, night: false, fc: null, fd: null, multi: false, fl: A.fl === 'none' || A.fl === 'lantern' ? 'balloon' : A.fl });
+  const AB = brand && (ARENA_BRANDS[brand.slug] || brand.arena); // panelden eklenen temalar renkleri temadan türetir
+  if (AB) Object.assign(A, AB, { brand: true, night: false, fc: null, fd: null, multi: false, fl: A.fl === 'none' || A.fl === 'lantern' ? 'balloon' : A.fl });
   if (cfg.venue !== false && VENUES[cfg.world || cfg.tag]) { const V = VENUES[cfg.world || cfg.tag]; A.venue = V; if (V.sky) { A.top = V.sky[0]; A.hor = V.sky[1]; A.haze = V.sky[2]; } }
   return A;
 }

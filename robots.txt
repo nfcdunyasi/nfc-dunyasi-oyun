@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /q/
 Disallow: /oda/
+Disallow: /yonetim/
 
 Sitemap: https://nfcdunyasi.com/sitemap.xml
