@@ -4,8 +4,8 @@
 // önündeki zil yanar ve üstünde rengi kendisine ait bir ışık topu belirir (seçimi gizli). Açılışta toplar en hızlıdan
 // başlayarak seçilen şıkka uçar, doğru şık parlar, yanlışlar söner, bilenlerin başında puan çıkar. Sonda sahneden puan
 // kuleleri yükselir, birincinin kulesinde kupa. Masa kiti (masa3d.js) ve Kurye Yarışı motoruyla çizilir; WebGL yoksa 2D.
-import { _masa } from './masa3d.js?v=2026-11-20-b';
-import * as sfx from '../sfx.js?v=2026-11-20-b';
+import { _masa } from './masa3d.js?v=2026-11-20-c';
+import * as sfx from '../sfx.js?v=2026-11-20-c';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs } = K;

@@ -1,1 +1,1 @@
-export { render, destroy } from './speedQuiz.js?v=2026-11-20-b';
+export { render, destroy } from './speedQuiz.js?v=2026-11-20-c';

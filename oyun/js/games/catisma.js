@@ -1,9 +1,9 @@
 // Çatışma — birinci şahıs takım savaşı (NFC Dünyası Oyun)
 // Telefon için tasarlandı: sol kol yürüme, sağ taraf nişan, ateş / dürbün / şarjör / zıpla / eğil, oto ateş ve nişan yardımı.
 // Hareket ve nişan istemcide; can, isabet doğrulama, skor ve botlar sunucuda. Harita ve silah tanımları sunucuyla ortak (GEN).
-import { _eng } from './kuryeYarisi.js?v=2026-11-20-b';
-import { _masa } from './masa3d.js?v=2026-11-20-b';
-import * as sfx from '../sfx.js?v=2026-11-20-b';
+import { _eng } from './kuryeYarisi.js?v=2026-11-20-c';
+import { _masa } from './masa3d.js?v=2026-11-20-c';
+import * as sfx from '../sfx.js?v=2026-11-20-c';
 const { limb, EmoteUI, Snd, esc, pcol, vibrate, medal, injectStyle, clamp, lerp, damp, hexRGB, C, shade, M, makeGL, MB, freeMesh, drawMesh, drawSky, drawDynamic, emitSoft, useProg, shadowBegin, shadowCast, shadowEnd, shadowSet, aoOn, detailOn, postFX, norm3, brandInfo, ONE3, autoRes, podiumHTML } = _eng();
 const { styleOf } = _masa();
 
@@ -268,15 +268,16 @@ const STYLE = `
 #ky.ct .msg{z-index:7;pointer-events:none;top:22%}
 #ky.ct .panel{z-index:9}
 #ky.ct .panel .card{max-height:calc(100% - 8px);overflow:auto;overscroll-behavior:contain}
-@media (max-width:430px) and (orientation:portrait){#ky.ct div.ct-top{left:calc(env(safe-area-inset-left,0px) + 8px);transform:none}}
+@media (max-width:430px) and (orientation:portrait){#ky.ct div.ct-top{left:calc(env(safe-area-inset-left,0px) + 12px);transform:none}}
 @media (max-width:370px){#ky.ct div.ct-top .t{min-width:44px;padding:3px 6px;font-size:17px}#ky.ct div.ct-top .tm{min-width:48px;padding:0 6px;font-size:13px}}
 @media (max-height:680px){#ky.ct .panel .how{display:none}}
-#ky.ct .ct-top{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 8px);transform:translateX(-50%);display:flex;align-items:stretch;gap:0;z-index:5;pointer-events:none;font-weight:900;border-radius:12px;overflow:hidden;box-shadow:0 3px 0 rgba(0,0,0,.35)}
+#ky.ct .ct-top{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 8px);transform:translateX(-50%);display:flex;align-items:stretch;gap:5px;z-index:5;pointer-events:none;font-weight:900}
+#ky.ct .ct-top>div{border-radius:11px;overflow:hidden;box-shadow:0 3px 0 rgba(0,0,0,.38)}
 #ky.ct .ct-top .t{min-width:54px;padding:3px 10px;color:#fff;font-size:20px;line-height:1.1;text-align:center;position:relative}
 #ky.ct .ct-top .t small{display:block;font-size:9px;font-weight:800;opacity:.85;letter-spacing:.04em}
-#ky.ct .ct-top .t i{position:absolute;left:0;bottom:0;height:3px;background:#fff;opacity:.9}
+#ky.ct .ct-top .t i{position:absolute;left:0;bottom:0;height:3px;background:rgba(255,255,255,.9)}
 #ky.ct .ct-top .t0{background:#e5484d}#ky.ct .ct-top .t1{background:#3b82f6}
-#ky.ct .ct-top .t.me:after{content:"";position:absolute;inset:0;border:2px solid #fff;border-radius:inherit;pointer-events:none}
+#ky.ct .ct-top .t.me{box-shadow:0 0 0 2px #fff,0 3px 0 2px rgba(0,0,0,.38)}
 #ky.ct .ct-top .tm{background:rgba(12,14,20,.86);color:#fff;font-size:15px;padding:0 10px;display:grid;place-items:center;font-variant-numeric:tabular-nums;min-width:58px}
 #ky.ct .ct-top .tm.warn{color:#ffd23f}
 #ky.ct .ct-top .tm small{display:block;font-size:9px;opacity:.7;font-weight:700;margin-top:-3px}
@@ -2069,6 +2070,13 @@ class Game {
     document.body.appendChild(w);
     const q = (s) => w.querySelector(s);
     this.el = { bNade: q('.ct-b.nade'), wflash: q('.ct-wflash'), nwarn: q('.ct-nwarn'), wrap: w, cv: q('canvas.ct-cv'), tags: q('.ct-tags'), x: q('.ct-x'), xi: [...w.querySelectorAll('.ct-x i')].slice(1), hm: q('.ct-hm'), radar: q('.ct-radar'), top: q('.ct-top'), feed: q('.ct-feed'), ann: q('.ct-ann'), prot: q('.ct-prot'), joyhint: q('.ct-joyhint'), joy: q('.ct-joy'), knob: q('.ct-joy i'), hp: q('.ct-hp'), hpB: q('.ct-hp b'), hpI: q('.ct-hp .bar i'), ammo: q('.ct-ammo'), ws: [...w.querySelectorAll('.ct-w')], dmg: q('.ct-dmg'), low: q('.ct-low'), hit: q('.ct-hit'), deadB: q('.ct-dead b'), deadS: q('.ct-dead span'), deadE: q('.ct-dead em'), ex: q('.ex'), msg: q('.msg'), panel: q('.panel'), bAds: q('.ct-b.ads'), bCrouch: q('.ct-b.crouch'), bAuto: q('.ct-b.auto') };
+    const goFS = () => {
+      const d = document, r = d.documentElement, fsEl = d.fullscreenElement || d.webkitFullscreenElement;
+      try { if (!fsEl) { const f = r.requestFullscreen || r.webkitRequestFullscreen; if (f) { const pr = f.call(r, { navigationUI: 'hide' }); if (pr && pr.catch) pr.catch(() => {}); } } } catch (e) {}
+      try { const o = screen.orientation; if (o && o.lock) o.lock('landscape').catch(() => {}); } catch (e) {}
+    };
+    this.el.wrap.addEventListener('pointerup', goFS, { once: true });
+    this.el.wrap.addEventListener('touchend', goFS, { once: true, passive: true });
     this.el.bAuto.classList.toggle('act', this.auto);
     this.prevOverflow = document.documentElement.style.overflow;
     document.documentElement.style.overflow = 'hidden';
@@ -3200,7 +3208,7 @@ class Game {
           <div><span class="k">🔫</span><span><b>Tüfek · Makineli · Pompalı · Keskin</b><small>Kafadan vuruş çok daha fazla can götürür. Keskin nişancı için dürbünü aç</small></span></div>
           <div><span class="k">❤️</span><span><b>Siper al, can dolsun</b><small>5 saniye vurulmazsan canın yenilenir. Ölünce 3 saniyede geri doğarsın</small></span></div>
         </div>
-        <div class="ct-rot">📱 Telefonu yan çevirirsen çok daha rahat oynarsın.</div>
+        <div class="ct-rot">📱 Telefonu yan çevir, çok daha rahat oynarsın. (iPhone: Paylaş → “Ana Ekrana Ekle” ile tam ekran açılır.)</div>
         <div class="ct-opt">
           ${ctx.isHost ? `<div class="r"><span>Mod</span>${chip('mode', 'coop', 'Birlikte', o.mode)}${chip('mode', 'tdm', 'Takım', o.mode)}${chip('mode', 'ffa', 'Herkes tek', o.mode)}</div>
           <div class="r"><span>Süre</span>${(o.durs || [3, 5, 8]).map((m) => chip('dur', m, m + ' dk', o.dur)).join('')}</div>
