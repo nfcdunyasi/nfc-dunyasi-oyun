@@ -4,8 +4,8 @@
 // anlatıcı dokununca bilen ayağa fırlar, kart anlatıcının önündeki yığına uçar. Gözcü kural ihlalinde kırmızı kart kaldırır.
 // Anlatıcı bir botsa ipuçları balonlarda belirir, masadakiler tahminini yazar. Masa kiti (masa3d.js) ve Kurye Yarışı
 // motoruyla çizilir; WebGL yoksa 2D görünüm gösterilir. Sessiz Sinema bu dosyayı kullanır (view.kind = 'mime').
-import { _masa } from './masa3d.js?v=2026-11-20-a';
-import * as sfx from '../sfx.js?v=2026-11-20-a';
+import { _masa } from './masa3d.js?v=2026-11-20-b';
+import * as sfx from '../sfx.js?v=2026-11-20-b';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs, trophyModel } = K;

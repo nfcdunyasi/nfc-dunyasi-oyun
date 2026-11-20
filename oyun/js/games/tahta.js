@@ -1,6 +1,6 @@
 // Masa oyunları — Satranç, Tavla, Okey ve 101 Okey (NFC Dünyası Oyun)
 // Kurallar sunucuyla ortak (GEN blokları): istemci hamleleri önceden gösterir, sunucu yine de her hamleyi denetler.
-import * as sfx from '../sfx.js?v=2026-11-20-a';
+import * as sfx from '../sfx.js?v=2026-11-20-b';
 
 // ==GEN== (w/sc_gen.js'ten kopyalanır: sunucu ve istemcide aynı satranç kuralları)
 // Tahta: 64 kare, 0 = a8 … 63 = h1. Taşlar: beyaz 'PNBRQK', siyah 'pnbrqk', boş ''.

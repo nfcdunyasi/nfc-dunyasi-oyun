@@ -1,7 +1,7 @@
 // Sosis Bowling — 3D bowling (NFC Dünyası Oyun)
 // Kurye Yarışı'nın küçük WebGL motorunu yeniden kullanır. Herkes kendi kulvarında atış yapar; fizik telefonda döner,
 // sunucu her atışta devrilen şişe sayısını doğrular ve sıralamayı tutar.
-import { _eng } from './kuryeYarisi.js?v=2026-11-20-a';
+import { _eng } from './kuryeYarisi.js?v=2026-11-20-b';
 const { ctx2d, podiumHTML, EmoteUI, detailOn, postFX, shadowBegin, shadowCast, shadowEnd, shadowSet, emitSoft, autoRes, sfx, clamp, lerp, damp, esc, hexRGB, C, shade, M, makeGL, MB, freeMesh, makeTexture, updateTexture, drawMesh, drawDynamic, useProg, TOD, norm3, brandInfo, Res, Snd, pcol, vibrate, medal, ONE3, injectStyle } = _eng();
 
 /* ============================ fizik ============================ */

@@ -1,7 +1,7 @@
 // Kurye Yarışı — 3D yarış oyunu (NFC Dünyası Oyun)
 // Dış kütüphane yok: kendi küçük WebGL motoru, düşük poligonlu şehir, işletmenin rengi/logosu/yiyecekleri.
 // Herkes aynı pistte kendi telefonunda sürer; sunucu ilerlemeleri toplar, rakipler "hayalet" olarak görünür.
-import * as sfx from '../sfx.js?v=2026-11-20-a';
+import * as sfx from '../sfx.js?v=2026-11-20-b';
 
 // Ortak çekirdek (sunucudaki botlar da birebir aynı kodu kullanır)
 const KY = (() => {
@@ -1759,6 +1759,161 @@ function padModel(mb) {
   return mb;
 }
 
+
+/* ============ tatlı parçaları (Eliz temasında hem Kurye/masa sahnelerinde hem Mutfak Kaosu'nda kullanılır) ============ */
+const DES = (() => {
+  const hs = (a, b) => { const s = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return s - Math.floor(s); };
+  const mix = (a, b, t) => { const A = C(a), B = C(b); return [A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t, A[2] + (B[2] - A[2]) * t, A[3] + (B[3] - A[3]) * t]; };
+  // bütün çilek: sivri uç aşağıda, omuzlarda koyu kırmızı; yüzeyde çukurdaki sarı çekirdekler, sarkan çanak yapraklar ve kısa sap
+  function straw(mb, x, y, z, s = 1, yaw = 0, tilt = 0) {
+    const P = [[0, 0], [0.03, 0.012], [0.068, 0.055], [0.098, 0.11], [0.114, 0.16], [0.116, 0.195], [0.104, 0.225], [0.078, 0.245], [0.04, 0.256], [0, 0.26]];
+    const col = ['#f24a2e', '#f04030', '#e8312a', '#dd2524', '#d41d22', '#c9181f', '#c0141d', '#b8121b', '#ad101a', '#a80f19'];
+    mb.push().T(x, y, z, yaw, tilt, 0, s);
+    mb.lathe(0, 0, 0, P, 22, (i) => C(col[i], -0.62));
+    const rAt = (h) => { for (let i = 1; i < P.length; i++) if (P[i][1] >= h) { const t = (h - P[i - 1][1]) / (P[i][1] - P[i - 1][1]); return P[i - 1][0] + (P[i][0] - P[i - 1][0]) * t; } return 0; };
+    for (let k = 0; k < 34; k++) {
+      const h = 0.03 + (k / 34) * 0.19, a = k * 2.39996, r = rAt(h) * 0.985;
+      mb.push().T(Math.cos(a) * r, h, Math.sin(a) * r, -a, 0, Math.PI / 2);
+      mb.sphereS(0, 0, 0, 0.007, 0.004, 0.0105, C(k % 3 ? '#ffd65a' : '#f5c040', -0.35), 5, 3);
+      mb.pop();
+    }
+    for (let k = 0; k < 7; k++) {
+      const a = (k / 7) * Math.PI * 2 + 0.3;
+      mb.push().T(Math.cos(a) * 0.045, 0.252, Math.sin(a) * 0.045, -a, 0, -0.5 - 0.15 * (k % 2));
+      mb.sphereS(0.045, 0, 0, 0.055, 0.007, 0.02, null, 10, 4, (ux) => mix('#2f8a2a', '#6cc04a', clamp(ux * 0.5 + 0.5, 0, 1)));
+      mb.pop();
+    }
+    limb(mb, [0, 0.25, 0], [0.012, 0.31, 0.006], [0.009, 0.007], C('#4f7d24', -0.3), 6, null, 1);
+    mb.pop();
+  }
+  // çilek dilimi: yatay yatan, damla biçimli kesit — kırmızı kabuk, pembe et, ortada beyaz öz
+  function strawSlice(mb, x, y, z, yaw = 0, s = 1) {
+    mb.push().T(x, y, z, yaw, 0, 0, s);
+    const cf = (ux, uy, uz) => {
+      const d = Math.hypot(ux, uz);
+      if (Math.abs(uy) < 0.45 || d > 0.9) return C('#cf1d1f', -0.6);
+      if (d > 0.68) return C(hs(Math.floor(ux * 9), Math.floor(uz * 9)) > 0.86 ? '#ffd65a' : '#e9393a', -0.55);
+      if (Math.abs(uz) < 0.14 && ux > -0.55 && ux < 0.45) return C('#fff1ec', -0.5);
+      return mix('#ff8f86', '#ffc6bd', 1 - d * 1.2);
+    };
+    mb.sphereS(0, 0.011, 0, 0.078, 0.011, 0.064, null, 18, 6, cf);
+    mb.sphereS(0.05, 0.011, 0, 0.05, 0.0102, 0.034, null, 12, 6, (ux, uy) => (Math.abs(uy) < 0.45 ? C('#cf1d1f', -0.6) : C('#e9393a', -0.55)));
+    mb.pop();
+  }
+  // muz: kesitli (köşeli) kavisli gövde; sapa doğru yeşilimsi, uçta kahverengi nokta
+  function banana(mb, x, y, z, yaw = 0, s = 1, roll = 0) {
+    const R = [], n = 18;
+    for (let i = 0; i <= n; i++) {
+      const t = i / n, xx = (t - 0.5) * 0.5, yy = 0.2 * (t - 0.5) * (t - 0.5) + 0.05;
+      const w = i === 0 ? 0.016 : i === n ? 0.012 : 0.02 + 0.034 * Math.pow(Math.sin(Math.PI * t), 0.55);
+      R.push({ c: [xx, yy, 0], a: w, b: w * 0.92, e: 0.82 });
+    }
+    mb.push().T(x, y, z, yaw, 0, roll, s);
+    loft(mb, R, (i, k) => {
+      const t = i / n;
+      if (t < 0.06) return C('#6f6a2a', -0.3);
+      if (t > 0.96) return C('#3a2814', -0.25);
+      const g = clamp((0.24 - t) / 0.18, 0, 1), ridge = k % 4 === 0 ? 0.12 : 0;
+      const c = mix('#f8d63e', '#b7c43a', g * 0.8);
+      return [c[0] * (1 - ridge), c[1] * (1 - ridge), c[2] * (1 - ridge), -0.45];
+    }, 16, 'se', [0, 1, 0]);
+    limb(mb, [-0.255, 0.1, 0], [-0.3, 0.135, 0], [0.012, 0.01], C('#5e5a24', -0.3), 6, null, 1);
+    mb.pop();
+  }
+  function bananaSlice(mb, x, y, z, s = 1) {
+    const r = 0.058 * s, h = 0.02 * s;
+    mb.lathe(x, y, z, [[0, 0], [r, 0], [r * 1.03, h * 0.5], [r, h], [r * 0.82, h], [r * 0.42, h * 1.02], [0, h * 1.04]], 18, (i) => C(['#efe0a6', '#efe0a6', '#f3e6b2', '#f6ebbf', '#fff6d8', '#f0e1a8', '#fffaea'][i], -0.42));
+    for (let k = 0; k < 3; k++) { const a = k * 2.094 + 0.4; mb.sphereS(x + Math.cos(a) * r * 0.2, y + h * 1.04, z + Math.sin(a) * r * 0.2, r * 0.07, r * 0.03, r * 0.07, C('#6b4a2a', -0.3), 5, 3); }
+  }
+  // waffle: köşeleri yuvarlak gövde, derin gözler, kızarmış çıtalar ve dış çerçeve. W yarım genişlik, n göz sayısı
+  function waffle(mb, x, y, z, W = 0.26, H = 0.075, n = 5, burnt = false, yaw = 0, tilt = 0) {
+    const base = burnt ? '#1c1511' : '#b56e2a', rid = burnt ? '#2e231b' : '#eaa94e', top = burnt ? '#3a2c22' : '#f6c870';
+    mb.push().T(x, y, z, yaw, tilt, 0);
+    mb.rbox(-W, 0, -W, W, H * 0.62, W, W * 0.16, C(base, burnt ? -0.1 : -0.3), 3);
+    const step = (2 * W) / n, rw = step * 0.2;
+    for (let k = 0; k <= n; k++) {
+      const p = -W + k * step, edge = k === 0 || k === n;
+      const c1 = C(edge ? top : hs(k, 3) > 0.5 ? rid : top, burnt ? -0.1 : -0.45);
+      mb.rbox(p - rw, H * 0.4, -W, p + rw, H, W, rw * 0.7, c1, 2);
+      mb.rbox(-W, H * 0.4, p - rw, W, H * 0.985, p + rw, rw * 0.7, C(hs(k, 7) > 0.5 ? rid : top, burnt ? -0.1 : -0.45), 2);
+    }
+    // gözlerin dibi: koyu, hafif parlak tereyağı
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+      const cx = -W + (i + 0.5) * step, cz = -W + (j + 0.5) * step;
+      mb.box(cx - step * 0.3, H * 0.6, cz - step * 0.3, cx + step * 0.3, H * 0.63, cz + step * 0.3, C(burnt ? '#120d0a' : hs(i, j) > 0.7 ? '#e0a048' : '#9c5a22', burnt ? -0.1 : -0.55));
+    }
+    mb.pop();
+  }
+  // çikolata sosu: üstten akıtılmış ince zikzak çizgiler (parlak)
+  function drizzle(mb, y, R, lines = 5, seed = 1) {
+    const col = C('#3a1a0b', -0.85);
+    for (let l = 0; l < lines; l++) {
+      const zz = -R * 0.8 + (l / Math.max(1, lines - 1)) * R * 1.6, rings = [];
+      const half = Math.sqrt(Math.max(0, R * R - zz * zz)) * 0.95;
+      for (let i = 0; i <= 14; i++) {
+        const t = i / 14, xx = -half + t * 2 * half;
+        rings.push({ c: [xx, y + 0.004 * Math.sin(t * 9 + l), zz + 0.01 * Math.sin(t * 6 + l * 2 + seed)], a: 0.0065, b: 0.005 });
+      }
+      loft(mb, rings, col, 6, 'se', [0, 1, 0]);
+    }
+  }
+  // tepeden akan çikolata damlası: kenardan aşağı uzayan, ucu şişkin damla
+  function drip(mb, x, y, z, len, r = 0.016) {
+    const col = C('#3a1a0b', -0.85);
+    limb(mb, [x, y, z], [x, y - len, z], [r * 0.8, r * 0.75, r * 1.25], col, 8, null, 2);
+  }
+  // krem şanti: dişli huni yığını + sivri tepe
+  function cream(mb, x, y, z, s = 1) {
+    const prof = [[0, 0], [0.07, 0], [0.074, 0.02], [0.062, 0.045], [0.05, 0.06], [0.054, 0.075], [0.038, 0.095], [0.028, 0.11], [0.03, 0.12], [0.014, 0.14], [0, 0.155]].map(([r, h]) => [r * s, h * s]);
+    mb.push().T(x, y, z);
+    mb.lathe(0, 0, 0, prof, 24, (i, a) => C(Math.cos(a * 8) > 0.3 ? '#fffdf6' : '#f3eadb', -0.35));
+    mb.pop();
+  }
+  function sugar(mb, y, R, n = 40, seed = 3) {
+    for (let k = 0; k < n; k++) { const a = k * 2.39996 + seed, r = R * Math.sqrt((k + 0.5) / n); mb.sphereS(Math.cos(a) * r, y + 0.002 * hs(k, seed), Math.sin(a) * r, 0.006, 0.003, 0.006, C('#ffffff', -0.1), 5, 3); }
+  }
+  // kase: ayaklı, derin; dışı işletme renginde parlak seramik, beyaz dudak, içi açık
+  function bowl(mb, y, R, bh, H = R * 0.62) {
+    const out = (t) => mix(bh || '#0c96ac', '#0a6f80', t);
+    const P = [[0, 0], [R * 0.4, 0], [R * 0.43, H * 0.06], [R * 0.4, H * 0.1], [R * 0.6, H * 0.28], [R * 0.86, H * 0.66], [R * 0.98, H * 0.94], [R, H], [R * 0.95, H * 1.005], [R * 0.86, H * 0.74], [R * 0.6, H * 0.36], [R * 0.3, H * 0.2], [0, H * 0.18]];
+    mb.lathe(0, y, 0, P, 30, (i) => (i <= 3 ? C('#0a5f6e', -0.5) : i <= 6 ? (() => { const c = out((6 - i) / 4); return [c[0], c[1], c[2], -0.7]; })() : i <= 8 ? C('#f4fdfe', -0.65) : (() => { const c = mix(bh || '#0c96ac', '#ffffff', i < 10 ? 0.55 : i < 11 ? 0.45 : 0.38); return [c[0], c[1], c[2], -0.6]; })()));
+    return y + H * 0.2;
+  }
+  // tatlı kupu: şeffaf bardakta dalgalı katlar (kek, krema, bisküvi), parlama çizgisi, kakaolu tepe
+  function cup(mb, y, s, bh, topping = 'cocoa') {
+    const Hc = 0.5 * s, r0 = 0.15 * s, r1 = 0.2 * s, N = 30, P = [[0, 0]];
+    for (let i = 0; i <= N; i++) { const t = i / N; P.push([r0 + (r1 - r0) * t, t * Hc]); }
+    P.push([0, Hc]);
+    const LAY = [[0.2, '#4e2510'], [0.36, '#fff1d6'], [0.46, '#c48644'], [0.64, '#fff3dc'], [0.78, '#6b3418'], [1.01, '#fff6e6']];
+    mb.lathe(0, y, 0, P, 44, (i, a) => {
+      if (i === 0 || i === P.length - 1) return C('#4e2510', -0.5);
+      const t = (i - 1) / N + 0.014 * Math.sin(a * 4);
+      let c = (LAY.find((L) => t < L[0]) || LAY[LAY.length - 1])[1];
+      let cc = C(c, -0.6);
+      if (c === '#c48644' && hs(Math.floor(a * 9), i) > 0.6) cc = C('#8c5426', -0.5);
+      const hl = Math.cos(a - 0.9) > 0.94 ? 0.45 : Math.cos(a - 1.1) > 0.85 ? 0.15 : 0;
+      return [cc[0] + (1 - cc[0]) * hl, cc[1] + (1 - cc[1]) * hl, cc[2] + (1 - cc[2]) * hl, -0.75];
+    });
+    mb.torusN(0, y + Hc, 0, r1 + 0.004 * s, 0.009 * s, 0.009 * s, 32, 5, C('#f2fbfc', -0.85));
+    if (topping === 'cocoa') {
+      mb.sphereS(0, y + Hc, 0, r1 * 0.98, 0.06 * s, r1 * 0.98, null, 26, 8, (ux, uy, uz) => { const n = hs(Math.floor((ux + 1) * 21), Math.floor((uz + 1) * 21)); return uy < 0 ? C('#fff1d6', -0.4) : n > 0.72 ? [0.29, 0.15, 0.07, -0.12] : [0.43, 0.24, 0.12, -0.12]; });
+      for (let k = 0; k < 9; k++) { const a = k * 2.39996, r = r1 * 0.7 * Math.sqrt((k + 0.5) / 9); mb.rbox(Math.cos(a) * r - 0.012 * s, y + Hc + 0.045 * s, Math.sin(a) * r - 0.008 * s, Math.cos(a) * r + 0.012 * s, y + Hc + 0.058 * s, Math.sin(a) * r + 0.008 * s, 0.004 * s, C(k % 2 ? '#2a1208' : '#f7ead0', -0.3), 1); }
+    } else {
+      mb.sphereS(0, y + Hc, 0, r1 * 0.98, 0.05 * s, r1 * 0.98, C('#fffaf0', -0.35), 24, 7);
+      cream(mb, 0, y + Hc + 0.02 * s, 0, s * 0.9);
+      strawSlice(mb, -r1 * 0.5, y + Hc + 0.04 * s, r1 * 0.2, 0.5, s * 0.9);
+      bananaSlice(mb, r1 * 0.48, y + Hc + 0.035 * s, -r1 * 0.25, s * 0.9);
+      straw(mb, 0.02 * s, y + Hc + 0.13 * s, 0, s * 0.55, 0.4, 0.3);
+    }
+    const sp = bh ? C(bh, -0.75) : C('#2aa6c8', -0.75);
+    limb(mb, [0.06 * s, y + Hc + 0.03 * s, -0.02 * s], [0.13 * s, y + Hc + 0.3 * s, -0.04 * s], [0.012 * s, 0.014 * s], sp, 8, null, 2);
+    mb.push().T(0.05 * s, y + Hc + 0.02 * s, -0.02 * s, 0, 0, 0.3);
+    mb.sphereS(0, 0, 0, 0.034 * s, 0.014 * s, 0.026 * s, sp, 10, 6);
+    mb.pop();
+  }
+  return { straw, strawSlice, banana, bananaSlice, waffle, drizzle, drip, cream, sugar, bowl, cup, hs };
+})();
+
 // Yiyecekler (merkez orijinde, ~0.7 m): pürüzsüz, parlak; masa üstü sahnelerde tabakta da kullanılır
 function foodModel(mb, kind, brand) {
   const hs = (a, b) => { const s = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -1815,43 +1970,25 @@ function foodModel(mb, kind, brand) {
     mb.sphereS(-0.05, 0.34, -0.03, 0.06, 0.025, 0.05, C('#4fbf3a', -0.3), 8, 5);
     mb.pop();
   } else if (kind === 'waffle') {
-    // waffle: kalın, altın sarısı ızgara (kabarık çıtalar, aralarda gözler), üstte akan çikolata ve bütün çilek
-    mb.push().T(0, -0.1, 0, 0.35);
-    mb.rbox(-0.3, -0.07, -0.3, 0.3, 0.05, 0.3, 0.05, C('#c98a35', -0.35), 3);
-    for (let k = -2; k <= 2; k++) {
-      mb.rbox(k * 0.12 - 0.022, 0.03, -0.29, k * 0.12 + 0.022, 0.085, 0.29, 0.016, C('#efb95e', -0.4), 2);
-      mb.rbox(-0.29, 0.03, k * 0.12 - 0.022, 0.29, 0.085, k * 0.12 + 0.022, 0.016, C('#f3c46c', -0.4), 2);
-    }
-    // çikolata: ortada parlak gölet + kenarlardan sarkan damlalar
-    mb.sphereS(0.02, 0.1, -0.02, 0.2, 0.03, 0.17, C('#4a2410', -0.75), 18, 6);
-    [[0.3, 0.02, 0.06], [-0.1, 0.02, 0.3], [0.12, 0.02, 0.3], [-0.3, 0.02, -0.08]].forEach(([x, y, z], i) => {
-      mb.sphereS(x * 0.95, y, z * 0.95, 0.04, 0.09 - (i % 2) * 0.02, 0.04, C('#4a2410', -0.75), 8, 6);
+    // Belçika waffle'ı: derin gözlü altın ızgara, üstünde parlak çikolata göleti, kenarlardan akan damlalar,
+    // dilim çilek ve muz, krem şanti tepesinde bütün çilek ve pudra şekeri
+    DES.waffle(mb, 0, -0.16, 0, 0.3, 0.1, 6, false, 0.35, 0);
+    mb.push().T(0, -0.06, 0, 0.35);
+    mb.sphereS(0.0, 0.004, 0.0, 0.2, 0.016, 0.18, C('#3a1a0b', -0.85), 24, 6);
+    [[0.3, 0.02], [0.3, -0.16], [-0.12, 0.3], [0.1, 0.3], [-0.3, -0.05], [0.04, -0.3]].forEach(([dx, dz], k) => {
+      const ex = Math.abs(dx) > Math.abs(dz) ? Math.sign(dx) * 0.305 : dx, ez = Math.abs(dz) >= Math.abs(dx) ? Math.sign(dz) * 0.305 : dz;
+      const rings = [{ c: [ex * 0.55, 0.005, ez * 0.55], a: 0.02, b: 0.01 }, { c: [ex * 0.95, 0.004, ez * 0.95], a: 0.018, b: 0.012 }, { c: [ex * 1.02, -0.01, ez * 1.02], a: 0.017, b: 0.014 }];
+      loft(mb, rings, C('#3a1a0b', -0.85), 8, 'se', [0, 1, 0]);
+      DES.drip(mb, ex * 1.03, -0.01, ez * 1.03, 0.04 + (k % 3) * 0.03, 0.015);
     });
+    DES.strawSlice(mb, -0.17, 0.015, 0.12, 0.6, 1.1); DES.strawSlice(mb, 0.16, 0.015, 0.14, 2.2, 1.1);
+    DES.bananaSlice(mb, 0.17, 0.008, -0.12, 1.1); DES.bananaSlice(mb, -0.14, 0.008, -0.15, 1.1);
+    DES.cream(mb, 0, 0.012, 0, 1.15);
+    DES.sugar(mb, 0.03, 0.27, 46, 2);
     mb.pop();
-    // çilek: koni gövde, sarı çekirdekler, yeşil yapraklar
-    mb.push().T(0.02, 0.06, 0.0, 0.4, 0, 0.25);
-    mb.lathe(0, 0, 0, [[0, 0], [0.06, 0.02], [0.12, 0.08], [0.15, 0.16], [0.14, 0.23], [0.1, 0.27], [0, 0.28]], 18, (i) => (i <= 1 ? C('#d3201b', -0.6) : C('#f0352a', -0.6)));
-    for (let k = 0; k < 12; k++) { const a = k * 2.39996, yy = 0.05 + (k % 4) * 0.05, r = [0.09, 0.13, 0.148, 0.14][k % 4]; mb.sphereS(Math.cos(a) * r, yy, Math.sin(a) * r, 0.012, 0.016, 0.012, C('#ffe27a', -0.3), 5, 3); }
-    for (let k = 0; k < 5; k++) { const a = (k / 5) * Math.PI * 2; mb.push().T(Math.cos(a) * 0.06, 0.28, Math.sin(a) * 0.06, -a, 0, 0.5); mb.sphereS(0.03, 0, 0, 0.07, 0.012, 0.03, C('#3fa339', -0.35), 8, 3); mb.pop(); }
-    mb.pop();
+    DES.straw(mb, 0.0, 0.08, 0.0, 0.85, 0.5, 0.15);
   } else if (kind === 'cup') {
-    // tatlı kupu: şeffaf görünümlü bardakta kat kat krema ve kek, üstü kakaolu, işletme renginde kaşık
-    const L = [[0, 0], [0.19, 0], [0.2, 0.02], [0.21, 0.12], [0.225, 0.24], [0.24, 0.36], [0.255, 0.48], [0.265, 0.56], [0, 0.56]];
-    const band = ['#5a2c14', '#5a2c14', '#fbeed0', '#7a3c1c', '#fbeed0', '#6b3418', '#fff3dc', '#fff3dc', '#fff3dc'];
-    mb.lathe(0, -0.34, 0, L, 24, (i, a) => {
-      const c = band[Math.min(i, band.length - 1)];
-      return (i === 2 || i === 4 || i === 6) && Math.sin(a * 6) > 0.55 ? C('#7a3c1c', -0.55) : C(c, -0.55);
-    });
-    // kakao kaplı kubbe + üstte serpme
-    mb.sphereS(0, 0.22, 0, 0.255, 0.07, 0.255, null, 22, 7, (x, y, z) => { const n = hs(Math.floor((x + 1) * 19), Math.floor((z + 1) * 19)); return n > 0.7 ? [0.32, 0.17, 0.08, -0.15] : [0.45, 0.25, 0.12, -0.15]; });
-    // bardak ağzı
-    mb.torusN(0, 0.22, 0, 0.268, 0.014, 0.014, 24, 5, C('#e9f7f8', -0.85));
-    // kaşık: sap + çukur
-    const sp = brand ? C(brand, -0.6) : C('#2aa6c8', -0.6);
-    mb.push().T(0.07, 0.24, -0.02, 0, 0, -0.35);
-    mb.rbox(-0.02, 0, -0.012, 0.02, 0.36, 0.012, 0.012, sp, 2);
-    mb.sphereS(0, 0.4, 0, 0.055, 0.075, 0.025, sp, 10, 6);
-    mb.pop();
+    DES.cup(mb, -0.36, 1.25, brand, 'cocoa');
   } else {
     // kargo/sipariş paketi: yuvarlak köşeli kutu, marka renginde bant ve fiyonk
     const K = C('#c99a62', -0.12);
@@ -6543,4 +6680,4 @@ export const _dbg = () => ({ G, KY });
 // Kardeş 3B oyunlar (Sumo Tepsisi) bu motoru yeniden kullanır: aynı WebGL yardımcıları, modeller, sesler.
 // Model inceleme (yalnızca geliştirme testleri; oyunda kullanılmaz)
 export const _mdl = () => ({ pedBody, pedLeg, pedArm, PED_TYPES, carModel, vanModel, busModel, scooterModel, scooterWheel, coneModel, barrierModel, foodModel, wheel, buildBuilding, buildTree, buildProp, buildLamp, makeLayout, KY });
-export const _eng = () => ({ limb, ik2, psurf, loft, ellPatch, ctx2d, podiumHTML, placeLabels, EmoteUI, KIT, drawToon, detailOn, aoOn, postFX, shadowBegin, shadowCast, shadowEnd, shadowSet, emitSoft, autoRes, sfx, clamp, lerp, damp, esc, hexRGB, C, shade, mixc, M, makeGL, MB, freeMesh, makeTexture, updateTexture, useProg, drawMesh, drawSky, drawDynamic, TOD, norm3, brandInfo, Res, Snd, pcol, PLAYER_COLORS, fmtSec, vibrate, medal, ONE3, IDENT, baseFov, injectStyle, FOOD_EMOJI, FOOD_NAME });
+export const _eng = () => ({ limb, ik2, psurf, loft, ellPatch, ctx2d, podiumHTML, placeLabels, EmoteUI, KIT, drawToon, detailOn, aoOn, postFX, shadowBegin, shadowCast, shadowEnd, shadowSet, emitSoft, autoRes, sfx, clamp, lerp, damp, esc, hexRGB, C, shade, mixc, M, makeGL, MB, freeMesh, makeTexture, updateTexture, useProg, drawMesh, drawSky, drawDynamic, TOD, norm3, brandInfo, Res, Snd, pcol, PLAYER_COLORS, fmtSec, vibrate, medal, ONE3, IDENT, baseFov, injectStyle, FOOD_EMOJI, FOOD_NAME, DES });

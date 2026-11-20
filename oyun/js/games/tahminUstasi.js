@@ -5,8 +5,8 @@
 // şerit metre açılır, tahminler renkli toplu iğneler olarak şeride dizilir. Sonra kırmızı işaret şerit boyunca kayar,
 // makinenin kolu döner, tamburlar tek tek gerçek cevapta durur. En yakın iğne parlar: 1000 / 600 / 300 puan, tam isabete +500.
 // Masa kiti (masa3d.js) ile çizilir; WebGL yoksa 2D görünüm.
-import { _masa } from './masa3d.js?v=2026-11-20-a';
-import * as sfx from '../sfx.js?v=2026-11-20-a';
+import { _masa } from './masa3d.js?v=2026-11-20-b';
+import * as sfx from '../sfx.js?v=2026-11-20-b';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs } = K;

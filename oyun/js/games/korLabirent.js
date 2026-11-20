@@ -3,8 +3,8 @@
 // yalnız yürüdüğü kareleri ve çarptığı duvarları görür), takım arkadaşları haritayı görüp yol tarif eder — sesle ya da
 // ok balonlarıyla. Takımlar aynı labirentte yarışır; piyonlar karelerde zıplar, duvara çarpan geri seker (+2 sn).
 // Masa kiti (masa3d.js) ve Kurye Yarışı motoruyla çizilir; WebGL yoksa 2D görünüm gösterilir.
-import { _masa } from './masa3d.js?v=2026-11-20-a';
-import * as sfx from '../sfx.js?v=2026-11-20-a';
+import { _masa } from './masa3d.js?v=2026-11-20-b';
+import * as sfx from '../sfx.js?v=2026-11-20-b';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs, HC, HR, trophyModel } = K;

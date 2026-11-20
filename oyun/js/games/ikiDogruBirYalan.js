@@ -5,8 +5,8 @@
 // fişler seçilen kartların önüne uçar, yalan kartına kırmızı "YALAN" damgası basılır, makinenin lambası yanar. Yalanı bulan
 // puan alır, yazar kandırdığı her kişi için puan alır. Masa kiti (masa3d.js) ve Kurye Yarışı motoruyla çizilir; WebGL
 // yoksa 2D görünüm gösterilir.
-import { _masa } from './masa3d.js?v=2026-11-20-a';
-import * as sfx from '../sfx.js?v=2026-11-20-a';
+import { _masa } from './masa3d.js?v=2026-11-20-b';
+import * as sfx from '../sfx.js?v=2026-11-20-b';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs, trophyModel } = K;
