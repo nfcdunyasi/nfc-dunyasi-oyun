@@ -74,6 +74,28 @@ function temizIsletme(slug, x, eski) {
   return o;
 }
 
+// ---- istatistik (oyun sunucusu gönderir, panel okur) ----
+const GUN_RE = /^\d{4}-\d{2}-\d{2}$/;
+const KAYNAK_RE = /^[a-z0-9_-]{1,40}$/;
+const ALANLAR = ['z', 'zt', 'zy', 'oda', 'botOda', 'oyuncu', 'pms', 'rms', 'bayt', 'g', 'i'];
+const n0 = (v) => { const n = Number(v); return Number.isFinite(n) && n > 0 ? Math.min(n, 1e13) : 0; };
+function istKat(hedef, y) { // y'yi hedefe ekle (temizleyerek)
+  if (!y || typeof y !== 'object') return hedef;
+  const x = hedef || { oyun: {}, saat: [] };
+  for (const f of ALANLAR) if (y[f] != null) x[f] = (x[f] || 0) + n0(y[f]);
+  for (const f of ['tepe', 'tepeOda']) if (y[f] != null) x[f] = Math.max(x[f] || 0, n0(y[f]));
+  x.oyun ||= {}; x.saat ||= [];
+  if (y.oyun && typeof y.oyun === 'object') for (const [k, v] of Object.entries(y.oyun).slice(0, 80)) if (/^[a-z0-9-]{1,40}$/.test(k)) x.oyun[k] = (x.oyun[k] || 0) + n0(v);
+  if (Array.isArray(y.saat)) for (let i = 0; i < 24; i++) if (y.saat[i]) x.saat[i] = (x.saat[i] || 0) + n0(y.saat[i]);
+  return x;
+}
+const MALIYET_VARSAYILAN = { aylikUsd: 0, dahilGb: 5, gbUsd: 0.15, kur: 50, plan: 'Free (ücretsiz)' };
+function temizAyar(a) {
+  const m = a?.maliyet || {};
+  return { maliyet: { aylikUsd: sayi(m.aylikUsd, 0, 10000, 0), dahilGb: sayi(m.dahilGb, 0, 100000, 5), gbUsd: sayi(m.gbUsd, 0, 100, 0.15), kur: sayi(m.kur, 1, 100000, 50), plan: str(m.plan, 40) || 'Free (ücretsiz)' } };
+}
+async function ayarAl(st) { const a = await st.get('ayar', { type: 'json' }); return a ? temizAyar(a) : { maliyet: { ...MALIYET_VARSAYILAN } }; }
+
 async function hepsi(st) {
   const { blobs } = await st.list({ prefix: 'isletme/' });
   const out = await Promise.all(blobs.map((b) => st.get(b.key, { type: 'json' })));
@@ -99,6 +121,25 @@ export default async (req, context) => {
       const s = (await st.get('sorular', { type: 'json' })) || {};
       return json({ banks: s });
     }
+    if (m === 'POST' && yol[0] === 'istat') {
+      const beklenen = process.env.ISTAT_ANAHTAR || '';
+      if (!beklenen) return hata('istatistik anahtarı tanımlı değil', 503);
+      if (!esit(req.headers.get('x-istat-anahtar') || '', beklenen)) return hata('yetkisiz', 401);
+      const b = await req.json().catch(() => null);
+      if (!b || typeof b.gun !== 'object') return hata('veri yok');
+      const gunler = Object.keys(b.gun).filter((g) => GUN_RE.test(g)).slice(0, 4);
+      for (const g of gunler) {
+        const k = 'istat/' + g, eski = (await st.get(k, { type: 'json' })) || {};
+        for (const [src, y] of Object.entries(b.gun[g] || {}).slice(0, 300)) {
+          if (!KAYNAK_RE.test(src)) continue;
+          eski[src] = istKat(eski[src], y);
+        }
+        await st.setJSON(k, eski);
+      }
+      const a = b.anlik && typeof b.anlik === 'object' ? { t: n0(b.anlik.t), oyuncu: n0(b.anlik.oyuncu), oda: n0(b.anlik.oda), kaynak: Object.fromEntries(Object.entries(b.anlik.kaynak || {}).filter(([k]) => KAYNAK_RE.test(k)).slice(0, 300).map(([k, v]) => [k, n0(v)])) } : null;
+      await st.setJSON('istat-son', { t: Date.now(), surum: str(b.surum, 40), anlik: a });
+      return json({ ok: true });
+    }
     // ---- giriş ----
     if (m === 'POST' && yol[0] === 'giris') {
       const ip = crypto.createHash('sha256').update(String(context?.ip || req.headers.get('x-nf-client-connection-ip') || '?')).digest('hex').slice(0, 16);
@@ -116,7 +157,22 @@ export default async (req, context) => {
     if (!(await yetki(req, st))) return hata('Oturum süresi doldu, tekrar giriş yap', 401);
 
     if (m === 'GET' && yol[0] === 'yonetim') {
-      return json({ isletmeler: await hepsi(st), sorular: (await st.get('sorular', { type: 'json' })) || {} });
+      return json({ isletmeler: await hepsi(st), sorular: (await st.get('sorular', { type: 'json' })) || {}, ayar: await ayarAl(st) });
+    }
+    if (m === 'GET' && yol[0] === 'istat') {
+      const bas = url.searchParams.get('bas') || '', son = url.searchParams.get('son') || '';
+      if (!GUN_RE.test(bas) || !GUN_RE.test(son) || bas > son) return hata('tarih aralığı geçersiz');
+      const { blobs } = await st.list({ prefix: 'istat/' });
+      const keys = blobs.map((b) => b.key).filter((k) => { const g = k.slice(6); return g >= bas && g <= son; }).sort().slice(-400);
+      const vals = await Promise.all(keys.map((k) => st.get(k, { type: 'json' })));
+      const gunler = {}; keys.forEach((k, i) => { if (vals[i]) gunler[k.slice(6)] = vals[i]; });
+      return json({ gunler, son: (await st.get('istat-son', { type: 'json' })) || null });
+    }
+    if (m === 'PUT' && yol[0] === 'ayar') {
+      const b = await req.json().catch(() => ({}));
+      const a = temizAyar(b);
+      await st.setJSON('ayar', a);
+      return json(a);
     }
     if (yol[0] === 'isletme' && yol[1]) {
       const slug = decodeURIComponent(yol[1]).toLowerCase();

@@ -1,9 +1,9 @@
 // Blok Adası — bloklardan bir ada: kaz, topla, inşa et (NFC Dünyası Oyun)
 // Herkes aynı dünyada. Dünya tohumdan üretilir (sunucuyla birebir aynı üretici), değişiklikler sunucudan akar.
 // Kendi küçük blok çizicisi (doku atlası, köşe gölgesi, su, bitkiler) + Kurye Yarışı motorunun karakter/gökyüzü araçları.
-import { _eng } from './kuryeYarisi.js?v=2026-11-21-a';
-import { _masa } from './masa3d.js?v=2026-11-21-a';
-import * as sfx from '../sfx.js?v=2026-11-21-a';
+import { _eng } from './kuryeYarisi.js?v=2026-11-21-c';
+import { _masa } from './masa3d.js?v=2026-11-21-c';
+import * as sfx from '../sfx.js?v=2026-11-21-c';
 const { EmoteUI, Snd, esc, pcol, vibrate, medal, injectStyle, clamp, lerp, damp, hexRGB, C, shade, M, makeGL, MB, freeMesh, drawMesh, drawSky, useProg, norm3, brandInfo, ONE3, autoRes, podiumHTML } = _eng();
 const { styleOf } = _masa();
 
@@ -1197,8 +1197,7 @@ class Game {
       if (this.look && this.look.id === e.pointerId) {
         const L = this.look;
         this.look = null;
-        // kısa dokunuş (sürüklemeden): hedefteki bloğa koy
-        if (!L.mouse && performance.now() - L.t < 260 && Math.hypot(e.clientX - L.sx, e.clientY - L.sy) < 9 && this.playing()) this.tryPut();
+        // ekrana dokunmak yalnızca bakış içindir: blok yalnızca 🧱 düğmesiyle konur
         this.mouseDig = false;
       }
     };
@@ -1320,6 +1319,7 @@ class Game {
           const dist = this.me ? Math.hypot(x + 0.5 - this.me.x, y + 0.5 - this.me.y, z + 0.5 - this.me.z) : 99;
           const vol = clamp(1 - dist / 22, 0, 1) * 0.7;
           if ((t === 0 || t === 10) && old) { this.burst(x, y, z, old, 8); this.snd.play('break', mat(old), vol); }
+          else if (t === 10 && !old && dist < 9 && performance.now() - (this.flowSnd || 0) > 650) { this.flowSnd = performance.now(); this.snd.play('splash', 'dirt', 0.25 + vol * 0.3); }
           else if (t && t !== 10) this.snd.play('place', mat(t), vol);
         }
       }
@@ -1523,9 +1523,12 @@ class Game {
     if (ln > 1) { fx /= ln; fz /= ln; }
     const yaw = this.cam.yaw, sy = Math.sin(yaw), cy = Math.cos(yaw);
     const wx = sy * fz - cy * fx, wz = cy * fz + sy * fx;
-    const inW = this.blk(Math.floor(p.x), Math.floor(p.y + 0.4), Math.floor(p.z)) === 10;
+    const bx = Math.floor(p.x), bz = Math.floor(p.z);
+    const inW = this.blk(bx, Math.floor(p.y + 0.15), bz) === 10 || this.blk(bx, Math.floor(p.y + 0.95), bz) === 10;
     if (inW && !p.water && p.vy < -4) this.snd.play('splash', 'dirt', 0.8);
+    if (inW && !p.water && !this.swimHint && this.view && this.view.phase === 'play') { this.swimHint = true; this.hint('Suda 🏊 kendiliğinden yüzeye çıkarsın. Kıyıya doğru yürü, kenara gelince tırmanırsın. ⤒ yukarı, aşağı bakıp ilerle: dal.', 5200); }
     p.water = inW;
+    p.jumpCd = Math.max(0, (p.jumpCd || 0) - dt);
     const run = !inW && !this.digging && ((this.joy && ln > 0.94) || k.has('shift')) && ln > 0.5;
     const spd = (inW ? 2.6 : run ? 5.7 : 4.3) * (this.digging && p.ground ? 0.55 : 1);
     const onIce = p.ground && this.blk(Math.floor(p.x), Math.floor(p.y - 0.5), Math.floor(p.z)) === 35;
@@ -1533,17 +1536,52 @@ class Game {
     p.vx = damp(p.vx, wx * spd, fr, dt);
     p.vz = damp(p.vz, wz * spd, fr, dt);
     const jump = this.jumpHeld || k.has(' ');
-    if (inW) {
-      p.vy = damp(p.vy, jump ? 3.4 : -1.4, 4, dt);
+    if (p.hopT > 0) {
+      // sudan çıkış: kenarın üstüne doğru küçük sıçrayış (su direnci yok)
+      p.hopT -= dt;
+      p.vy -= 27 * dt;
+    } else if (inW) {
+      // yüzme: kendiliğinden yüzeye çıkar (göğüs hizasında süzülür); ⤒ yukarı; aşağı bakıp ileri gitmek dalıştır; kazarken olduğu yerde kalır
+      let sy = Math.floor(p.y + 0.15);
+      while (sy < H && this.blk(bx, sy, bz) === 10) sy++;
+      // dalış/çıkış yalnızca kamera belirgin şekilde aşağı (ya da yukarı) bakarken ileri gidince: normal bakışta yüzeyde kalır
+      const pit = this.cam.pitch, pk = pit < -0.62 ? (pit + 0.62) / 0.55 : pit > 0.2 ? (pit - 0.2) / 0.55 : 0;
+      const dive = clamp(pk, -1, 1) * Math.max(0, fz) * 3.4;
+      const floatT = clamp((sy - 1.2 - p.y) * 2.4, -1.6, 2.4);
+      const vT = jump ? 3.8 : this.digging ? 0 : Math.abs(dive) > 0.45 ? dive : floatT;
+      p.vy = damp(p.vy, vT, 4.5, dt);
     } else {
       p.vy -= 27 * dt;
       if (p.vy < -30) p.vy = -30;
-      if (jump && p.ground) { p.vy = 8.6; p.ground = false; this.snd.play('jump', 'dirt', 0.6); }
+      // kenardan düşerken kısa bir süre daha zıplanabilir (coyote), arka arkaya çift zıplama olmaz
+      p.coy = p.ground ? 0.12 : Math.max(0, (p.coy || 0) - dt);
+      if (jump && (p.ground || p.coy > 0) && !(p.jumpCd > 0)) { p.vy = 8.6; p.ground = false; p.coy = 0; p.jumpCd = 0.22; this.snd.play('jump', 'dirt', 0.6); }
     }
     // kendiliğinden zıplama: önünde tek blokluk basamak varsa
     if (p.ground && !inW && Math.hypot(p.vx, p.vz) > 1) {
       const ax = p.x + Math.sign(p.vx) * (PW + 0.12) * (Math.abs(p.vx) > 0.3 ? 1 : 0), az = p.z + Math.sign(p.vz) * (PW + 0.12) * (Math.abs(p.vz) > 0.3 ? 1 : 0);
       if (this.hitsAt(ax, p.y + 0.05, az) && !this.hitsAt(ax, p.y + 1.05, az) && !this.hitsAt(p.x, p.y + 1.05, p.z)) { p.vy = 8.0; p.ground = false; }
+    }
+    if (inW && !p.climb && ln > 0.25 && !(p.hopT > 0)) {
+      const dl = Math.hypot(wx, wz) || 1, dx = wx / dl, dz = wz / dl;
+      const ax = p.x + dx * (PW + 0.22), az = p.z + dz * (PW + 0.22);
+      if (this.hitsAt(ax, p.y + 0.05, az) || this.hitsAt(ax, p.y + 0.8, az)) {
+        for (let ty = Math.floor(p.y) + 1; ty <= Math.floor(p.y) + 3; ty++) {
+          if (ty - p.y > 2.6) break;
+          if (!isSolid(this.blk(Math.floor(ax), ty - 1, Math.floor(az)))) continue;
+          if (this.hitsAt(ax, ty + 0.02, az)) continue;
+          if (this.hitsAt(p.x, Math.min(ty + 0.02, p.y + 2.5), p.z) && ty - p.y > 0.3) break;
+          p.climb = { top: ty + 0.02, dx, dz, t: 0 };
+          break;
+        }
+      }
+    }
+    if (p.climb) {
+      const c = p.climb;
+      c.t += dt;
+      p.vy = 5.4;
+      p.vx = c.dx * 0.9; p.vz = c.dz * 0.9;
+      if (p.y >= c.top || c.t > 0.85) { p.climb = null; p.vy = 3.2; p.vx = c.dx * 3.4; p.vz = c.dz * 3.4; p.hopT = 0.3; this.snd.play('step', 'dirt', 0.5); }
     }
     const was = p.ground, vyWas = p.vy;
     p.ground = false;

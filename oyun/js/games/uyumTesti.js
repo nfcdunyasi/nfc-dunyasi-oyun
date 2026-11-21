@@ -2,8 +2,8 @@
 // İki kişilik küçük bir masa: mum, gül, tabaklar. Ortada kalp biçimli cam bir "aşk iksiri" şişesi var; her eşleşmede
 // pembe iksir biraz daha yükselir ve parlar. Her soruda iki kişi de seçimini yapar; seçen kartını masaya kapalı bırakır.
 // Açılışta ikisi de kartını kaldırır: renkler aynıysa eşleşme. Masa kiti (masa3d.js) ve Kurye Yarışı motoruyla çizilir; WebGL yoksa 2D.
-import { _masa } from './masa3d.js?v=2026-11-21-a';
-import * as sfx from '../sfx.js?v=2026-11-21-a';
+import { _masa } from './masa3d.js?v=2026-11-21-c';
+import * as sfx from '../sfx.js?v=2026-11-21-c';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs, trophyModel } = K;

@@ -1,8 +1,8 @@
 // Okut ve Oyna · Yönetici paneli (nfcdunyasi.com/yonetim)
 // İşletmeler ve temaları, takip durumu, QR kartları, ödemeler ve oyun soruları tek yerden yönetilir.
 // Veriler Netlify fonksiyonunda (/api) saklanır; yerleşik temalar /oyun/js/themes.js içinden okunur.
-import { THEMES } from '/oyun/js/themes.js?v=2026-11-21-a';
-import { qrMatris } from '/yonetim/qr.js?v=2026-11-21-a';
+import { THEMES } from '/oyun/js/themes.js?v=2026-11-21-c';
+import { qrMatris } from '/yonetim/qr.js?v=2026-11-21-c';
 
 const SITE = 'https://nfcdunyasi.com';
 const SUNUCU = String(window.OYUN_SUNUCU || '').replace(/\/+$/, '');
@@ -54,7 +54,8 @@ const hex2rgb = (h) => { const m = /^#?([0-9a-f]{6})$/i.exec(h || ''); if (!m) r
 const graf = (s) => { try { return [...new Intl.Segmenter('tr', { granularity: 'grapheme' }).segment(s)].map((x) => x.segment); } catch { return Array.from(s); } };
 const slugla = (s) => String(s || '').toLocaleLowerCase('tr').replace(/[çğıöşüâîû]/g, (c) => ({ ç: 'c', ğ: 'g', ı: 'i', ö: 'o', ş: 's', ü: 'u', â: 'a', î: 'i', û: 'u' })[c]).normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40).replace(/-+$/, '');
 const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/;
-const qrUrl = (slug) => `${SITE}/q/${slug}`;
+const QR_AD = { eliz: 'eliz-cups-bowl' }; // basılı QR'da görünen ad
+const qrUrl = (slug) => `${SITE}/q/${QR_AD[slug] || slug}`;
 
 function bildir(m, hata = false) {
   const d = document.createElement('div'); d.textContent = m; if (hata) d.className = 'hata';
@@ -127,7 +128,7 @@ function logoHtml(x, cls = 'logo-k') {
   if (t.logo) return `<img class="${cls}${t.shape === 'wide' ? ' genis' : ''}" src="${t.logo}" alt="">`;
   return `<span class="${cls}" style="background:${rgb2hex(t.vars?.gece)};color:${rgb2hex(t.vars?.ortu)}">${esc(graf(x.ad || '?')[0] || '?')}</span>`;
 }
-const SEKMELER = [['ozet', '🏠', 'Özet'], ['isletmeler', '🏪', 'İşletmeler'], ['odemeler', '💰', 'Ödemeler'], ['sorular', '❓', 'Sorular']];
+const SEKMELER = [['ozet', '🏠', 'Özet'], ['isletmeler', '🏪', 'İşletmeler'], ['istatistik', '📊', 'İstatistik'], ['odemeler', '💰', 'Ödemeler'], ['sorular', '❓', 'Sorular']];
 function iskelet() {
   $('#kok').innerHTML = `
   <header class="ust-cubuk"><div class="ic">
@@ -172,6 +173,7 @@ async function yukle() {
   const d = await api('/yonetim');
   S.isletmeler = new Map((d.isletmeler || []).map((x) => [x.slug, x]));
   S.sorular = d.sorular || {};
+  S.ayar = d.ayar || null;
 }
 async function basla() {
   $('#kok').innerHTML = '<div class="yukleniyor"><i></i></div>';
@@ -201,7 +203,8 @@ function goster() {
   sonHash = location.hash;
   window.scrollTo(0, 0);
   if (a !== 'isletme' && a !== 'yeni') E = null;
-  if (a === 'ozet') { sekmeIsaretle('ozet'); sayfa.innerHTML = ozetHtml(); }
+  if (a === 'ozet') { sekmeIsaretle('ozet'); sayfa.innerHTML = ozetHtml(); istKartOzet(); }
+  else if (a === 'istatistik') { sekmeIsaretle('istatistik'); istatistikSayfa(b ? decodeURIComponent(b) : null); }
   else if (a === 'isletmeler') { sekmeIsaretle('isletmeler'); sayfa.innerHTML = listeHtml(); }
   else if (a === 'isletme' || a === 'yeni') { sekmeIsaretle('isletmeler'); duzenleyici(a === 'yeni' ? null : decodeURIComponent(b || '')); }
   else if (a === 'odemeler') { sekmeIsaretle('odemeler'); sayfa.innerHTML = odemelerHtml(b || ym(new Date())); }
@@ -228,6 +231,7 @@ function ozetHtml() {
     <div class="sayi mor"><small>Hazırlanan</small><b>${hazirlanan.length}</b><em>tema ya da QR aşamasında</em></div>
   </div>
   <div class="izgara iki" style="margin-top:16px">
+    <section class="kart"><div class="kb"><h2>📊 Bugün oyunlarda</h2><span class="bosluk"></span><a class="dugme kucuk" href="#/istatistik">Ayrıntı</a></div><div id="istOzet"><p class="not" style="margin:0">Yükleniyor…</p></div></section>
     <section class="kart"><div class="kb"><h2>⏰ Geciken ödemeler</h2></div>
       ${gec.length ? `<div class="liste">${gec.map((r) => satir(r)).join('')}</div>` : '<div class="bos"><i>🎉</i>Geciken ödeme yok</div>'}</section>
     <section class="kart"><div class="kb"><h2>📅 Bu hafta alınacaklar</h2><span class="bosluk"></span><a class="dugme kucuk" href="#/odemeler">Tümü</a></div>
@@ -253,7 +257,7 @@ function listeHtml() {
     return `<a class="kart isl" href="#/isletme/${encodeURIComponent(x.slug)}">${logoHtml(x)}<div style="min-width:0"><h3>${esc(x.ad)}</h3>
       <div class="alt">${x.aktif === false ? '<span class="rozet gri">Kapalı</span>' : `<span class="rozet ${x.durum === 'yayinda' ? 'yesil' : 'mor'}">${durumYazi(x)}</span>`}
       ${r ? (r.durum === 'gecikti' ? '<span class="rozet kirmizi">Ödeme gecikti</span>' : r.durum === 'odendi' ? '<span class="rozet yesil">Bu ay ödendi</span>' : `<span class="rozet">${TL(r.tutar)}/ay · ${r.vade.getDate()}'i</span>`) : ''}
-      <span class="rozet gri">/q/${esc(x.slug)}</span></div>
+      <span class="rozet gri">/q/${esc(QR_AD[x.slug] || x.slug)}</span></div>
       <div class="adimlar">${DURUMLAR.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</div></div></a>`;
   }).join('')}</div>` : '<div class="kart bos"><i>🏪</i>Bu listede işletme yok</div>'}`;
 }
@@ -314,6 +318,7 @@ function duzenleyici(slug) {
 
     <div class="izgara">
       <section class="kart"><div class="kb"><h2>📱 Oyunda böyle görünür</h2></div><div id="tel"></div></section>
+      ${E.yeni ? '' : '<section class="kart"><div class="kb"><h2>📊 Son 30 gün</h2></div><div id="istKart"><p class="not" style="margin:0">Yükleniyor…</p></div></section>'}
       <section class="kart"><div class="kb"><h2>🔳 QR kodu</h2></div><div class="qr-alan">
         ${E.yeni && !SLUG_RE.test(E.slug) ? '<div class="bos"><i>🔳</i>QR, işletme adını yazınca oluşur</div>' : '<canvas id="qrKart" width="1200" height="1600"></canvas>'}
         <div class="qr-link"><input class="girdi" readonly value="${esc(qrUrl(E.yeni ? E.slug || '…' : x.slug))}" id="qrLink"><button class="dugme kucuk" data-act="kopyala">Kopyala</button></div>
@@ -340,6 +345,7 @@ function duzenleyici(slug) {
   </div>
   <div class="kaydet-cubuk" id="kcubuk" ${E.kirli || E.yeni ? '' : 'hidden'}><span>${E.yeni ? 'Yeni işletme' : 'Kaydedilmemiş değişiklik var'}</span><button class="dugme ana" data-act="kaydet">💾 Kaydet</button></div>`;
   logoOnizle(); telefonCiz(); qrCiz();
+  if (!E.yeni) istKartIsletme(E.slug);
 }
 function odemeGecmis(x) {
   const L = [...(x.odemeler || [])].sort((a, b) => (b.tarih || '').localeCompare(a.tarih || ''));
@@ -849,7 +855,204 @@ async function sunucuDurum() {
     const d = await (await fetch(SUNUCU + '/veri-durum', { signal: AbortSignal.timeout?.(20000) })).json();
     const dk = d.t ? Math.round((Date.now() - d.t) / 60000) : null;
     el.innerHTML = d.hata ? `⚠️ Sunucu panel verisini alamadı: ${esc(d.hata)}` : dk == null ? 'Sunucu açık; panel verisini henüz almadı (birkaç saniye sürebilir).' : `✅ Sunucu açık. Sorular en son ${dk < 1 ? 'az önce' : dk + ' dakika önce'} alındı.`;
+    try {
+      const i = await (await fetch(SUNUCU + '/istat-durum', { signal: AbortSignal.timeout?.(10000) })).json();
+      const idk = i.son ? Math.round((Date.now() - i.son) / 60000) : null;
+      el.innerHTML += '<br>' + (!i.anahtar ? '⚠️ İstatistik anahtarı sunucuda tanımlı değil, sayılar panele gelmiyor.' : i.hata ? `⚠️ İstatistik gönderilemedi: ${esc(i.hata)}` : idk == null ? '📊 İstatistik: sunucu açıldığından beri henüz gönderilecek sayı birikmedi.' : `📊 İstatistik en son ${idk < 1 ? 'az önce' : idk + ' dakika önce'} gönderildi.`);
+    } catch { /* eski sürüm sunucu */ }
   } catch { el.textContent = 'Sunucu şu an uykuda olabilir (ücretsiz planda kullanılmayınca uyur, ilk oyunda uyanır). Sorun değil.'; }
+}
+
+// ---------------------------------------------------------------- istatistik
+// Oyun sunucusu her işletmenin (QR kodunun) sayaçlarını birkaç dakikada bir buraya yollar.
+// Maliyet: Render faturası sabit aylık ücret + kotayı aşan veri trafiği. Sabit ücret oynama süresine,
+// veri ücreti her işletmenin ürettiği veri miktarına göre paylaştırılır (tahmini).
+const IST = { donem: '30', cache: {}, oyunlar: null };
+const trGun = (t = Date.now()) => new Date(t + 3 * 3600e3).toISOString().slice(0, 10);
+const gunEkle = (g, n) => { const d = new Date(g + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+const gunKisa = (g) => { const [, m, d] = g.split('-'); return `${+d} ${AYLAR[+m - 1].slice(0, 3)}`; };
+const DONEMLER = [['bugun', 'Bugün'], ['dun', 'Dün'], ['7', '7 gün'], ['30', '30 gün'], ['buay', 'Bu ay'], ['gecenay', 'Geçen ay'], ['90', '90 gün']];
+const MALIYET0 = { aylikUsd: 0, dahilGb: 5, gbUsd: 0.15, kur: 50, plan: 'Free (ücretsiz)' };
+const sayiYaz = (n, k = 0) => new Intl.NumberFormat('tr-TR', { maximumFractionDigits: k }).format(Number(n) || 0);
+const TL2 = (n) => { n = Number(n) || 0; return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: n > 0 && n < 100 ? 2 : 0 }).format(n); };
+const sureYaz = (ms) => { const dk = (ms || 0) / 60000; return dk < 60 ? `${sayiYaz(dk)} dk` : `${sayiYaz(dk / 60, dk < 600 ? 1 : 0)} sa`; };
+const veriYaz = (b) => { b = b || 0; return b < 1e6 ? `${sayiYaz(b / 1e3)} KB` : b < 1e9 ? `${sayiYaz(b / 1e6, b < 1e7 ? 1 : 0)} MB` : `${sayiYaz(b / 1e9, 2)} GB`; };
+const KAYNAK_AD = { direkt: 'QR’sız giriş (düz site)', diger: 'Diğer' };
+function kaynakAd(k) { const x = bul(k); return x ? x.ad : KAYNAK_AD[k] || k; }
+function donemAralik(k) {
+  const b = trGun();
+  if (k === 'bugun') return [b, b];
+  if (k === 'dun') { const d = gunEkle(b, -1); return [d, d]; }
+  if (k === 'buay') return [b.slice(0, 8) + '01', b];
+  if (k === 'gecenay') { const son = gunEkle(b.slice(0, 8) + '01', -1); return [son.slice(0, 8) + '01', son]; }
+  return [gunEkle(b, -(+k - 1)), b];
+}
+async function istAl(bas, son) {
+  const k = bas + '|' + son, c = IST.cache[k];
+  if (c && Date.now() - c.t < 60e3) return c.d;
+  const d = await api(`/istat?bas=${bas}&son=${son}`);
+  IST.cache[k] = { t: Date.now(), d };
+  return d;
+}
+async function oyunAdlari() {
+  if (IST.oyunlar) return IST.oyunlar;
+  try { const r = await fetch('/yonetim/bankalar.json?v=' + (window.PANEL_SURUM || '')); const j = await r.json(); S.bankalar ||= j.bankalar; IST.oyunlar = j.oyunlar || {}; } catch { IST.oyunlar = {}; }
+  return IST.oyunlar;
+}
+const bosToplam = () => ({ z: 0, zt: 0, zy: 0, oda: 0, botOda: 0, oyuncu: 0, pms: 0, rms: 0, bayt: 0, g: 0, i: 0, tepe: 0, oyun: {}, saat: Array(24).fill(0), gun: {} });
+function istTopla(gunler, bas, son) {
+  const K = new Map(), gunluk = [], sunucu = { rms: 0, tepe: 0, tepeOda: 0 }, top = bosToplam();
+  for (let g = bas; g <= son; g = gunEkle(g, 1)) {
+    const G = gunler[g] || {}, gs = { g, zt: 0, oyuncu: 0, pms: 0 };
+    for (const [k, x] of Object.entries(G)) {
+      if (k === '_sunucu') { sunucu.rms += x.rms || 0; sunucu.tepe = Math.max(sunucu.tepe, x.tepe || 0); sunucu.tepeOda = Math.max(sunucu.tepeOda, x.tepeOda || 0); continue; }
+      if (!K.has(k)) K.set(k, bosToplam());
+      for (const t of [K.get(k), top]) {
+        for (const f of ['z', 'zt', 'zy', 'oda', 'botOda', 'oyuncu', 'pms', 'rms', 'bayt', 'g', 'i']) t[f] += x[f] || 0;
+        t.tepe = Math.max(t.tepe, x.tepe || 0);
+        for (const [o, v] of Object.entries(x.oyun || {})) t.oyun[o] = (t.oyun[o] || 0) + v;
+        (x.saat || []).forEach((v, i) => { if (v) t.saat[i] += v; });
+      }
+      K.get(k).gun[g] = { zt: x.zt || 0, oyuncu: x.oyuncu || 0, pms: x.pms || 0 };
+      gs.zt += x.zt || 0; gs.oyuncu += x.oyuncu || 0; gs.pms += x.pms || 0;
+    }
+    gunluk.push(gs);
+  }
+  return { K, gunluk, sunucu, top, gunSay: gunluk.length };
+}
+// Render faturasının bu döneme ve bu kaynağa düşen payı (₺)
+function maliyetOf(x, T) {
+  const m = { ...MALIYET0, ...(S.ayar?.maliyet || {}) }, ay = T.gunSay / 30.4;
+  const sabit = m.aylikUsd * ay, dahil = m.dahilGb * 1e9 * ay;
+  const asim = Math.max(0, T.top.bayt - dahil) / 1e9 * m.gbUsd;
+  const pPay = T.top.pms ? x.pms / T.top.pms : 0, bPay = T.top.bayt ? x.bayt / T.top.bayt : 0;
+  return { gercek: (sabit * pPay + asim * bPay) * m.kur, kotasiz: (sabit * pPay + x.bayt / 1e9 * m.gbUsd) * m.kur, m };
+}
+function cubukGrafik(seri, anahtarlar, renkler, etiket) { // basit SVG çubuk grafik
+  const W = 640, H = 170, P = 22, n = seri.length || 1, enc = Math.max(1, ...seri.flatMap((s) => anahtarlar.map((k) => s[k] || 0)));
+  const bw = (W - P * 2) / n, gb = Math.max(2, Math.min(18, bw / (anahtarlar.length + 0.8)));
+  const adim = Math.ceil(n / 8);
+  return `<div class="grafik"><svg viewBox="0 0 ${W} ${H + 22}" role="img" aria-label="${esc(etiket)}">
+    <line x1="${P}" x2="${W - P}" y1="${H}" y2="${H}" stroke="currentColor" stroke-opacity=".25"/>
+    <text x="${P}" y="12" class="eks">${sayiYaz(enc)}</text>
+    ${seri.map((s, i) => anahtarlar.map((k, j) => { const h = Math.round(((s[k] || 0) / enc) * (H - 20)); const x = P + i * bw + (bw - gb * anahtarlar.length) / 2 + j * gb; return `<rect x="${x.toFixed(1)}" y="${H - h}" width="${(gb - 1).toFixed(1)}" height="${h}" rx="2" fill="${renkler[j]}"><title>${esc(s.et || '')}: ${sayiYaz(s[k] || 0)}</title></rect>`; }).join('')).join('')}
+    ${seri.map((s, i) => (i % adim === 0 || n <= 8) ? `<text x="${(P + i * bw + bw / 2).toFixed(1)}" y="${H + 16}" text-anchor="middle" class="eks">${esc(s.kisa || '')}</text>` : '').join('')}
+  </svg></div>`;
+}
+function istDurumHtml(son, slug) {
+  if (!son) return `<div class="uyari">📡 Oyun sunucusundan henüz veri gelmedi. Yeni sürüm yüklendikten sonra ilk oyunlarla birlikte birkaç dakika içinde sayılar görünmeye başlar.</div>`;
+  const dk = Math.round((Date.now() - son.t) / 60000), a = son.anlik;
+  const canli = a && Date.now() - a.t < 12 * 60e3;
+  const burada = slug ? a?.kaynak?.[slug] || 0 : 0;
+  return `<p class="not" style="margin:0">📡 Son veri ${dk < 1 ? 'az önce' : dk < 120 ? dk + ' dakika önce' : Math.round(dk / 60) + ' saat önce'} geldi${canli ? (slug ? ` · o an burada <b>${burada}</b> kişi oynuyordu` : ` · o an <b>${a.oyuncu}</b> kişi <b>${a.oda}</b> odada oynuyordu`) : ''}. Sayılar 5 dakikada bir güncellenir.</p>`;
+}
+async function istatistikSayfa(slug) {
+  const el = $('#icerik');
+  const [bas, son] = donemAralik(IST.donem);
+  el.innerHTML = `${slug ? '<a class="geri" href="#/istatistik">‹ Tüm işletmeler</a>' : ''}
+  <div class="baslik-satir"><h1>${slug ? esc(kaynakAd(slug)) : 'İstatistik'}</h1><span class="bosluk"></span>${slug && bul(slug) ? `<a class="dugme kucuk" href="#/isletme/${encodeURIComponent(slug)}">🏪 İşletmeye git</a>` : ''}</div>
+  <div class="filtre">${DONEMLER.map(([k, a]) => `<button class="cip ${IST.donem === k ? 'on' : ''}" data-act="ist-donem" data-k="${k}">${a}</button>`).join('')}</div>
+  <p class="not" style="margin:-4px 0 12px">${bas === son ? tarihYaz(bas) : `${tarihYaz(bas)} – ${tarihYaz(son)}`}</p>
+  <div id="istGovde"><div class="kart bos"><i>⏳</i>Yükleniyor…</div></div>`;
+  let d; try { [d] = await Promise.all([istAl(bas, son), oyunAdlari()]); } catch (e) { $('#istGovde').innerHTML = `<div class="kart bos"><i>⚠️</i>${esc(e.message)}</div>`; return; }
+  if (!$('#istGovde')) return;
+  const T = istTopla(d.gunler || {}, bas, son);
+  $('#istGovde').innerHTML = slug ? istDetayHtml(slug, T, d.son) : istGenelHtml(T, d.son);
+}
+function istGenelHtml(T, son) {
+  const t = T.top, mT = maliyetOf(t, T), m = mT.m;
+  const satirlar = [...T.K.entries()].sort((a, b) => b[1].oyuncu - a[1].oyuncu || b[1].zt - a[1].zt);
+  const seri = T.gunluk.map((s) => ({ ...s, kisa: gunKisa(s.g), et: tarihYaz(s.g) }));
+  return `<div class="izgara">
+  ${istDurumHtml(son)}
+  <div class="sayilar">
+    <div class="sayi sari"><small>Ziyaretçi</small><b>${sayiYaz(t.zt)}</b><em>${sayiYaz(t.z)} açılış · ${sayiYaz(t.zy)} ilk kez</em></div>
+    <div class="sayi"><small>Oynayan</small><b>${sayiYaz(t.oyuncu)}</b><em>${sayiYaz(t.oda)} oda · ${sayiYaz(Object.values(t.oyun).reduce((a, b) => a + b, 0))} oyun</em></div>
+    <div class="sayi mor"><small>Oynama süresi</small><b>${sureYaz(t.pms)}</b><em>kişi başı ${t.oyuncu ? sureYaz(t.pms / t.oyuncu) : '—'}</em></div>
+    <div class="sayi ${mT.gercek > 0 ? 'kirmizi' : 'yesil'}"><small>Sunucu maliyeti</small><b>${TL2(mT.gercek)}</b><em>${veriYaz(t.bayt)} veri · kota olmasa ${TL2(mT.kotasiz)}</em></div>
+  </div>
+  ${T.gunSay > 1 ? `<section class="kart"><div class="kb"><h2>📈 Günlük</h2><span class="bosluk"></span><span class="lejant"><i style="background:var(--limon)"></i>Ziyaretçi <i style="background:var(--mor)"></i>Oynayan</span></div>${cubukGrafik(seri, ['zt', 'oyuncu'], ['#ffd23f', '#6c47ff'], 'Günlük ziyaretçi ve oynayan')}</section>` : ''}
+  <section class="kart"><div class="kb"><h2>🏪 İşletmelere göre</h2><span class="bosluk"></span><span class="not" style="margin:0">dokun: ayrıntı</span></div>
+    ${satirlar.length ? `<div class="ist-liste">${satirlar.map(([k, x]) => { const mc = maliyetOf(x, T), isl = bul(k); return `<a class="ist-sat" href="#/istatistik/${encodeURIComponent(k)}">
+      ${isl ? logoHtml(isl) : `<div class="logo-k">${k === 'direkt' ? '🌐' : '❔'}</div>`}
+      <div class="ad"><h4>${esc(kaynakAd(k))}</h4><p>${isl?.odeme?.periyot !== 'yok' && isl?.odeme?.tutar ? `${TL(isl.odeme.tutar)}/ay ödüyor` : k === 'direkt' ? 'QR okutmadan gelenler' : ''}</p></div>
+      <div class="ol"><span><b>${sayiYaz(x.zt)}</b>ziyaretçi</span><span><b>${sayiYaz(x.oyuncu)}</b>oynayan</span><span><b>${sureYaz(x.pms)}</b>süre</span><span><b>${TL2(mc.gercek)}</b>${veriYaz(x.bayt)}</span></div></a>`; }).join('')}</div>`
+      : '<div class="bos"><i>📭</i>Bu dönemde kayıt yok</div>'}
+  </section>
+  <div class="izgara iki">
+    <section class="kart"><div class="kb"><h2>🖥️ Sunucu</h2></div>
+      <div class="ist-mini"><span><b>${sureYaz(T.sunucu.rms)}</b>açık kaldı</span><span><b>${sayiYaz(T.sunucu.tepe)}</b>en çok aynı anda oyuncu</span><span><b>${sayiYaz(T.sunucu.tepeOda)}</b>en çok aynı anda oda</span><span><b>${veriYaz(t.bayt)}</b>toplam veri</span></div>
+      <p class="not">Render ücretsiz planı ayda 750 saat açık kalma hakkı verir; tek sunucu olduğu için bu sınıra takılmaz. Kullanılmayınca 15 dakikada uyur, ilk oyuncuyla yarım dakikada uyanır.</p></section>
+    ${maliyetFormHtml(m)}
+  </div>
+  </div>`;
+}
+function maliyetFormHtml(m) {
+  return `<section class="kart"><div class="kb"><h2>💵 Maliyet ayarları</h2></div>
+    <form class="yigin" id="mform">
+      <div class="ikili"><label class="alan"><span>Render planı</span><input class="girdi" name="plan" value="${esc(m.plan)}" maxlength="40"></label>
+      <label class="alan"><span>Aylık ücret <small>$</small></span><input class="girdi" name="aylikUsd" type="number" step="0.01" min="0" inputmode="decimal" value="${m.aylikUsd}"></label></div>
+      <div class="uclu"><label class="alan"><span>Ücretsiz veri <small>GB/ay</small></span><input class="girdi" name="dahilGb" type="number" step="1" min="0" inputmode="decimal" value="${m.dahilGb}"></label>
+      <label class="alan"><span>Fazla veri <small>$/GB</small></span><input class="girdi" name="gbUsd" type="number" step="0.01" min="0" inputmode="decimal" value="${m.gbUsd}"></label>
+      <label class="alan"><span>Dolar kuru <small>₺</small></span><input class="girdi" name="kur" type="number" step="0.01" min="1" inputmode="decimal" value="${m.kur}"></label></div>
+      <button class="dugme ana" type="submit">Kaydet</button>
+    </form>
+    <p class="not">Şu an sunucu Render’ın ücretsiz planında, bu yüzden gerçek maliyet 0 ₺. Ücretli plana geçilirse (Starter: 7 $/ay) aylık ücreti buraya yaz; sabit ücret oynama süresine, fazla veri ücreti de her işletmenin kullandığı veriye göre paylaştırılır. Kuru ara ara güncelle. Site (Netlify) ücretsiz planda, maliyete eklenmez.</p></section>`;
+}
+function istDetayHtml(k, T, son) {
+  const x = T.K.get(k) || bosToplam(), mc = maliyetOf(x, T), isl = bul(k), O = IST.oyunlar || {};
+  const oyunlar = Object.entries(x.oyun).sort((a, b) => b[1] - a[1]), enO = oyunlar[0]?.[1] || 1;
+  const saatEn = Math.max(1, ...x.saat);
+  const ucret = isl?.odeme?.periyot !== 'yok' ? (isl?.odeme?.tutar || 0) * T.gunSay / 30.4 : 0;
+  const seri = T.gunluk.map((s) => ({ ...(x.gun[s.g] || { zt: 0, oyuncu: 0 }), kisa: gunKisa(s.g), et: tarihYaz(s.g) }));
+  const geri = x.zt - x.zy;
+  return `<div class="izgara">
+  ${istDurumHtml(son, k)}
+  <div class="sayilar">
+    <div class="sayi sari"><small>Ziyaretçi</small><b>${sayiYaz(x.zt)}</b><em>${sayiYaz(x.zy)} yeni · ${sayiYaz(Math.max(0, geri))} tekrar gelen</em></div>
+    <div class="sayi"><small>Oynayan</small><b>${sayiYaz(x.oyuncu)}</b><em>${sayiYaz(x.oda)} oda${x.botOda ? ` · ${sayiYaz(x.botOda)} botlu` : ''} · en çok ${sayiYaz(x.tepe)} kişi aynı anda</em></div>
+    <div class="sayi mor"><small>Oynama süresi</small><b>${sureYaz(x.pms)}</b><em>kişi başı ${x.oyuncu ? sureYaz(x.pms / x.oyuncu) : '—'}</em></div>
+    <div class="sayi ${mc.gercek > 0 ? 'kirmizi' : 'yesil'}"><small>Sunucu maliyeti</small><b>${TL2(mc.gercek)}</b><em>${veriYaz(x.bayt)} veri · kota olmasa ${TL2(mc.kotasiz)}</em></div>
+  </div>
+  ${T.gunSay > 1 ? `<section class="kart"><div class="kb"><h2>📈 Günlük</h2><span class="bosluk"></span><span class="lejant"><i style="background:var(--limon)"></i>Ziyaretçi <i style="background:var(--mor)"></i>Oynayan</span></div>${cubukGrafik(seri, ['zt', 'oyuncu'], ['#ffd23f', '#6c47ff'], 'Günlük ziyaretçi ve oynayan')}</section>` : ''}
+  <div class="izgara iki">
+    <section class="kart"><div class="kb"><h2>🎮 En çok oynanan</h2></div>
+      ${oyunlar.length ? `<div class="ist-bar">${oyunlar.slice(0, 12).map(([o, v]) => `<div><span>${esc(O[o]?.emo || '🎲')} ${esc(O[o]?.ad || o)}</span><i style="width:${Math.max(4, (v / enO) * 100)}%"></i><b>${sayiYaz(v)}</b></div>`).join('')}</div>` : '<div class="bos"><i>🎲</i>Bu dönemde oyun açılmadı</div>'}</section>
+    <section class="kart"><div class="kb"><h2>🕒 Yoğun saatler</h2></div>
+      ${x.saat.some(Boolean) ? `<div class="saatler">${x.saat.map((v, h) => `<div title="${h}:00 – ${h + 1}:00 · ${sayiYaz(v)} oyuncu-dakika"><i style="height:${Math.round((v / saatEn) * 100)}%"></i><small>${h % 3 === 0 ? h : ''}</small></div>`).join('')}</div><p class="not">Çubuk ne kadar uzunsa o saatte o kadar çok kişi oynamış.</p>` : '<div class="bos"><i>🕒</i>Henüz veri yok</div>'}</section>
+    <section class="kart"><div class="kb"><h2>💵 Bu dönemin hesabı</h2></div>
+      <div class="liste">
+        ${isl ? `<div class="sat hesap"><div><h4>İşletmenin ödediği</h4><p>${isl.odeme?.periyot === 'yok' ? 'ücret almıyorsun' : isl.odeme?.tutar ? `${TL(isl.odeme.tutar)}/ay, ${T.gunSay} güne düşen` : 'aylık ücret girilmemiş'}</p></div><span class="tutar">${TL2(ucret)}</span></div>` : ''}
+        <div class="sat hesap"><div><h4>Sunucu payı</h4><p>${esc(mc.m.plan)} · ${veriYaz(x.bayt)} veri</p></div><span class="tutar">${TL2(mc.gercek)}</span></div>
+        <div class="sat hesap"><div><h4>Ücretsiz kota olmasaydı</h4><p>veri ${mc.m.gbUsd} $/GB + sabit ücret payı</p></div><span class="tutar">${TL2(mc.kotasiz)}</span></div>
+        ${isl ? `<div class="sat hesap"><div><h4>Kalan</h4><p>ödenen − sunucu payı</p></div><span class="tutar" style="color:${ucret - mc.gercek < 0 ? 'var(--cay)' : '#157a44'}">${TL2(ucret - mc.gercek)}</span></div>` : ''}
+        ${x.oyuncu ? `<div class="sat hesap"><div><h4>Oyuncu başına sunucu</h4><p>kota olmasa</p></div><span class="tutar">${TL2(mc.kotasiz / x.oyuncu)}</span></div>` : ''}
+      </div></section>
+    <section class="kart"><div class="kb"><h2>🔗 Düğme tıklamaları</h2></div>
+      <div class="ist-mini"><span><b>${sayiYaz(x.g)}</b>⭐ Bizi puanla (Google)</span><span><b>${sayiYaz(x.i)}</b>📷 Instagram</span><span><b>${sayiYaz(x.z)}</b>sayfa açılışı</span><span><b>${x.zt ? sayiYaz((x.oyuncu / x.zt) * 100) : 0}%</b>gelenlerden oynayan</span></div>
+      <p class="not">Ziyaretçi: o gün QR’ı okutan farklı telefon sayısı. Oynayan: bir odaya giren kişi (aynı kişi gün içinde birkaç odaya girdiyse her biri sayılır).</p></section>
+  </div></div>`;
+}
+async function istKartIsletme(slug) { // işletme düzenleyicisindeki küçük kart
+  const el = $('#istKart'); if (!el) return;
+  const [bas, son] = donemAralik('30');
+  try {
+    const d = await istAl(bas, son); if (!$('#istKart')) return;
+    const T = istTopla(d.gunler || {}, bas, son), x = T.K.get(slug) || bosToplam(), mc = maliyetOf(x, T);
+    el.innerHTML = `<div class="ist-mini"><span><b>${sayiYaz(x.zt)}</b>ziyaretçi</span><span><b>${sayiYaz(x.oyuncu)}</b>oynayan</span><span><b>${sureYaz(x.pms)}</b>oynama</span><span><b>${TL2(mc.gercek)}</b>sunucu (${veriYaz(x.bayt)})</span></div>
+      <a class="dugme kucuk" style="margin-top:12px" href="#/istatistik/${encodeURIComponent(slug)}">📊 Ayrıntılı istatistik</a>`;
+  } catch (e) { el.innerHTML = `<p class="not" style="margin:0">İstatistik alınamadı: ${esc(e.message)}</p>`; }
+}
+async function istKartOzet() { // özet sayfasındaki "bugün" kartı
+  const el = $('#istOzet'); if (!el) return;
+  const b = trGun();
+  try {
+    const d = await istAl(b, b); if (!$('#istOzet')) return;
+    const T = istTopla(d.gunler || {}, b, b), t = T.top, a = d.son?.anlik, canli = a && Date.now() - a.t < 12 * 60e3;
+    const en = [...T.K.entries()].filter(([k]) => k !== 'direkt').sort((p, q) => q[1].oyuncu - p[1].oyuncu)[0];
+    el.innerHTML = `<div class="ist-mini"><span><b>${sayiYaz(t.zt)}</b>ziyaretçi</span><span><b>${sayiYaz(t.oyuncu)}</b>oynayan</span><span><b>${sureYaz(t.pms)}</b>oynama</span><span><b>${canli ? sayiYaz(a.oyuncu) : '—'}</b>şu an oyunda</span></div>
+      ${en && en[1].oyuncu ? `<p class="not">Bugün en hareketli: <b>${esc(kaynakAd(en[0]))}</b> (${sayiYaz(en[1].oyuncu)} oyuncu)</p>` : ''}${d.son ? '' : '<p class="not">Sunucudan henüz veri gelmedi.</p>'}`;
+  } catch (e) { el.innerHTML = `<p class="not" style="margin:0">${esc(e.message)}</p>`; }
 }
 
 // ---------------------------------------------------------------- tıklamalar
@@ -857,6 +1060,7 @@ document.addEventListener('click', async (e) => {
   const el = e.target.closest('[data-act]'); if (!el) return;
   const a = el.dataset.act;
   if (a === 'lf') { LF = el.dataset.k; $('#icerik').innerHTML = listeHtml(); return; }
+  if (a === 'ist-donem') { IST.donem = el.dataset.k; const h = location.hash.replace(/^#\/?/, '').split('/'); const y = window.scrollY; await istatistikSayfa(h[1] ? decodeURIComponent(h[1]) : null); window.scrollTo(0, y); return; }
   if (a === 'kaydet') return kaydet();
   if (a === 'durum') { E.x.durum = el.dataset.d; kirlet(); duzenleyici(E.yeni ? null : E.slug); return; }
   if (a === 'palet') { E.x.tema.vars = { ...PALETLER[+el.dataset.i][1] }; kirlet(true); duzenleyici(E.yeni ? null : E.slug); return; }
@@ -916,6 +1120,13 @@ document.addEventListener('click', async (e) => {
   if (a === 'sq-sil') { o.add.splice(+el.dataset.ek, 1); sorularYenile(); return bankaKaydet(b.id); }
 });
 document.addEventListener('submit', async (e) => {
+  if (e.target.id === 'mform') {
+    e.preventDefault();
+    const f = Object.fromEntries(new FormData(e.target));
+    try { S.ayar = await api('/ayar', { method: 'PUT', body: { maliyet: { ...f, aylikUsd: +f.aylikUsd, dahilGb: +f.dahilGb, gbUsd: +f.gbUsd, kur: +f.kur } } }); bildir('Maliyet ayarları kaydedildi ✓'); goster(); }
+    catch (er) { bildir(er.message, true); }
+    return;
+  }
   if (e.target.id !== 'sform') return;
   e.preventDefault();
   const f = new FormData(e.target);

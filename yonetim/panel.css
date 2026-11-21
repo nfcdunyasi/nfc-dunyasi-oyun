@@ -67,7 +67,7 @@ textarea.girdi { resize: vertical; min-height: 84px; line-height: 1.4; }
 .sekmeler-ust a { padding: 8px 14px; border-radius: 11px; font-weight: 800; text-decoration: none; color: rgb(255 255 255 / .75); }
 .sekmeler-ust a.on { background: var(--limon); color: var(--murekkep); }
 .sayfa { max-width: 1180px; margin: 0 auto; padding: 18px max(14px, env(safe-area-inset-right)) calc(96px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); }
-.alt-sekme { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--beyaz); border-top: 3px solid var(--murekkep); display: grid; grid-template-columns: repeat(4, 1fr); padding: 6px max(6px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left)); }
+.alt-sekme { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--beyaz); border-top: 3px solid var(--murekkep); display: grid; grid-template-columns: repeat(5, 1fr); padding: 6px max(6px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left)); }
 .alt-sekme a { display: grid; justify-items: center; gap: 1px; padding: 6px 2px; border-radius: 12px; text-decoration: none; font-size: 11.5px; font-weight: 800; color: var(--gri); }
 .alt-sekme a i { font-style: normal; font-size: 21px; line-height: 1.1; }
 .alt-sekme a.on { background: var(--limon); color: var(--murekkep); }
@@ -236,3 +236,32 @@ textarea.girdi { resize: vertical; min-height: 84px; line-height: 1.4; }
 #bildirim div { background: var(--murekkep); color: #fff; padding: 10px 16px; border-radius: 14px; font-weight: 700; font-size: 14px; box-shadow: 3px 3px 0 var(--mor); animation: cik .2s ease-out; max-width: 520px; }
 #bildirim div.hata { background: var(--cay); box-shadow: 3px 3px 0 var(--murekkep); }
 @media (min-width: 900px) { #bildirim { bottom: 24px; } }
+
+/* istatistik */
+.grafik { overflow-x: auto; margin: 0 -4px; }
+.grafik svg { width: 100%; min-width: 320px; height: auto; max-height: 250px; display: block; color: var(--murekkep); }
+.grafik .eks { font-size: 11px; font-weight: 700; fill: var(--gri); }
+.lejant { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; color: var(--gri); }
+.lejant i { width: 11px; height: 11px; border-radius: 3px; border: 1.5px solid var(--murekkep); display: inline-block; margin-left: 4px; }
+.ist-liste { display: grid; }
+.ist-sat { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 4px 10px; align-items: center; padding: 11px 2px; border-bottom: 1.5px dashed var(--cizgi); text-decoration: none; }
+.ist-sat:last-child { border-bottom: 0; }
+.ist-sat .logo-k { width: 44px; height: 44px; font-size: 18px; }
+.ist-sat h4 { margin: 0; font-size: 15px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ist-sat .ad p { margin: 1px 0 0; font-size: 12px; color: var(--gri); font-weight: 700; }
+.ist-sat .ol { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.ist-sat .ol span, .ist-mini span { display: grid; font-size: 11.5px; font-weight: 700; color: var(--gri); background: var(--kagit); border-radius: 10px; padding: 6px 8px; min-width: 0; }
+.ist-sat .ol b, .ist-mini b { font-family: var(--baslik); font-size: 16px; color: var(--murekkep); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+@media (min-width: 760px) { .ist-sat { grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1.6fr); } .ist-sat .ol { grid-column: auto; } }
+.ist-mini { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 560px) { .ist-mini { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.ist-bar { display: grid; gap: 7px; }
+.ist-bar div { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 13.5px; font-weight: 700; }
+.ist-bar span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ist-bar i { height: 12px; border-radius: 6px; background: var(--mor); border: 1.5px solid var(--murekkep); }
+.ist-bar b { font-family: var(--baslik); font-variant-numeric: tabular-nums; min-width: 2ch; text-align: right; }
+.saatler { display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 2px; height: 120px; align-items: end; }
+.saatler div { height: 100%; display: grid; grid-template-rows: 1fr auto; align-items: end; }
+.saatler i { display: block; background: var(--limon); border: 1.5px solid var(--murekkep); border-radius: 4px 4px 0 0; min-height: 2px; }
+.saatler small { font-size: 10px; font-weight: 800; color: var(--gri); text-align: center; height: 14px; }
+.sat.hesap { grid-template-columns: minmax(0, 1fr) auto; }

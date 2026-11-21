@@ -1,7 +1,7 @@
 // Sosis Bowling — 3D bowling (NFC Dünyası Oyun)
 // Kurye Yarışı'nın küçük WebGL motorunu yeniden kullanır. Herkes kendi kulvarında atış yapar; fizik telefonda döner,
 // sunucu her atışta devrilen şişe sayısını doğrular ve sıralamayı tutar.
-import { _eng } from './kuryeYarisi.js?v=2026-11-21-a';
+import { _eng } from './kuryeYarisi.js?v=2026-11-21-c';
 const { ctx2d, podiumHTML, EmoteUI, detailOn, postFX, shadowBegin, shadowCast, shadowEnd, shadowSet, emitSoft, autoRes, sfx, clamp, lerp, damp, esc, hexRGB, C, shade, M, makeGL, MB, freeMesh, makeTexture, updateTexture, drawMesh, drawDynamic, useProg, TOD, norm3, brandInfo, Res, Snd, pcol, vibrate, medal, ONE3, injectStyle } = _eng();
 
 /* ============================ fizik ============================ */
@@ -9,19 +9,19 @@ const BW = (() => {
   const LW = 0.62;            // kulvar yarı genişliği
   const PIN_F = 9.0;          // ilk şişenin uzaklığı
   const F_END = 10.6;         // şişe alanı sonu (çukur)
-  const BR = 0.26, PR = 0.13; // sosis topu / şişe yarıçapı
-  const AIM_MAX = 0.095;
+  const BR = 0.24, PR = 0.12; // sosis topu / şişe yarıçapı
+  const AIM_MAX = 0.12;        // nişan oku kulvar kenarlarına kadar savrulur: uçlarda top kanala gider
   const ORIGIN = [];
-  for (let r = 0; r < 4; r++) for (let i = 0; i <= r; i++) ORIGIN.push({ x: (i - r / 2) * 0.4, f: PIN_F + r * 0.36 });
+  for (let r = 0; r < 4; r++) for (let i = 0; i <= r; i++) ORIGIN.push({ x: (i - r / 2) * 0.42, f: PIN_F + r * 0.38 });
   const tri = (u) => { const k = ((u % 2) + 2) % 2; return k < 1 ? k : 2 - k; };   // 0..1..0
-  const aimAt = (t) => (tri(t * 0.55 + 0.5) * 2 - 1) * AIM_MAX;
-  const powAt = (t) => tri(t * 0.95);
+  const aimAt = (t) => (tri(t * 1.2 + 0.5) * 2 - 1) * AIM_MAX;   // hızlı salınım: doğru anı yakalamak beceri ister
+  const powAt = (t) => tri(t * 1.5);
   // opt: { x0: başlangıç konumu, curve: oyuncunun verdiği kavis } (kaydırarak atış). Yoksa kulvar yağı rastgele saptırır.
   function newSim(standing, aim, power, opt = null) {
     const sp = 6.2 + power * 5.6;
     const curve = opt && Number.isFinite(opt.curve) ? opt.curve + (Math.random() - 0.5) * 0.16 : (Math.random() - 0.5) * 0.9;
     let a = aim;
-    if (power > 0.84) a += (Math.random() - 0.5) * 0.05;   // fazla güç: sosis savrulur
+    if (power > 0.84) a += (Math.random() - 0.5) * (0.05 + (power - 0.84) * 0.5);   // fazla güç: sosis savrulur (ne kadar fazlaysa o kadar)
     const x0 = opt && Number.isFinite(opt.x0) ? Math.max(-0.42, Math.min(0.42, opt.x0)) : 0;
     const S = {
       t: 0, aim: a, power,
@@ -60,7 +60,7 @@ const BW = (() => {
       if (p.hit) {
         p.ht += dt;
         const sp = Math.hypot(p.vx, p.vf);
-        if (sp > 0) { const k = Math.max(0, sp - 5.5 * dt) / sp; p.vx *= k; p.vf *= k; }
+        if (sp > 0) { const k = Math.max(0, sp - 10 * dt) / sp; p.vx *= k; p.vf *= k; }
         p.x += p.vx * dt; p.f += p.vf * dt;
         if (p.f > F_END || Math.abs(p.x) > LW + 0.3) { p.gone = true; p.vx = p.vf = 0; }
       }
@@ -105,7 +105,7 @@ const BW = (() => {
           if (vn > 0) {
             const j = (1 + 0.42) * vn / 2;
             a.vx -= j * nx; a.vf -= j * nf; c.vx += j * nx; c.vf += j * nf;
-            if (vn > 0.8) { pinHit(S, a, -nx, -nf, vn); pinHit(S, c, nx, nf, vn); }
+            if (vn > 1.5) { pinHit(S, a, -nx, -nf, vn); pinHit(S, c, nx, nf, vn); }
           }
         }
       }
@@ -655,7 +655,7 @@ class Game {
     const pxs = Math.max(tail, avg * 0.8);
     const power = clamp(pxs / (Math.max(H, 560) * 2.5), 0.16, 1);
     const ang = Math.atan2(dx, -dy);
-    const aim = clamp(ang * 0.3, -BW.AIM_MAX * 1.2, BW.AIM_MAX * 1.2);
+    const aim = clamp(ang * 0.36, -BW.AIM_MAX * 1.2, BW.AIM_MAX * 1.2);
     // kavis: çizgi noktalarının kiriş doğrusuna işaretli uzaklığı (sağa şişkin çizgi = sola dönen top)
     const L = Math.hypot(dx, dy) || 1;
     const nx = -dy / L, ny = dx / L;

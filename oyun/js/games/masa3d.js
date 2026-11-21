@@ -3,8 +3,8 @@
 // parçaları (yuvarlak masa ve örtü, sandalye, halı, sarkıt lamba, duvar, çay bardağı...), oturma düzeni, kamera
 // sığdırma ve oyun kabuğu (HUD, kartlar, isim etiketleri, emoji tepkileri, WebGL yaşam döngüsü, 2D yedek görünüm).
 // Kurye Yarışı'nın küçük WebGL motorunu kullanır.
-import { _eng } from './kuryeYarisi.js?v=2026-11-21-a';
-import * as sfx from '../sfx.js?v=2026-11-21-a';
+import { _eng } from './kuryeYarisi.js?v=2026-11-21-c';
+import * as sfx from '../sfx.js?v=2026-11-21-c';
 
 const E = _eng();
 const { limb, ik2, psurf, ctx2d, podiumHTML, placeLabels, EmoteUI, KIT, drawToon, aoOn, detailOn, postFX, shadowBegin, shadowCast, shadowEnd, emitSoft, autoRes, clamp, lerp, damp, esc, hexRGB, C, shade, M, makeGL, MB, freeMesh, makeTexture, updateTexture, useProg, drawMesh, drawSky, drawDynamic, norm3, brandInfo, Res, Snd, pcol, vibrate, medal, ONE3, injectStyle } = E;
@@ -695,7 +695,8 @@ class StandAvatar extends Avatar {
     let ext = 0;
     for (let j = 0; j < 2; j++) {
       const ph = this.gait + (j ? Math.PI : 0);
-      const a1 = -Math.sin(ph) * 0.62 * w, a2 = Math.max(0, Math.sin(ph - 1.25)) * 0.95 * w;
+      // diz, ayak öne savrulurken (salınım evresi) bükülür; basan ayak geriye kayarken düz kalır → ileri yürüyüş
+      const a1 = -Math.sin(ph) * 0.62 * w, a2 = Math.max(0, Math.sin(ph + 1.9)) * 0.95 * w;
       ext = Math.max(ext, THIGH * Math.cos(a1) + 0.43 * Math.cos(a1 + a2));
       A1[j] = a1 - sit * 1.4; A2[j] = a2 + sit * 0.12;
     }

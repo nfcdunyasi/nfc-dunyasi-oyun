@@ -3,8 +3,8 @@
 // sırası gelene çevirir. Söylenen sayı tablanın kenarındaki sayı halkasına uçar, aralık daralır, fitil kısalır.
 // Bombanın sayısını söyleyen patlar: davul, şişen bomba, patlama, is kara yüz, kahkahalar. Masa kiti (masa3d.js)
 // ve Kurye Yarışı motoruyla çizilir; WebGL yoksa 2D görünüm gösterilir.
-import { _masa } from './masa3d.js?v=2026-11-21-a';
-import * as sfx from '../sfx.js?v=2026-11-21-a';
+import { _masa } from './masa3d.js?v=2026-11-21-c';
+import * as sfx from '../sfx.js?v=2026-11-21-c';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs, vn, mix3, rgbA, sst } = K;

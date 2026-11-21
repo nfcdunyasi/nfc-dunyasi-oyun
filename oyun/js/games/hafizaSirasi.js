@@ -3,8 +3,8 @@
 // herkes önündeki küçük tuş takımında aynı diziyi tekrar eder, karakterler tuşlara basar. Her tur dizi bir renk uzar,
 // yanlış basan ya da süresinde bitiremeyen elenir; son kalan kazanır. Masa kiti (masa3d.js) ve Kurye Yarışı motoruyla
 // çizilir; WebGL yoksa 2D görünüm gösterilir.
-import { _masa } from './masa3d.js?v=2026-11-21-a';
-import * as sfx from '../sfx.js?v=2026-11-21-a';
+import { _masa } from './masa3d.js?v=2026-11-21-c';
+import * as sfx from '../sfx.js?v=2026-11-21-c';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs, mix3, rgbA, sst, trophyModel } = K;
@@ -808,7 +808,7 @@ class MemGame extends TableGame {
       html = `<div class="card hz-in">
         <div class="tt">🔁 Hafıza Sırası</div>
         <div class="sub">Cihazın çaldığı renkleri aynı sırayla tekrar et!</div>
-        <div class="hz-ru"><div class="r"><b>👀</b>Renkler sırayla yanar</div><div class="b"><b>👆</b>Aynı sırayla bas</div><div class="g"><b>➕</b>Her tur bir renk uzar, yanılan elenir</div></div>
+        <div class="hz-ru"><div class="r"><b>👀</b>Renkler sırayla yanar</div><div class="b"><b>👆</b>Aynı sırayla bas</div><div class="g"><b>➕</b>Her tur dizi uzar (5. turdan sonra iki renk), yanılan elenir</div></div>
         ${this.modeSeg(v)}
         <button class="kb" data-act="hz-start" ${n < 2 ? 'disabled' : ''}>Başla ▶</button>
         <div class="hint">${n < 2 ? 'Oynamak için masada en az 2 kişi lazım. Oda kodunu paylaş!' : 'Masadaki herkes başlatabilir.'}</div>

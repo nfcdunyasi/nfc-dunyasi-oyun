@@ -1,7 +1,7 @@
 // Kurye Yarışı — 3D yarış oyunu (NFC Dünyası Oyun)
 // Dış kütüphane yok: kendi küçük WebGL motoru, düşük poligonlu şehir, işletmenin rengi/logosu/yiyecekleri.
 // Herkes aynı pistte kendi telefonunda sürer; sunucu ilerlemeleri toplar, rakipler "hayalet" olarak görünür.
-import * as sfx from '../sfx.js?v=2026-11-21-a';
+import * as sfx from '../sfx.js?v=2026-11-21-c';
 
 // Ortak çekirdek (sunucudaki botlar da birebir aynı kodu kullanır)
 const KY = (() => {
@@ -4475,6 +4475,9 @@ function drawDynamic(X, buf, arr, count, additive) {
 // bir basamak iyimser başlar; uzun süre akıcıysa basamak basamak geri yükselir.
 const QL = [[1, 1, 1], [0.88, 1, 1], [0.88, 0, 1], [0.76, 0, 1], [0.76, 0, 0], [0.64, 0, 0], [0.55, 0, 0]];
 const QKEY = 'nfc3d-kalite';
+const HAND_KEY = 'ky-el';
+const handLoad = () => { try { const h = localStorage.getItem(HAND_KEY); if (h === 'r' || h === 'l' || h === '2') return h; } catch { /* yok say */ } return 'r'; };
+const handSave = (h) => { try { localStorage.setItem(HAND_KEY, h); } catch { /* yok say */ } };
 const qLoad = (k) => { try { const q = JSON.parse(localStorage.getItem(k) || 'null'); if (q && Number.isInteger(q.lv)) return q; } catch { /* yok say */ } return null; };
 const qSave = (k, q) => { try { localStorage.setItem(k, JSON.stringify(q)); } catch { /* yok say */ } };
 function qApply(g, lv) {
@@ -5135,6 +5138,22 @@ const STYLE = `
 #ky .cb.j{width:96px;border-radius:30px;font-size:15px;letter-spacing:.05em}
 #ky .cb.j span{display:block;font-size:30px;line-height:.9}
 #ky .cb.on{background:rgba(255,255,255,.4);transform:scale(.93)}
+/* tek el: düğmeler başparmağın döndüğü köşede toplanır (zıpla üstte, ◀ ▶ altta); turbo göstergesi karşı köşeye geçer */
+#ky.hand-r .ctl,#ky.hand-l .ctl{left:auto;right:0;display:grid;grid-template-columns:auto auto;grid-template-areas:"j j" "l r";gap:10px;justify-items:stretch;align-items:end}
+#ky.hand-l .ctl{left:0;right:auto}
+#ky.hand-r .cb.l,#ky.hand-l .cb.l{grid-area:l;order:0}#ky.hand-r .cb.r,#ky.hand-l .cb.r{grid-area:r;order:0}
+#ky.hand-r .cb.j,#ky.hand-l .cb.j{grid-area:j;order:0;margin:0;width:auto;height:70px;border-radius:24px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px}
+#ky.hand-r .cb.j span,#ky.hand-l .cb.j span{display:inline;font-size:28px}
+#ky.hand-r .meter,#ky.hand-l .meter{transform:none;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);padding:4px 8px 4px 5px;gap:4px}
+#ky.hand-r .meter{left:calc(env(safe-area-inset-left,0px) + 12px)}#ky.hand-l .meter{left:auto;right:calc(env(safe-area-inset-right,0px) + 12px)}
+#ky.hand-r .meter .tb,#ky.hand-l .meter .tb{display:none}#ky.hand-r .meter.hot .tb,#ky.hand-l .meter.hot .tb{display:inline}
+#ky.hand-r .seg i,#ky.hand-l .seg i{width:8px}#ky.hand-r .seg,#ky.hand-l .seg{gap:2px}
+#ky.hand-r .tip,#ky.hand-l .tip{bottom:calc(env(safe-area-inset-bottom,0px) + 196px)}
+@media (max-width:350px){#ky.hand-r .cb.l,#ky.hand-r .cb.r,#ky.hand-l .cb.l,#ky.hand-l .cb.r{width:68px;height:68px}#ky.hand-r .cb.j,#ky.hand-l .cb.j{height:62px}}
+#ky .elsec{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px;margin-top:10px;font-size:13px;font-weight:700}
+#ky .elsec>span{opacity:.7;margin-right:2px}
+#ky .elsec button{border:2px solid var(--ink);border-radius:99px;background:#fff;color:var(--ink);font:inherit;font-weight:800;padding:5px 11px;cursor:pointer}
+#ky .elsec button.on{background:var(--ink);color:#fff}
 #ky .msg{position:absolute;left:0;right:0;top:30%;text-align:center;pointer-events:none}
 #ky .msg span{display:inline-block;font-weight:800;font-size:60px;line-height:1;color:#fff;-webkit-text-stroke:3px var(--ink);text-shadow:0 5px 0 var(--ink);animation:kypop 1.1s ease-out forwards;padding:0 12px}
 #ky .msg span.big{font-size:110px}
@@ -5355,6 +5374,8 @@ class Game {
   buildDom() {
     const w = document.createElement('div');
     w.id = 'ky';
+    this.hand = handLoad();
+    w.classList.add('hand-' + this.hand);
     w.innerHTML = `
       <canvas aria-label="Kurye Yarışı 3D sahnesi"></canvas>
       <div class="lbls"></div><div class="fx"></div><div class="vig"></div>
@@ -5419,6 +5440,21 @@ class Game {
       });
     };
     btn(this.el.bl, 'l'); btn(this.el.bj, 'j'); btn(this.el.br, 'r');
+    // hazır kartındaki "Düğmeler" seçimi: sağ el / sol el (köşede üçgen) ya da iki el (yanlara yayılmış)
+    this.onHand = (e) => {
+      const b = e.target.closest('[data-hand]');
+      if (!b) return;
+      e.preventDefault(); e.stopPropagation();
+      const h = b.dataset.hand;
+      if (h !== 'r' && h !== 'l' && h !== '2') return;
+      this.el.wrap.classList.remove('hand-' + this.hand);
+      this.hand = h;
+      handSave(h);
+      this.el.wrap.classList.add('hand-' + h);
+      this.panelKey = '';
+      this.panel();
+    };
+    this.el.panel.addEventListener('click', this.onHand);
     const pts = new Map();
     this.onDown = (e) => {
       if (e.target.closest('.panel.on .card, button, a')) return;
@@ -5636,7 +5672,7 @@ class Game {
         // "Hemen başla" düğmesi son saniyelerde kartı yeniden çizmeden gizlenir (bkz. hud)
         const canGo = ctx.isHost && first;
         const fe = FOOD_EMOJI[this.food[0]];
-        key = `ready|${v.round}|${v.racers.map((r) => r.id + r.n).join(',')}|${canGo}`;
+        key = `ready|${v.round}|${v.racers.map((r) => r.id + r.n).join(',')}|${canGo}|${this.hand}`;
         html = `<div class="card">
           <div class="tt">🛵 Kurye Yarışı</div>
           <div class="sub">${v.round}/${v.rounds}. yarış · ${isRainy(v.tod || 0, v.seed) ? '🌧️ Yağmurlu gece' : `${tod.icon} ${tod.name}`} · ${v.racers.length} kurye</div>
@@ -5648,6 +5684,7 @@ class Game {
             <div><span class="k">🚗</span><span><b>Arabalara çarpma</b><small>Çarparsan yavaşlarsın, rampadan üstlerinden uçabilirsin</small></span></div>
           </div>` : `<div class="how"><div><span class="k">◀ ▶</span><span><b>Şerit</b> · <b>⤒ zıpla</b> · <b>${fe}×${KY.NEED} = turbo</b></span></div></div>`}
           <div class="who">${chips(v.racers)}</div>
+          ${v.racing ? `<div class="elsec" role="group" aria-label="Düğme yerleşimi"><span>🎮 Düğmeler:</span>${[['r', '✋ Sağ el'], ['l', '🤚 Sol el'], ['2', '👐 İki el']].map(([h, t]) => `<button data-hand="${h}" class="${this.hand === h ? 'on' : ''}">${t}</button>`).join('')}</div>` : ''}
           <div class="cd"><span>${v.racing ? 'Yarış başlıyor' : 'Bu yarışı izleyeceksin'}</span><b data-cd></b></div>
           ${canGo ? '<button class="kb btn" data-game-action="go">Hemen başla ▶</button>' : ''}
         </div>`;

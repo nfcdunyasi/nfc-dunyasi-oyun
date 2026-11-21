@@ -1,12 +1,12 @@
 // Mini Golf — 3D mini golf oyunu (NFC Dünyası Oyun)
 // Kurye Yarışı'nın küçük WebGL motorunu yeniden kullanır. Herkes aynı anda vurur; sonucu sunucu hesaplar,
 // telefon aynı fizik çekirdeğiyle animasyonu oynatır.
-import { _eng } from './kuryeYarisi.js?v=2026-11-21-a';
+import { _eng } from './kuryeYarisi.js?v=2026-11-21-c';
 const { ctx2d, podiumHTML, EmoteUI, aoOn, drawToon, detailOn, KIT, postFX, shadowBegin, shadowCast, shadowEnd, emitSoft, autoRes, sfx, clamp, lerp, damp, esc, hexRGB, C, shade, M, makeGL, MB, freeMesh, drawMesh, IDENT, drawSky, drawDynamic, useProg, TOD, norm3, brandInfo, Res, Snd, pcol, vibrate, medal, ONE3, injectStyle } = _eng();
 
 // Ortak çekirdek (sunucudaki botlar ve fizik de birebir aynı kodu kullanır)
 const MG = (() => {
-  // Mini Golf çekirdeği: 2D top-down fizik, 6 çukur, bot zekâsı.
+  // Mini Golf çekirdeği: 2D top-down fizik, 31 parkurluk havuz, bot zekâsı.
   // Sunucu (gerçek sonuç) ve telefon (animasyon) AYNI kodu çalıştırır; hareketli engeller çukur süresinin saf fonksiyonudur.
   const DT = 1 / 120;
   const BR = 0.25;                // top yarıçapı (m)
@@ -65,6 +65,175 @@ const MG = (() => {
       boosts: [{ x: 4.5, y: 0, r: 1.05, dx: 0, dy: -1 }],
       spin: [{ x: -0.5, y: -5, len: 1.55, k: 2, w: -1.7, ph: 0.6 }],
       pits: [[-6, -11, -5.1, -9.6]],
+    },
+    // ---- 2026-11 eklenen parkurlar: her oyunda bu havuzdan rastgele seçilir ----
+    {
+      name: 'Slalom', emoji: '⛷️', par: 3, sub: 'Kazıkların arasından süzül; dümdüz vuruş kazığa çarpar.',
+      tee: [0, 5], cup: [0, -10], logo: [0, -1.9],
+      poly: [[-2.2, 6.6], [2.2, 6.6], [2.2, -11.6], [-2.2, -11.6]],
+      pegs: [[-0.55, 2.0, 0.42], [0.55, -0.6, 0.42], [-0.55, -3.2, 0.42], [0.55, -5.8, 0.42], [-0.55, -8.0, 0.36]],
+    },
+    {
+      name: 'Çifte Değirmen', emoji: '🌬️', par: 3, sub: 'İki değirmen ters yöne döner; ortadan geçilmez, kenarı kolla.',
+      tee: [0, 5], cup: [0, -11.6], logo: [0, 2.6],
+      poly: [[-2.6, 6.6], [2.6, 6.6], [2.6, -13.2], [-2.6, -13.2]],
+      pegs: [[-1.9, 1.0, 0.35], [1.9, -4.5, 0.35]],
+      spin: [{ x: 0, y: -1.8, len: 1.9, k: 2, w: 1.6, ph: 0 }, { x: 0, y: -7.6, len: 1.9, k: 3, w: -1.3, ph: 0.5 }],
+    },
+    {
+      name: 'Yılan Yolu', emoji: '🐍', par: 4, sub: 'İki keskin dönüş: duvardan sektirmeyi hesapla.',
+      tee: [-3, 5], cup: [-3, -9], logo: [3, -4.5],
+      poly: [[-4.5, 6.6], [-1.5, 6.6], [-1.5, 1.5], [4.5, 1.5], [4.5, -10.5], [-4.5, -10.5], [-4.5, -7.5], [1.5, -7.5], [1.5, -1.5], [-4.5, -1.5]],
+      pegs: [[3, -2.6, 0.38]],
+      pits: [[-1.0, -10.5, 0.6, -9.7]],
+    },
+    {
+      name: 'Ada', emoji: '🏝️', par: 3, sub: 'Delik sos gölünün ortasındaki adada; tek giriş önden.',
+      tee: [0, 5], cup: [0, -6.6], logo: [0, 1.6],
+      poly: [[-4, 6.6], [4, 6.6], [4, -11], [-4, -11]],
+      pegs: [[-1.7, -1.2, 0.35], [1.7, -1.2, 0.35]],
+      pits: [[-3.2, -9.4, 3.2, -8.6], [-3.2, -4.4, -0.8, -3.6], [0.8, -4.4, 3.2, -3.6], [-3.2, -8.6, -2.4, -4.4], [2.4, -8.6, 3.2, -4.4]],
+    },
+    {
+      name: 'Hız Pisti', emoji: '🚀', par: 3, sub: 'Hız şeritleri topu fırlatır; kenardaki sosa kaçırma.',
+      tee: [0, 5], cup: [0, -14.2], logo: [0, 2.2],
+      poly: [[-2.4, 6.6], [2.4, 6.6], [2.4, -16], [-2.4, -16]],
+      boosts: [{ x: -0.7, y: -2, r: 0.85, dx: 0, dy: -1 }, { x: 0.7, y: -8, r: 0.85, dx: 0, dy: -1 }],
+      pegs: [[0, -11.6, 0.32]],
+      pits: [[-2.4, -6, -1.3, -3.6], [1.3, -10, 2.4, -7.6]],
+    },
+    {
+      name: 'Kapı Labirenti', emoji: '🚧', par: 3, sub: 'Üç kapı farklı hızda kayar; doğru anı bekle.',
+      tee: [0, 5], cup: [0, -12.8], logo: [0, 2.6],
+      poly: [[-3, 6.6], [3, 6.6], [3, -14.4], [-3, -14.4]],
+      slide: [{ x: 0, y: -1, hl: 1.4, amp: 1.6, per: 2.8, ph: 0, v: 0 }, { x: 0, y: -5.2, hl: 1.4, amp: 1.6, per: 2.2, ph: 1.5, v: 0 }, { x: 0, y: -9.4, hl: 1.4, amp: 1.6, per: 3.4, ph: 3, v: 0 }],
+    },
+    {
+      name: 'U Dönüşü', emoji: '↩️', par: 3, sub: 'Aşağı in, dipten dön, öbür koridordan yukarı çık.',
+      tee: [-3.3, 5], cup: [3.3, 4.2], logo: [-3.3, -2],
+      poly: [[-5, 6.6], [-1.6, 6.6], [-1.6, -7.6], [1.6, -7.6], [1.6, 6.6], [5, 6.6], [5, -11], [-5, -11]],
+      pegs: [[0, -9.3, 0.4]],
+      pits: [[3.9, -1, 5, 1.2]],
+    },
+    {
+      name: 'Huni', emoji: '🔻', par: 2, sub: 'Eğik duvarlar topu ortaya toplar; ortadaki kazığa dikkat.',
+      tee: [0, 5], cup: [0, -9.8], logo: [0, 2.4],
+      poly: [[-4.5, 6.6], [4.5, 6.6], [1.1, -7.5], [1.1, -11.2], [-1.1, -11.2], [-1.1, -7.5]],
+      pegs: [[-1.6, -1.8, 0.4], [1.6, -1.8, 0.4], [0, -4.6, 0.35]],
+    },
+    {
+      name: 'Elmas', emoji: '💎', par: 2, sub: 'Elmasın ortasındaki kazık kümesinin etrafından dolan.',
+      tee: [0, 5], cup: [0, -8.6], logo: [0, 2.6],
+      poly: [[0, 6.8], [5.5, -2], [0, -10.8], [-5.5, -2]],
+      pegs: [[0, -2, 0.55], [-1.6, -2, 0.32], [1.6, -2, 0.32], [0, -0.4, 0.32], [0, -3.6, 0.32]],
+    },
+    {
+      name: 'Bilardo', emoji: '🎱', par: 3, sub: 'Delik duvarın arkasında: bant yapıp içeri sok.',
+      tee: [-3, 5], cup: [-3, -7.8], logo: [0, 2],
+      poly: [[-5, 6.6], [5, 6.6], [5, -10], [-5, -10], [-5, -4.2], [1.8, -4.2], [1.8, -2.6], [-5, -2.6]],
+      pegs: [[3.4, -3.4, 0.35]],
+    },
+    {
+      name: 'Merdiven', emoji: '🪜', par: 3, sub: 'Basamaklar çapraz iner; ortadaki kazık düz yolu keser.',
+      tee: [-4.6, 5], cup: [4.6, -4.4], logo: [-4.3, 3.55],
+      poly: [[-6.4, 6.8], [-2, 6.8], [-2, 4], [0.8, 4], [0.8, 1.2], [3.6, 1.2], [3.6, -1.6], [6.4, -1.6], [6.4, -6], [2, -6], [2, -3.2], [-0.8, -3.2], [-0.8, -0.4], [-3.6, -0.4], [-3.6, 2.4], [-6.4, 2.4]],
+      pegs: [[1.4, -1, 0.45]],
+      pits: [[5.2, -6, 6.4, -5.2]],
+    },
+    {
+      name: 'Pervane Meydanı', emoji: '🌪️', par: 3, sub: 'Dev pervane meydanı süpürür: aralığı yakala ya da kenardan dolan.',
+      tee: [0, 5], cup: [0, -7.6], logo: [-3.4, 4.2],
+      poly: [[-5, 6.6], [5, 6.6], [5, -9.4], [-5, -9.4]],
+      spin: [{ x: 0, y: -1.4, len: 3.0, k: 4, w: 1.1, ph: 0.3 }],
+      pits: [[-5, -9.4, -3.6, -8.2], [3.6, -9.4, 5, -8.2]],
+    },
+    {
+      name: 'Dar Köprü', emoji: '🌉', par: 3, sub: 'Sos gölünün üstünde dar bir köprü; kayan kapı seni itebilir.',
+      tee: [0, 5], cup: [0, -10.2], logo: [0, 2.4],
+      poly: [[-3.5, 6.6], [3.5, 6.6], [3.5, -12], [-3.5, -12]],
+      pits: [[-3.5, -7.4, -0.6, -1.6], [0.6, -7.4, 3.5, -1.6]],
+      slide: [{ x: 0, y: -4.5, hl: 0.5, amp: 1.1, per: 3.0, ph: 0, v: 0 }],
+    },
+    {
+      name: 'Kum Saati', emoji: '⏳', par: 3, sub: 'Bel noktasında kayan kapı var; açıldığı an geç.',
+      tee: [0, 5], cup: [0, -8.8], logo: [0, 3.4],
+      poly: [[-4, 6.6], [4, 6.6], [0.9, -2], [4, -10.6], [-4, -10.6], [-0.9, -2]],
+      slide: [{ x: 0, y: -2, hl: 0.55, amp: 0.9, per: 2.4, ph: 0, v: 0 }],
+      pegs: [[-1.8, -6.6, 0.35], [1.8, -6.6, 0.35]],
+    },
+    {
+      name: 'Kale Kapısı', emoji: '🏰', par: 3, sub: 'Surdaki tek kapıdan geç, arkadaki değirmeni atlat.',
+      tee: [0, 5], cup: [2.4, -9], logo: [0, 2.6],
+      poly: [[-4, 6.6], [4, 6.6], [4, -1.2], [0.85, -1.2], [0.85, -2.6], [4, -2.6], [4, -11], [-4, -11], [-4, -2.6], [-0.85, -2.6], [-0.85, -1.2], [-4, -1.2]],
+      spin: [{ x: 0, y: -5.2, len: 1.6, k: 2, w: 2.0, ph: 0 }],
+      pegs: [[2.4, -6.8, 0.35]],
+    },
+    {
+      name: 'Artı', emoji: '➕', par: 3, sub: 'Kavşakta pervane döner; delik sol kolun ucunda.',
+      tee: [0, 5], cup: [-6.2, -1], logo: [0, 3.2],
+      poly: [[-1.8, 6.6], [1.8, 6.6], [1.8, 0.8], [7.6, 0.8], [7.6, -2.8], [1.8, -2.8], [1.8, -9.6], [-1.8, -9.6], [-1.8, -2.8], [-7.6, -2.8], [-7.6, 0.8], [-1.8, 0.8]],
+      spin: [{ x: 0, y: -1, len: 1.6, k: 4, w: 1.2, ph: 0.4 }],
+      pits: [[5.8, -2.8, 7.6, 0.8], [-1.8, -9.6, 1.8, -8.2]],
+    },
+    {
+      name: 'Langırt', emoji: '🪩', par: 3, sub: 'Kazıklar top gibi sektirir; açıyı iyi ayarla.',
+      tee: [0, 5], cup: [0, -9.2], logo: [0, 3.4],
+      poly: [[-4.5, 6.6], [4.5, 6.6], [4.5, -11], [-4.5, -11]],
+      pegs: [[-3, 1.6, 0.38], [-1, 1.6, 0.38], [1, 1.6, 0.38], [3, 1.6, 0.38], [-2, -1.2, 0.38], [0, -1.2, 0.38], [2, -1.2, 0.38], [-3, -4, 0.38], [-1, -4, 0.38], [1, -4, 0.38], [3, -4, 0.38], [-2, -6.8, 0.38], [0, -6.8, 0.38], [2, -6.8, 0.38]],
+    },
+    {
+      name: 'Turbo Viraj', emoji: '🔥', par: 3, sub: 'Köşedeki hız şeridi topu sağa fırlatır.',
+      tee: [0, 5], cup: [7, -4.5], logo: [0, 1.2],
+      poly: [[-2, 6.6], [2, 6.6], [2, -2.4], [8.6, -2.4], [8.6, -6.6], [-2, -6.6]],
+      boosts: [{ x: 0, y: -4.5, r: 1.1, dx: 1, dy: 0 }],
+      pits: [[3.4, -6.6, 5.2, -5.9]],
+      pegs: [[4.6, -3.2, 0.3]],
+    },
+    {
+      name: 'Sos Tarlası', emoji: '🫙', par: 3, sub: 'Sos birikintileri her yerde; aralarından yol bul.',
+      tee: [0, 5], cup: [0, -9.4], logo: [0, 3.4],
+      poly: [[-4, 6.6], [4, 6.6], [4, -11], [-4, -11]],
+      pits: [[-3, 0.6, -1.8, 1.8], [-0.6, -0.2, 0.6, 1], [1.8, 0.6, 3, 1.8], [-1.8, -3.4, -0.6, -2.2], [0.6, -3.4, 1.8, -2.2], [-3, -6.4, -1.8, -5.2], [-0.6, -6, 0.6, -4.8], [1.8, -6.4, 3, -5.2]],
+    },
+    {
+      name: 'Son Düzlük', emoji: '🏁', par: 3, sub: 'Uzun düzlükte sağlı sollu sos tuzakları.',
+      tee: [0, 5], cup: [1.4, -12.4], logo: [0, 3.2],
+      poly: [[-3, 6.6], [3, 6.6], [3, -14], [-3, -14]],
+      pits: [[-3, -3, -0.4, -1.6], [0.4, -6.6, 3, -5.2], [-3, -10.2, -0.4, -8.8]],
+      pegs: [[0, 1.2, 0.3]],
+    },
+    {
+      name: 'Kapan', emoji: '🪤', par: 3, sub: 'Delik sos duvarının arkasında; alttan dolanıp gir.',
+      tee: [-2.4, 5], cup: [3.3, -8.9], logo: [-2.4, 2.2],
+      poly: [[-4.5, 6.6], [4.5, 6.6], [4.5, -10.2], [-4.5, -10.2]],
+      pits: [[1.4, -8.4, 2.2, -5.6], [2.2, -6.4, 4.5, -5.6]],
+      pegs: [[-1, -3, 0.4]],
+    },
+    {
+      name: 'Ters Köşe', emoji: '↙️', par: 3, sub: 'Sola dönen dirsek; köşedeki değirmeni atlat.',
+      tee: [3.2, 5.2], cup: [-5.2, -4], logo: [3.2, 0.8],
+      poly: [[1.4, 6.6], [5, 6.6], [5, -6.2], [-6.6, -6.2], [-6.6, -1.8], [1.4, -1.8]],
+      spin: [{ x: -0.8, y: -4, len: 1.9, k: 2, w: -1.4, ph: 1 }],
+      pegs: [[3.2, -4.2, 0.4]],
+    },
+    {
+      name: 'Labirent', emoji: '🧩', par: 3, sub: 'Önce sağdaki aralıktan, sonra soldakinden geç.',
+      tee: [-3.2, 5], cup: [3.2, -8.2], logo: [3, 4.4],
+      poly: [[-5, 6.6], [5, 6.6], [5, -2.8], [-1.6, -2.8], [-1.6, -4], [5, -4], [5, -10], [-5, -10], [-5, 1.2], [1.6, 1.2], [1.6, 2.4], [-5, 2.4]],
+      pegs: [[0, -6.6, 0.4]],
+    },
+    {
+      name: 'Rüzgâr Gülü', emoji: '🎐', par: 3, sub: 'Üç pervane birlikte döner; aralarındaki boşluğu yakala.',
+      tee: [0, 5], cup: [0, -9.4], logo: [0, 3.2],
+      poly: [[-4.5, 6.6], [4.5, 6.6], [4.5, -11], [-4.5, -11]],
+      spin: [{ x: -2, y: -1.5, len: 1.3, k: 3, w: 1.8, ph: 0 }, { x: 2, y: -1.5, len: 1.3, k: 3, w: -1.8, ph: 0.6 }, { x: 0, y: -5.6, len: 1.4, k: 2, w: 1.4, ph: 1.2 }],
+    },
+    {
+      name: 'Altıgen', emoji: '🛑', par: 3, sub: 'Eğik bantlar topu beklenmedik yöne sektirir.',
+      tee: [0, 5], cup: [2.2, -7.4], logo: [-2.6, 2.4],
+      poly: [[-3, 6.6], [3, 6.6], [6, 0], [3, -9], [-3, -9], [-6, 0]],
+      pegs: [[0, -1.2, 0.5], [-2.6, -4.2, 0.4], [2.6, -4.2, 0.4], [0.2, -6.2, 0.35]],
+      pits: [[-1.4, -9, 1, -8.2]],
     },
   ];
   // sıfır yarıçaplı kazığı temizle (yazım kolaylığı)
@@ -1092,7 +1261,7 @@ class Game {
     this.H = this.O.h;
     this.startAt = v.startAt;
     this.my = v.me;
-    this.todI = TOD_OF[v.hole % TOD_OF.length];
+    this.todI = TOD_OF[(((v.round || 1) - 1) % TOD_OF.length + TOD_OF.length) % TOD_OF.length];   // parkurlar rastgele: gün ışığı tur sırasına göre
     if (!same || !this.balls.length) this.firstIngest = true;
     this.balls = [];
     for (let i = 0; i < v.n; i++) this.balls.push({ x: this.H.tee[0], y: this.H.tee[1], vx: 0, vy: 0, state: 'rest', seq: 0, strokes: 0, st: 0, sim: null, sq: 0, sink: 0, pop: 0, exp: null, lbl: null, pit: false, holed: false, hx: 0, hy: 0 });

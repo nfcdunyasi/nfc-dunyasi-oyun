@@ -4,8 +4,8 @@
 // ampuller üç kez yanıp söner), sonra kelime çıkar. Basanın konsolundaki lamba yanar (rengi açılışa kadar gizli).
 // Açılışta herkesin bastığı düğme renkli yanar, doğrular yeşil, yanlışlar kırmızı halkayla parlar; tabelanın ampulleri
 // doğru renkte yanıp söner. Masa kiti (masa3d.js) ile çizilir; WebGL yoksa 2D görünüm.
-import { _masa } from './masa3d.js?v=2026-11-21-a';
-import * as sfx from '../sfx.js?v=2026-11-21-a';
+import { _masa } from './masa3d.js?v=2026-11-21-c';
+import * as sfx from '../sfx.js?v=2026-11-21-c';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs } = K;
@@ -929,7 +929,7 @@ class ColorGame extends TableGame {
     if (tm) {
       let u = 0, col = '#2fbf71';
       if (v.phase === 'ready') { u = clamp(1 - (now - (v.at || 0)) / (v.readyMs || 1400), 0, 1); col = '#9a93c4'; }
-      else if (v.phase === 'question') { const left = (v.endsAt || 0) - now; u = clamp(left / (v.T || 4000), 0, 1); col = left > 2000 ? '#2fbf71' : left > 1000 ? '#f2b200' : '#ff4f5e'; }
+      else if (v.phase === 'question') { const left = (v.endsAt || 0) - now; u = clamp(left / (v.T || 4000), 0, 1); const TT = v.T || 4000; col = left > TT * 0.55 ? '#2fbf71' : left > TT * 0.25 ? '#f2b200' : '#ff4f5e'; }
       else if (v.phase === 'reveal') { u = clamp(((v.endsAt || 0) - now) / (v.revealMs || 3200), 0, 1); col = '#5b2a86'; }
       tm.style.transform = `scaleX(${u.toFixed(3)})`;
       tm.style.setProperty('--tc', col);

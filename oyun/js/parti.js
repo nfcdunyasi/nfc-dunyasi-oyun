@@ -89,7 +89,7 @@
   // İşletme teması: arka planda uçuşan şekiller o işletmenin yiyecekleri olur
   var FOOD = { 'los-bravos': ['🍔', '🍗', '🍟', '🥤'], 'chicken-rice-crush': ['🍗', '🍚', '🍛', '🌶️'], 'fried-chiko': ['🍗', '🍟', '🥤', '🐔'], springfield: ['🌯', '🥙', '🌶️', '🍟'], 'durum-max': ['🌯', '🥙', '🔥', '🍟'], eliz: ['🧇', '🍓', '🍫', '🍨'] };
   try {
-    var slug = String(new URLSearchParams(location.search).get('kaynak') || window.OYUN_KAYNAK || '').toLowerCase();
+    var slug = String(new URLSearchParams(location.search).get('kaynak') || window.OYUN_KAYNAK || '').toLowerCase(); if (slug === 'eliz-cups-bowl') slug = 'eliz';
     if (FOOD[slug]) {
       document.documentElement.setAttribute('data-th', slug);
       var put = function () { var L = document.querySelectorAll('#bgfx i'); for (var k = 0; k < L.length; k++) L[k].textContent = FOOD[slug][k % FOOD[slug].length]; };

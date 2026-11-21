@@ -1,7 +1,7 @@
-import * as sfx from './sfx.js?v=2026-11-21-a';
-import { $, esc, toast, vibrate, fmtTime } from './ui.js?v=2026-11-21-a';
-import { gameRenderers } from './games/index.js?v=2026-11-21-a';
-import { THEMES, THEME_VARS } from './themes.js?v=2026-11-21-a';
+import * as sfx from './sfx.js?v=2026-11-21-c';
+import { $, esc, toast, vibrate, fmtTime } from './ui.js?v=2026-11-21-c';
+import { gameRenderers } from './games/index.js?v=2026-11-21-c';
+import { THEMES, THEME_VARS } from './themes.js?v=2026-11-21-c';
 
 const SESSION_KEY = 'nfcd:session';
 const NICK_KEY = 'nfcd:nick';
@@ -98,6 +98,25 @@ socket.on('connect', async () => {
 });
 
 socket.on('disconnect', () => { if (state.room) toast('Bağlantı koptu, tekrar bağlanıyor…'); });
+
+// ---- İstatistik: sayfa açılışı işletme (QR kodu) bazında sayılır. Kişisel veri yok, yalnız sayaç. ----
+// gunluk: bu cihaz bu işletmeye bugün ilk kez geldi · yeni: bu cihaz bu işletmenin QR'ını ilk kez okuttu
+let ziyaretGitti = false;
+socket.on('connect', () => {
+  if (ziyaretGitti) return;
+  ziyaretGitti = true;
+  const kaynak = String(state.source || '').toLowerCase().slice(0, 40), k = kaynak || 'direkt';
+  let yeni = false, gunluk = true;
+  try {
+    const bugun = new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 10);
+    const z = JSON.parse(localStorage.getItem('nfcd:ziyaret') || 'null') || {};
+    if (!z || typeof z !== 'object' || Array.isArray(z)) throw 0;
+    yeni = !(k in z); gunluk = z[k] !== bugun; z[k] = bugun;
+    const anahtarlar = Object.keys(z); if (anahtarlar.length > 60) delete z[anahtarlar[0]];
+    localStorage.setItem('nfcd:ziyaret', JSON.stringify(z));
+  } catch { try { localStorage.setItem('nfcd:ziyaret', '{}'); } catch { /* gizli sekme */ } }
+  emit('stat:ziyaret', { source: kaynak, yeni, gunluk });
+});
 socket.on('catalog', (catalog) => {
   state.catalog = catalog;
   if (currentScreen === 'lobby') renderLobby();
@@ -139,7 +158,8 @@ function applyRoom(room) {
 let currentScreen = null;
 
 // ---- İşletme teması: sadece QR ile gelenlere (ya da o QR'ın odasındakilere) uygulanır ----
-const qrSlug = String(new URLSearchParams(location.search).get('kaynak') ?? window.OYUN_KAYNAK ?? '').toLowerCase(); // OYUN_KAYNAK: sadece önizleme sayfası kullanır
+const SLUG_TAKMA = { 'eliz-cups-bowl': 'eliz' }; // QR'da görünen uzun ad -> tema kodu
+const qrSlug = ((x) => SLUG_TAKMA[x] || x)(String(new URLSearchParams(location.search).get('kaynak') ?? window.OYUN_KAYNAK ?? '').toLowerCase()); // OYUN_KAYNAK: sadece önizleme sayfası kullanır
 // Tema yalnızca bu açılışta ?kaynak=<kod> varsa geçerli olur; kodsuz açılan sayfa her zaman standart görünümdür.
 const SLUG_OK = (x) => /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/.test(x);
 // Panelden eklenen temalar sonradan yüklenir; kod geçerliyse şimdiden saklanır, tema gelince uygulanır
