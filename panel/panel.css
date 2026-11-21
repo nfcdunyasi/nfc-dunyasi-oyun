@@ -1,0 +1,38 @@
+/* NFC Dünyası yönetici paneli: Düğün Planla'nın sade (Apple tarzı) görünümünü kullanır; burada yalnız panele özgü parçalar var. */
+.nfc-ikon { border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px var(--cizgi); padding: 6px; }
+.nfc-panel .yon-ust .marka img { width: 26px; height: 26px; flex: none; }
+.nfc-panel .icerik { padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px)); }
+
+.urunler { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
+@media (max-width: 860px) { .urunler { grid-template-columns: minmax(0, 1fr); } }
+.urun-kart { display: grid; gap: 16px; align-content: start; }
+.urun-bas { display: flex; align-items: center; gap: 14px; color: inherit; text-decoration: none; min-width: 0; }
+.urun-bas > span { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.urun-bas b { font: 700 21px/1.15 var(--baslik); letter-spacing: -.025em; }
+.urun-bas small { color: var(--soluk); font-size: 14px; }
+.urun-bas .ikon.kk { color: var(--silik); }
+.urun-ikon { width: 44px; height: 44px; border-radius: 11px; flex: none; object-fit: contain; }
+img.urun-ikon { background: #1c1633; padding: 6px; }
+.urun-bag { display: flex; flex-wrap: wrap; gap: 6px; }
+.urun-bag a { display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 980px; background: var(--yuzey2); color: var(--yazi); font-size: 14px; font-weight: 500; text-decoration: none; }
+.urun-bag a:hover { background: var(--kontrol); }
+.urun-kart .mini-izgara { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.mini.kirmizi b { color: var(--hata); }
+
+.kart .tablo-kaydir { margin-inline: -20px; border-radius: 0; }
+.kart table.tablo th:first-child, .kart table.tablo td:first-child { padding-left: 20px; white-space: nowrap; }
+.kart table.tablo th:last-child, .kart table.tablo td:last-child { padding-right: 20px; }
+table.tablo td.kirmizi { color: var(--hata); font-weight: 600; }
+.salon-tablo td:nth-child(2) { color: var(--soluk); font-size: 14px; white-space: nowrap; }
+.salon-tablo a { font-weight: 500; }
+
+.odeme-liste a.satir { text-decoration: none; }
+.odeme-liste a.satir:hover .ana b { color: var(--vurgu-koyu); }
+.satir > .sayi-yazi { font-weight: 600; flex: none; }
+
+.panel-alt { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--cizgi2); font-size: 14px; }
+.panel-alt a { display: inline-flex; align-items: center; gap: 5px; font-weight: 500; }
+.panel-alt span { color: var(--silik); flex-basis: 100%; font-size: 13px; }
+
+.salon-liste { display: none; }
+@media (max-width: 700px) { .hub-salonlar .tablo-kaydir { display: none; } .salon-liste { display: block; } }

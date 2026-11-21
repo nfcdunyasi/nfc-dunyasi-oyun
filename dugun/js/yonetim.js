@@ -1,9 +1,10 @@
 // Düğün Planla — yönetici paneli (tüm salonlar) ve salon paneli (tek salon): salonlar, temalar, salon planları, düğünler, ödemeler, istatistik
-import * as C from './cekirdek.js?v=2026-11-21-f';
-import { api, depoYerel, TK } from './api.js?v=2026-11-21-f';
-import { $, $$, esc, ikon, markaIkon, bildir, cekmece, onayla, temaUygula, temaSifirla, STILLER, VURGULAR, stilAdi, qrSvg, kopyala, href, git, SITE, paylasLink, TL, sayiYaz, resimKucult, waLink, ayrilmaKoy, ONIZLEME, tamYol } from './ui.js?v=2026-11-21-f';
-import { harita, planSvg } from './harita.js?v=2026-11-21-f';
-import { qrPng } from './yazdir.js?v=2026-11-21-f';
+import * as C from './cekirdek.js?v=2026-11-21-g';
+import { api, depoYerel, TK } from './api.js?v=2026-11-21-g';
+import { $, $$, esc, ikon, markaIkon, bildir, cekmece, onayla, temaUygula, temaSifirla, STILLER, VURGULAR, stilAdi, qrSvg, kopyala, href, git, SITE, paylasLink, TL, sayiYaz, resimKucult, waLink, ayrilmaKoy, ONIZLEME, tamYol } from './ui.js?v=2026-11-21-g';
+import { harita, planSvg } from './harita.js?v=2026-11-21-g';
+import { qrPng } from './yazdir.js?v=2026-11-21-g';
+import * as U from './ucret.js?v=2026-11-21-g';
 
 let Y = null, E = null;
 const yolY = (p = '') => Y.taban + (p ? '/' + p : '');
@@ -12,8 +13,8 @@ const AYLAR = C.AYLAR;
 const takvimK = (t) => { if (!t) return '<div class="takvim-k"><b>—</b><span>tarih yok</span></div>'; const [, a, g] = t.split('-').map(Number); return `<div class="takvim-k"><b>${g}</b><span>${AYLAR[a - 1].slice(0, 3)}</span></div>`; };
 const SIFRE_ABC = 'abcdefghjkmnpqrstuvwxyz23456789';
 const sifreUret = () => C.rastgele(4, SIFRE_ABC) + '-' + C.rastgele(4, SIFRE_ABC);
-const girisLink = () => paylasLink('/dugun/giris');
-const salonMesaji = (ad, slug, sifre) => `Merhaba, ${ad} için Düğün Planla salon paneliniz hazır.\nGiriş: ${girisLink()}\nKullanıcı adı: ${slug}\nŞifre: ${sifre}\nPanelden düğün açıp çiftlere giriş PIN'i verebilirsiniz.`;
+const girisLink = () => paylasLink('/dugun');
+const salonMesaji = (ad, slug, sifre) => `Merhaba, ${ad} için Düğün Planla işletme paneliniz hazır.\n\nGiriş: ${girisLink()} (“İşletme” sekmesi)\nKullanıcı adı: ${slug}\nŞifre: ${sifre}\n\nPanelinizden düğün açıp çiftlere giriş kodu verebilir, düğünlerinizin istatistiklerini görebilirsiniz.`;
 const kopyaD = (v) => `<button class="dg ikon-d" type="button" data-kopya="${esc(v)}" aria-label="Kopyala">${ikon('kopya', 'k')}</button>`;
 function bilgiListe(slug, sifre) {
   return `<div class="bilgi-liste"><div><span>Giriş adresi</span><b>${esc(girisLink().replace(/^https:\/\//, ''))}</b>${kopyaD(girisLink())}</div><div><span>Kullanıcı adı</span><b>${esc(slug)}</b>${kopyaD(slug)}</div>${sifre === null ? '' : `<div><span>Şifre</span><b>${sifre ? esc(sifre) : '••••••••'}</b>${sifre ? kopyaD(sifre) : ''}</div>`}</div>`;
@@ -21,7 +22,7 @@ function bilgiListe(slug, sifre) {
 document.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-kopya]'); if (b) kopyala(b.dataset.kopya); });
 /** Salon sahibinin giriş bilgileri (salon oluşturulunca ya da şifre yenilenince) */
 function hesapBilgisi(ad, slug, sifre) {
-  cekmece({ baslik: 'Salon paneli hazır', govde: `<div class="yigin"><p class="soluk">Bu bilgileri salon sahibine iletin. Şifreyi daha sonra salonun “Giriş ve QR” sekmesinden de görebilirsiniz.</p>${bilgiListe(slug, sifre)}
+  cekmece({ baslik: 'İşletme paneli hazır', govde: `<div class="yigin"><p class="soluk">Bu bilgileri salon sahibine iletin. Şifreyi daha sonra salonun “Giriş ve QR” sekmesinden de görebilirsiniz.</p>${bilgiListe(slug, sifre)}
     <div class="dg-grup"><a class="dg vurgu" target="_blank" rel="noopener" href="${esc(waLink('', salonMesaji(ad, slug, sifre)))}">${ikon('mesaj', 'k')} WhatsApp ile gönder</a><button class="dg cizgili" type="button" data-kopya="${esc(salonMesaji(ad, slug, sifre))}">${ikon('kopya', 'k')} Hepsini kopyala</button></div></div>`, alt: '<button class="dg ana" data-kapat>Tamam</button>' });
 }
 const logoK = (s) => (s?.tema?.logo ? `<span class="logo-k"><img src="${esc(s.tema.logo)}" alt=""></span>` : `<span class="logo-k">${esc(C.basHarf(s?.ad) || '?')}</span>`);
@@ -45,9 +46,9 @@ async function veriAl() {
 }
 function girisEkrani(kok, { rol, slug, alt, mesaj = '' }) {
   temaSifirla();
-  kok.innerHTML = `<div class="giris-sayfa"><div class="giris-kart">${markaIkon(64, 'giris-ikon')}<div><h1>${rol === 'salon' ? 'Salon paneli' : 'Düğün Planla'}</h1><p class="soluk" style="margin-top:6px">${rol === 'salon' ? `Kullanıcı adınız <b>${esc(slug)}</b>. Salonunuza verilen şifreyle girin.` : 'Yönetici paneli. Okut ve Oyna paneliyle aynı kullanıcı adı ve şifre.'}</p></div>
+  kok.innerHTML = `<div class="giris-sayfa"><div class="giris-kart">${markaIkon(64, 'giris-ikon')}<div><h1>${rol === 'salon' ? 'İşletme paneli' : 'Düğün Planla'}</h1><p class="soluk" style="margin-top:6px">${rol === 'salon' ? `Kullanıcı adınız <b>${esc(slug)}</b>. İşletmenize verilen şifreyle girin.` : 'Yönetici paneli. NFC Dünyası yönetici hesabınızla girin.'}</p></div>
     <form id="yG" autocomplete="on">${rol === 'salon' ? '' : `<label class="alan"><span>Kullanıcı adı</span><input class="girdi" name="k" autocomplete="username" autocapitalize="none" required></label>`}<label class="alan"><span>Şifre</span><input class="girdi" name="s" type="password" autocomplete="current-password" required></label><button class="dg ana tam buyuk" type="submit">Giriş yap</button><p class="hata-yazi" id="yH">${esc(mesaj)}</p></form>
-    ${api.demo ? `<p class="rozet vurgu">${rol === 'salon' ? 'Demo şifresi: salon123' : 'Demo: herhangi bir kullanıcı adı ve şifre'}</p>` : `<a class="dg sade kucuk" href="/dugun/giris${rol === 'salon' ? '' : '?salon'}">${rol === 'salon' ? 'Başka bir hesapla giriş' : 'Salon sahibi misiniz? Salon girişi'}</a>`}</div></div>`;
+    ${api.demo ? `<p class="rozet vurgu">${rol === 'salon' ? 'Demo şifresi: salon123' : 'Demo: herhangi bir kullanıcı adı ve şifre'}</p>` : `<a class="dg sade kucuk" href="/dugun/giris?isletme">${rol === 'salon' ? 'Başka bir hesapla giriş' : 'İşletme sahibi misiniz? İşletme girişi'}</a>`}</div></div>`;
   $('#yG').addEventListener('submit', async (e) => {
     e.preventDefault(); const f = new FormData(e.target), b = e.target.querySelector('button'); b.disabled = true; b.textContent = 'Giriş yapılıyor…';
     try {
@@ -59,10 +60,10 @@ function girisEkrani(kok, { rol, slug, alt, mesaj = '' }) {
 function cikis() { depoYerel.sil(Y.rol === 'salon' ? TK.salon(Y.slug) : TK.yonetici); const { rol, slug, kok } = Y; Y = null; girisEkrani(kok, { rol, slug, alt: '' }); }
 function kabuk(aktif) {
   const s0 = Y.rol === 'salon' ? Y.veri.salonlar[0] : null;
-  const N = Y.rol === 'salon' ? [['', 'takvim', 'Düğünler'], ['alanlar', 'masa', 'Salon planları'], ['hesap', 'ayar', 'Hesap']] : [['', 'ozet', 'Özet'], ['salonlar', 'salon', 'Salonlar'], ['dugunler', 'takvim', 'Düğünler'], ['istatistik', 'istatistik', 'İstatistik']];
+  const N = Y.rol === 'salon' ? [['', 'ozet', 'Özet'], ['dugunler', 'takvim', 'Düğünler'], ['istatistik', 'istatistik', 'İstatistik'], ['alanlar', 'masa', 'Planlar'], ['hesap', 'ayar', 'Hesap']] : [['', 'ozet', 'Özet'], ['salonlar', 'salon', 'Salonlar'], ['dugunler', 'takvim', 'Düğünler'], ['gelir', 'para', 'Gelir'], ['istatistik', 'istatistik', 'İstatistik']];
   Y.kok.innerHTML = `<div class="kabuk yon"><header class="yon-ust"><div class="ic"><a class="marka" href="${href(yolY())}" data-git="${yolY()}">${s0 ? logoK(s0) : markaIkon(28)}<span>${esc(s0 ? s0.ad : 'Düğün Planla')}</span></a>
     <nav>${N.map(([k, i, a]) => `<a href="${href(yolY(k))}" data-git="${yolY(k)}" class="${aktif === k ? 'on' : ''}">${a}</a>`).join('')}</nav><span class="bosluk"></span>
-    ${Y.rol === 'yonetici' && !api.demo ? `<a class="dg sade kucuk" href="/yonetim/">Okut ve Oyna</a>` : ''}<button class="dg ikon-d" data-y="cikis" aria-label="Çıkış">${ikon('cikis')}</button></div></header>
+    ${Y.rol === 'yonetici' && !api.demo ? `<a class="dg sade kucuk ana-panel" href="/panel/" title="NFC Dünyası yönetici paneli">${ikon('sol', 'kk')}<span>Ana panel</span></a>` : ''}<button class="dg ikon-d" data-y="cikis" aria-label="Çıkış">${ikon('cikis')}</button></div></header>
     <main class="icerik" id="yI"></main><nav class="alt-menu">${N.map(([k, i, a]) => `<a href="${href(yolY(k))}" data-git="${yolY(k)}" class="${aktif === k ? 'on' : ''}">${ikon(i)}<span>${a}</span></a>`).join('')}</nav></div>`;
   Y.kok.querySelector('[data-y=cikis]').onclick = async () => { if (await onayla({ baslik: 'Çıkış yapılsın mı?', evet: 'Çıkış yap' })) cikis(); };
   return $('#yI');
@@ -71,11 +72,13 @@ function sayfa(alt) {
   ayrilmaKoy(null); E = null; Y.alt = alt;
   const p = alt.split('/').filter(Boolean);
   if (Y.rol === 'salon') {
-    if (p[0] === 'dugun' && p[1]) return dugunDetay(kabuk(''), p[1]);
+    if (p[0] === 'dugun' && p[1]) return dugunDetay(kabuk('dugunler'), p[1]);
     if (p[0] === 'dugun-plan' && p[1]) return dugunPlanDuzen(p[1]);
+    if (p[0] === 'dugunler') return dugunListe(kabuk('dugunler'), { salon: Y.slug });
     if (p[0] === 'alanlar') return alanlarSalon(kabuk('alanlar'));
     if (p[0] === 'hesap') return salonHesap(kabuk('hesap'));
-    return dugunListe(kabuk(''), { salon: Y.slug });
+    if (p[0] === 'istatistik') return istatistik(kabuk('istatistik'));
+    return salonOzet(kabuk(''));
   }
   if (p[0] === 'salonlar') return salonListe(kabuk('salonlar'));
   if (p[0] === 'yeni-salon') return salonDuzen(kabuk('salonlar'), null);
@@ -84,21 +87,25 @@ function sayfa(alt) {
   if (p[0] === 'dugunler') return dugunListe(kabuk('dugunler'), {});
   if (p[0] === 'dugun' && p[1]) return dugunDetay(kabuk('dugunler'), p[1]);
   if (p[0] === 'dugun-plan' && p[1]) return dugunPlanDuzen(p[1]);
+  if (p[0] === 'gelir') return gelir(kabuk('gelir'), p[1]);
   if (p[0] === 'istatistik') return istatistik(kabuk('istatistik'));
   return ozet(kabuk(''));
 }
 const salonBul = (slug) => Y.veri.salonlar.find((s) => s.slug === slug);
 
-// ---------------------------------------------------------------- ödeme durumu
-function odemeDurum(s, ay = C.trBugun().slice(0, 7)) {
-  const o = s.odeme || {}; if (!o.tutar || o.periyot === 'yok' || (o.baslangic && o.baslangic.slice(0, 7) > ay)) return null;
-  const odenen = (s.odemeler || []).filter((p) => p.donem === ay).reduce((n, p) => n + p.tutar, 0);
-  const vade = `${ay}-${String(o.gun || 1).padStart(2, '0')}`;
-  return { tutar: o.tutar, odenen, vade, durum: odenen >= o.tutar ? 'odendi' : C.trBugun() > vade ? 'gecikti' : 'bekliyor' };
+// ---------------------------------------------------------------- ücret ve ödeme durumu (hesap: ucret.js)
+const BUAY = () => C.trBugun().slice(0, 7);
+const durumRozet = (r) => (!r || r.durum === 'yok' ? '' : r.durum === 'odendi' ? '<span class="rozet iyi">Ödendi</span>' : r.durum === 'gecikti' ? `<span class="rozet hata">Gecikti · ${TL(r.kalan)}</span>` : `<span class="rozet uyari">${TL(r.kalan)} · son gün ${esc(C.tarihYaz(r.vade, { yil: false }))}</span>`);
+const durumKisa = (r) => (r.durum === 'odendi' ? 'Ödendi' : r.durum === 'gecikti' ? `${TL(r.kalan)} gecikti` : r.durum === 'bekliyor' ? `Son gün ${C.tarihYaz(r.vade, { yil: false })}` : r.tutar ? '' : 'Hesap yok');
+const hesapYazi = (r) => (r.dugun ? `${r.dugun} düğün${r.birim ? (r.ucretli !== r.dugun ? ` (${r.ucretli} ücretli)` : '') + ' × ' + TL(r.birim) : ''}` : 'Düğün yok') + (r.sabit ? ` + ${TL(r.sabit)} aylık` : '');
+/** Salonun bir ayına ait satır: tutar, durum ve "Ödeme al". dokum: salonun aylık dökümü (solda ay kutusu, başlıkta hesap) */
+function odemeSatir(s, r, { ay = r.ay, dokum = false, etiket = '' } = {}) {
+  const kismi = r.odenen && r.kalan > 0 ? `${TL(r.odenen)} alındı` : '';
+  const sol = dokum ? `<span class="ay-k"><b>${esc(U.ayAdi(r.ay, { kisa: true, yil: false }))}</b><small>${r.ay.slice(0, 4)}</small></span>` : logoK(s);
+  const ana = dokum ? `<span class="ana"><b>${esc(hesapYazi(r))}</b>${etiket || kismi ? `<small>${esc([etiket, kismi].filter(Boolean).join(' · '))}</small>` : ''}</span>`
+    : `<a class="ana" href="${href(yolY('salon/' + s.slug + '/odeme'))}" data-git="${yolY('salon/' + s.slug + '/odeme')}"><b>${esc(s.ad)}</b><small>${esc(hesapYazi(r) + (kismi ? ' · ' + kismi : ''))}</small></a>`;
+  return `<div class="satir${dokum ? ' dokum' : ''}">${sol}${ana}<span class="tutar"><b>${TL(r.tutar)}</b><small class="${r.durum}">${esc(durumKisa(r))}</small></span>${r.kalan > 0 && r.ay <= BUAY() ? `<button class="dg cizgili kucuk" type="button" data-odeme="${esc(s.slug)}" data-ay="${ay}">Ödeme al</button>` : '<span class="odeme-bos"></span>'}</div>`;
 }
-const odemeRozet = (r) => (!r ? '' : r.durum === 'odendi' ? '<span class="rozet iyi">Bu ay ödendi</span>' : r.durum === 'gecikti' ? `<span class="rozet hata">Gecikti · ${TL(r.tutar - r.odenen)}</span>` : `<span class="rozet uyari">${esc(C.tarihYaz(r.vade, { yil: false }))} · ${TL(r.tutar - r.odenen)}</span>`);
-
-const odemeRozetYazi = (r) => (r.durum === 'odendi' ? 'bu ay ödendi' : r.durum === 'gecikti' ? `${TL(r.tutar - r.odenen)} gecikti` : `${TL(r.tutar - r.odenen)} · son gün ${C.tarihYaz(r.vade, { yil: false })}`);
 /** Salonun kaydını yerinde değiştirip kaydeder (ödeme ekleme, plan kaydı) */
 async function salonGuncelle(slug, f) {
   const s = salonBul(slug), x = { ...kopya(s), tema: kopya(s.temaHam || s.tema) };
@@ -106,38 +113,52 @@ async function salonGuncelle(slug, f) {
   await api.salonKaydet(slug, { ...x, tema: { stil: x.tema.stil, vurgu: x.tema.vurgu, logoZemin: x.tema.logoZemin, kisaAd: x.tema.kisaAd, slogan: x.tema.slogan } }, Y.token);
   await veriAl(); Y.duz = null;
 }
-/** Okut ve Oyna'daki gibi hızlı ödeme kaydı */
-function odemeAl(slug, ay = C.trBugun().slice(0, 7)) {
+/** Okut ve Oyna'daki gibi hızlı ödeme kaydı; ay verilmezse en eski ödenmemiş ay seçilir */
+function odemeAl(slug, ay = '') {
   const s = salonBul(slug); if (!s) return;
-  const r = odemeDurum(s, ay);
-  const c = cekmece({ baslik: 'Ödeme al', govde: `<form class="yigin" id="qO" autocomplete="off"><div style="display:flex;gap:12px;align-items:center">${logoK(s)}<b>${esc(s.ad)}</b></div>
-    <div class="izgara2"><label class="alan"><span>Tutar (₺)</span><input class="girdi" type="number" name="tutar" inputmode="numeric" min="0" value="${r ? Math.max(0, r.tutar - r.odenen) : s.odeme?.tutar || ''}"></label><label class="alan"><span>Alındığı gün</span><input class="girdi" type="date" name="tarih" value="${C.trBugun()}"></label></div>
-    <label class="alan"><span>Hangi ayın ödemesi?</span><input class="girdi" type="month" name="donem" value="${ay}"></label>
+  if (!ay) ay = (U.salonOzet(s, Y.veri.dugunler).dokum.find((x) => x.kalan > 0 && x.ay <= BUAY()) || {}).ay || BUAY();
+  const bilgi = (a) => { const r = U.donem(s, Y.veri.dugunler, a); return [r, `${U.ayAdi(a)}: ${hesapYazi(r)} = ${TL(r.tutar)}${r.odenen ? ` · ${TL(r.odenen)} alındı` : ''}`]; };
+  const [r, yazi] = bilgi(ay);
+  const c = cekmece({ baslik: 'Ödeme al', govde: `<form class="yigin" id="qO" autocomplete="off"><div style="display:flex;gap:12px;align-items:center">${logoK(s)}<span style="min-width:0"><b>${esc(s.ad)}</b><br><small class="soluk">${esc(U.ucretYazi(s, TL))}</small></span></div>
+    <label class="alan"><span>Hangi ayın ödemesi?</span><input class="girdi" type="month" name="donem" value="${ay}" required></label>
+    <p class="kucuk-yazi" id="qB" style="margin-top:-8px">${esc(yazi)}</p>
+    <div class="izgara2"><label class="alan"><span>Tutar (₺)</span><input class="girdi" type="number" name="tutar" inputmode="numeric" min="0" value="${r.kalan || ''}"></label><label class="alan"><span>Alındığı gün</span><input class="girdi" type="date" name="tarih" value="${C.trBugun()}"></label></div>
     <label class="alan"><span>Not <span class="ipucu">(isteğe bağlı)</span></span><input class="girdi" name="not" maxlength="200" placeholder="Nakit, havale, kurulum ücreti…"></label></form>`,
   alt: `<button class="dg sade" data-kapat>Vazgeç</button><button class="dg ana" id="qK">Kaydet</button>` });
+  const f = $('#qO', c.el);
+  f.donem.onchange = () => { if (!/^\d{4}-\d{2}$/.test(f.donem.value)) return; const [r2, y2] = bilgi(f.donem.value); $('#qB', c.el).textContent = y2; f.tutar.value = r2.kalan || ''; };
   $('#qK', c.el).onclick = async (e) => {
-    const v = Object.fromEntries(new FormData($('#qO', c.el))); if (!(+v.tutar > 0)) return bildir('Tutarı yazın', { hata: true });
+    const v = Object.fromEntries(new FormData(f)); if (!(+v.tutar > 0)) return bildir('Tutarı yazın', { hata: true });
     e.target.disabled = true;
     try { await salonGuncelle(slug, (x) => { x.odemeler = [...(x.odemeler || []), { id: C.rastgele(8), tarih: v.tarih || C.trBugun(), donem: v.donem || '', tutar: +v.tutar, not: v.not }]; }); c.kapat(); bildir(`${TL(+v.tutar)} kaydedildi`); sayfa(Y.alt || ''); }
     catch (er) { bildir(er.message, { hata: true }); e.target.disabled = false; }
   };
 }
+document.addEventListener('click', (e) => { const o = e.target.closest && e.target.closest('[data-odeme]'); if (o && Y?.rol === 'yonetici') { e.preventDefault(); odemeAl(o.dataset.odeme, o.dataset.ay || ''); } });
 
 // ---------------------------------------------------------------- özet
 function ozet(el) {
-  const V = Y.veri, bugun = C.trBugun(), sinir = C.gunEkle(bugun, 120);
-  const yak = V.dugunler.filter((d) => d.tarih && d.tarih >= bugun && d.tarih <= sinir);
-  const ay = bugun.slice(0, 7), od = V.salonlar.map((s) => [s, odemeDurum(s, ay)]).filter((x) => x[1]);
-  const toplam = od.reduce((n, [, r]) => n + r.tutar, 0), alinan = od.reduce((n, [, r]) => n + Math.min(r.odenen, r.tutar), 0);
+  const V = Y.veri, bugun = C.trBugun(), ay = bugun.slice(0, 7), sonraki = U.ayEkle(ay, 1);
+  const T = U.ayToplam(V.salonlar, V.dugunler, ay), O = V.salonlar.map((s) => U.salonOzet(s, V.dugunler));
+  const alacak = O.reduce((n, o) => n + o.alacak, 0), geciken = O.reduce((n, o) => n + o.geciken, 0);
+  const yak = V.dugunler.filter((d) => d.tarih && d.tarih >= bugun && d.tarih <= C.gunEkle(bugun, 30));
+  const sonrakiN = V.dugunler.filter((d) => (d.tarih || '').startsWith(sonraki)).length;
+  const gecikenler = V.salonlar.map((s, i) => ({ s, L: O[i].gecikenAy.filter((x) => x.ay < ay) })).filter((x) => x.L.length);
+  const git2 = (p) => `href="${href(yolY(p))}" data-git="${yolY(p)}"`;
   el.innerHTML = `<div class="bolum-bas"><h1>Özet</h1><span class="bosluk"></span><button class="dg ana kucuk" data-y="yeni-dugun">${ikon('arti', 'k')} Düğün</button></div>
-  <div class="sayilar"><a class="sayi" href="${href(yolY('salonlar'))}" data-git="${yolY('salonlar')}"><b>${V.salonlar.length}</b><span>salon · ${V.salonlar.filter((s) => s.aktif !== false).length} etkin</span></a>
-    <a class="sayi" href="${href(yolY('dugunler'))}" data-git="${yolY('dugunler')}"><b>${yak.length}</b><span>düğün önümüzdeki 4 ayda</span></a>
-    <div class="sayi"><b>${sayiYaz(yak.reduce((n, d) => n + d.kisi, 0))}</b><span>davetli bu düğünlerde</span></div>
-    ${toplam ? `<div class="sayi"><b style="font-size:26px">${TL(alinan)}</b><span>${TL(toplam)} bu ay alınacak</span><div class="ilerleme"><i style="width:${Math.round((alinan / toplam) * 100)}%"></i></div></div>` : `<a class="sayi" href="${href(yolY('dugunler'))}" data-git="${yolY('dugunler')}"><b>${V.dugunler.length}</b><span>düğün kaydı toplam</span></a>`}</div>
-  ${!V.salonlar.length ? `<section class="kart bos" style="margin-top:16px"><span class="serif">Henüz salon yok</span>İlk düğün salonunuzu ekleyin; logosunu, rengini ve salon planını ayarlayın.<br><a class="dg ana" href="${href(yolY('yeni-salon'))}" data-git="${yolY('yeni-salon')}">Salon ekle</a></section>` : ''}
-  <div class="ozet-izgara" style="margin-top:16px"${V.salonlar.length ? '' : ' hidden'}><section class="kart"><div class="kart-bas"><h2>Yaklaşan düğünler</h2><span class="bosluk"></span><a class="dg sade kucuk" href="${href(yolY('dugunler'))}" data-git="${yolY('dugunler')}">Tümü</a></div>${yak.length ? yak.slice(0, 12).map(dugunSatir).join('') : '<p class="soluk">Önümüzdeki 4 ayda düğün yok.</p>'}</section>
-    <section class="kart"><div class="kart-bas"><h2>Bu ay ödemeler</h2></div>${od.length ? od.map(([s, r]) => `<div class="satir">${logoK(s)}<a class="ana" href="${href(yolY('salon/' + s.slug + '/odeme'))}" data-git="${yolY('salon/' + s.slug + '/odeme')}" style="color:inherit;text-decoration:none"><b>${esc(s.ad)}</b><small>${TL(r.tutar)} / ay · ${odemeRozetYazi(r)}</small></a>${r.durum === 'odendi' ? `<span class="rozet iyi">Ödendi</span>` : `<button class="dg cizgili kucuk" type="button" data-odeme="${esc(s.slug)}">Ödeme al</button>`}</div>`).join('') : `<p class="soluk">Aylık ücret girilmiş salon yok. Ücreti salonun “Ödemeler” sekmesinden girin.</p>`}</section></div>`;
-  el.onclick = (e) => { if (e.target.closest('[data-y=yeni-dugun]')) dugunOlustur(); const o = e.target.closest('[data-odeme]'); if (o) odemeAl(o.dataset.odeme, ay); };
+  <div class="sayilar">
+    <a class="sayi" ${git2('gelir')}><b>${T.dugun}</b><span>düğün ${esc(U.ayAdi(ay, { yil: false }))} ayında · ${sonrakiN} gelecek ay</span></a>
+    <a class="sayi" ${git2('gelir')}><b class="tl">${TL(T.tutar)}</b><span>bu ayın hesabı · ${TL(T.odenen)} alındı</span>${T.tutar ? `<div class="ilerleme"><i style="width:${Math.min(100, Math.round((T.odenen / T.tutar) * 100))}%"></i></div>` : ''}</a>
+    <a class="sayi" ${git2('gelir')}><b class="tl">${TL(alacak)}</b><span>toplam alacak${geciken ? ` · <em class="kirmizi">${TL(geciken)} gecikti</em>` : ''}</span></a>
+    <a class="sayi" ${git2('salonlar')}><b>${V.salonlar.length}</b><span>salon · ${V.salonlar.filter((s) => s.aktif !== false).length} etkin</span></a></div>
+  ${!V.salonlar.length ? `<section class="kart bos" style="margin-top:16px"><span class="serif">Henüz salon yok</span>İlk düğün salonunuzu ekleyin; logosunu, rengini, salon planını ve düğün başı ücretini ayarlayın.<br><a class="dg ana" ${git2('yeni-salon')}>Salon ekle</a></section>` : ''}
+  ${gecikenler.length ? `<div class="uyari-kutu hata" style="margin-top:16px">${ikon('uyari', 'k')}<span>Geciken ödemeler: ${gecikenler.map((x) => `<b>${esc(x.s.ad)}</b> (${x.L.map((r) => `${esc(U.ayAdi(r.ay, { yil: false }))} ${TL(r.kalan)}`).join(', ')})`).join(' · ')}</span></div>` : ''}
+  <div class="ozet-izgara" style="margin-top:16px"${V.salonlar.length ? '' : ' hidden'}>
+    <section class="kart"><div class="kart-bas"><h2>Salonlar · ${esc(U.ayAdi(ay, { yil: false }))}</h2><span class="bosluk"></span><a class="dg sade kucuk" ${git2('gelir')}>Gelir</a></div>
+      <div class="odeme-liste">${T.R.filter(({ s, r }) => s.aktif !== false || r.tutar).map(({ s, r }) => odemeSatir(s, r)).join('')}</div>
+      <p class="kucuk-yazi" style="margin-top:8px">Düğün başı ücret, düğünün olduğu ayın hesabına yazılır.</p></section>
+    <section class="kart"><div class="kart-bas"><h2>Önümüzdeki 30 gün</h2><span class="bosluk"></span><a class="dg sade kucuk" ${git2('dugunler')}>Tümü</a></div>${yak.length ? yak.slice(0, 12).map(dugunSatir).join('') : '<p class="soluk">Önümüzdeki 30 günde düğün yok.</p>'}</section></div>`;
+  el.onclick = (e) => { if (e.target.closest('[data-y=yeni-dugun]')) dugunOlustur(); };
 }
 function dugunSatir(d) {
   const s = salonBul(d.salon), bugun = C.trBugun();
@@ -157,7 +178,7 @@ function dugunListe(el, { salon = '' }) {
     ${s0 && !s0.alanlar.length ? '<div class="uyari-kutu" style="margin-bottom:14px">Bu salon için henüz salon planı tanımlanmamış. Düğün eklemeden önce yöneticinizden salon planını isteyin.</div>' : ''}
     <div class="kaydir-x">${[['yaklasan', 'Yaklaşan'], ['gecmis', 'Geçmiş'], ['hepsi', 'Tümü']].map(([k, a]) => `<button class="cip${f.k === k ? ' on' : ''}" data-f="${k}">${a}</button>`).join('')}</div>
     <div class="filtre-cubuk"><label class="arama">${ikon('ara', 'k')}<input class="girdi" id="yAra" type="search" placeholder="Çift adı ya da kod" value="${esc(f.q)}"></label>${Y.rol === 'yonetici' ? `<select class="girdi" id="ySal" style="width:auto;flex:none;max-width:44%"><option value="">Tüm salonlar</option>${Y.veri.salonlar.map((s) => `<option value="${esc(s.slug)}"${f.s === s.slug ? ' selected' : ''}>${esc(s.ad)}</option>`).join('')}</select>` : ''}</div>
-    <section class="kart" style="padding:6px 14px">${L.length ? L.map(dugunSatir).join('') : '<div class="bos"><span class="serif">Düğün yok</span>Yeni bir düğün ekleyerek çifte PIN ve bağlantı verin.</div>'}</section>`;
+    <section class="kart" style="padding:6px 14px">${L.length ? L.map(dugunSatir).join('') : '<div class="bos"><span class="serif">Düğün yok</span>Yeni bir düğün ekleyerek çifte giriş kodu verin.</div>'}</section>`;
   el.onclick = (e) => { const c = e.target.closest('[data-f]'); if (c) { f.k = c.dataset.f; dugunListe(el, { salon }); } if (e.target.closest('[data-y=yeni]')) dugunOlustur(Y.rol === 'salon' ? Y.slug : f.s); };
   $('#yAra', el).oninput = (e) => { f.q = e.target.value; const p = e.target.selectionStart; dugunListe(el, { salon }); const i = $('#yAra', el); i.focus(); i.setSelectionRange(p, p); };
   const ss = $('#ySal', el); if (ss) ss.onchange = () => { f.s = ss.value; dugunListe(el, { salon }); };
@@ -185,34 +206,38 @@ function dugunOlustur(slug = '') {
     const b = $('#nK', c.el); b.disabled = true;
     try {
       const r = await api.dugunOlustur({ salon: s.slug, alan: v.alan, bilgi: { gelin: v.gelin, damat: v.damat, tarih: v.tarih, saat: v.saat, bitis: v.bitis, tur: v.tur } }, Y.token);
-      await veriAl(); c.kapat(); git(yolY('dugun/' + r.kod)); setTimeout(() => girisBilgisi(r.kod, r.pin), 200);
+      await veriAl(); c.kapat(); git(yolY('dugun/' + r.kod)); setTimeout(() => girisBilgisi(r.kod, r.girisKodu), 200);
     } catch (e) { $('#nH', c.el).textContent = e.message; b.disabled = false; }
   };
 }
-function ciftMesaji(d, pin) { return `Merhaba ${d.gelin} & ${d.damat}, Düğün Planla ile davetli listenizi ve oturma planınızı hazırlayabilirsiniz.\nGiriş: ${paylasLink('/d/' + d.kod + '/plan')}\nPIN: ${pin}\nDavetlilerinize göndereceğiniz bağlantı: ${paylasLink('/d/' + d.kod)}`; }
-function girisBilgisi(kod, pin) {
-  const d = Y.veri.dugunler.find((x) => x.kod === kod); if (!d) return;
-  cekmece({ baslik: 'Düğün oluşturuldu', govde: `<div class="yigin"><p>Çifte aşağıdaki bilgileri iletin. PIN'i daha sonra düğünün sayfasından da görebilirsiniz.</p>
-    <div class="kart sik" style="display:grid;gap:8px"><span class="etiket">Çift paneli</span><div class="baglanti"><code>${esc(paylasLink('/d/' + kod + '/plan'))}</code></div><span class="etiket" style="margin-top:6px">PIN</span><b class="pin-goster">${esc(pin)}</b></div>
-    <a class="dg vurgu" target="_blank" rel="noopener" href="${esc(waLink('', ciftMesaji(d, pin)))}">${ikon('mesaj', 'k')} WhatsApp ile çifte gönder</a></div>`, alt: '<button class="dg ana" data-kapat>Tamam</button>' });
+/** Çifte gönderilen mesaj: tek giriş adresi ve giriş kodu */
+function ciftMesaji(d, gk) { return `Merhaba ${C.ciftAdi(d)}, Düğün Planla hesabınız hazır. Davetli listenizi ve oturma planınızı buradan hazırlayabilirsiniz.\n\nGiriş: ${girisLink()}\nGiriş kodunuz: ${C.girisKoduYaz(gk)}`; }
+function girisBilgisi(kod, gk) {
+  const d = Y.veri.dugunler.find((x) => x.kod === kod); if (!d || !gk) return;
+  cekmece({ baslik: 'Düğün oluşturuldu', govde: `<div class="yigin"><p>Giriş kodunu çifte iletin. Kodu daha sonra düğünün sayfasında da görebilirsiniz.</p>
+    <div class="kod-goster"><span class="etiket">${esc(C.ciftAdi(d))} · giriş kodu</span><b class="pin-goster">${esc(C.girisKoduYaz(gk))}</b><small class="soluk">${esc(girisLink().replace(/^https:\/\//, ''))} → Etkinlik sahibi</small></div>
+    <div class="dg-grup"><a class="dg vurgu" target="_blank" rel="noopener" href="${esc(waLink('', ciftMesaji(d, gk)))}">${ikon('mesaj', 'k')} WhatsApp ile çifte gönder</a><button class="dg cizgili" type="button" data-kopya="${esc(ciftMesaji(d, gk))}">${ikon('kopya', 'k')} Mesajı kopyala</button></div></div>`, alt: '<button class="dg ana" data-kapat>Tamam</button>' });
 }
 async function dugunDetay(el, kod) {
   el.innerHTML = '<div class="yukleniyor"><i></i></div>';
-  let r; try { r = await api.tam(kod, '', Y.token); } catch (e) { el.innerHTML = `<div class="kart bos"><span class="serif">Düğün açılamadı</span>${esc(e.message)}<br><a class="dg cizgili" href="${href(yolY(Y.rol === 'salon' ? '' : 'dugunler'))}" data-git="${yolY(Y.rol === 'salon' ? '' : 'dugunler')}">Düğünlere dön</a></div>`; return; }
-  const d = r.dugun, b = d.bilgi, s = salonBul(d.salon) || r.salon, sy = C.sayilar(d), pin = r.pin;
+  let r; try { r = await api.tam(kod, '', Y.token); } catch (e) { el.innerHTML = `<div class="kart bos"><span class="serif">Düğün açılamadı</span>${esc(e.message)}<br><a class="dg cizgili" href="${href(yolY('dugunler'))}" data-git="${yolY('dugunler')}">Düğünlere dön</a></div>`; return; }
+  const d = r.dugun, b = d.bilgi, s = salonBul(d.salon) || r.salon, sy = C.sayilar(d), gk = r.girisKodu || '';
   const link = paylasLink('/d/' + kod);
-  el.innerHTML = `<a class="geri-bag" href="${href(yolY(Y.rol === 'salon' ? '' : 'dugunler'))}" data-git="${yolY(Y.rol === 'salon' ? '' : 'dugunler')}">${ikon('sol', 'k')} Düğünler</a>
-    <div class="bolum-bas"><div><p class="etiket">${esc(Object.fromEntries(C.TURLER)[b.tur])} · ${esc(C.tarihYaz(b.tarih, { gun: true }))} · ${esc(C.saatYaz(b.saat))}</p><h1 style="margin-top:4px">${esc(C.ciftAdi(b))}</h1><p class="soluk" style="margin-top:4px">${esc([s?.ad, d.alanAd].filter(Boolean).join(' · '))} · kod <b>${esc(kod)}</b></p></div><span class="bosluk"></span><a class="dg ana" href="${href('/d/' + kod + '/plan')}" data-git="/d/${kod}/plan">${ikon('kalem', 'k')} Planı aç</a></div>
+  const birim = Y.rol === 'yonetici' && s && b.tarih ? U.donem(s, [], b.tarih.slice(0, 7)).birim : 0;
+  el.innerHTML = `<a class="geri-bag" href="${href(yolY('dugunler'))}" data-git="${yolY('dugunler')}">${ikon('sol', 'k')} Düğünler</a>
+    <div class="bolum-bas"><div><p class="etiket">${esc(Object.fromEntries(C.TURLER)[b.tur])} · ${esc(C.tarihYaz(b.tarih, { gun: true }))} · ${esc(C.saatYaz(b.saat))}</p><h1 style="margin-top:4px">${esc(C.ciftAdi(b))}</h1><p class="soluk" style="margin-top:4px">${esc([s?.ad, d.alanAd].filter(Boolean).join(' · '))}</p></div><span class="bosluk"></span><a class="dg ana" href="${href('/d/' + kod + '/plan')}" data-git="/d/${kod}/plan">${ikon('kalem', 'k')} Planı aç</a></div>
     <div class="sayilar"><div class="sayi"><b>${sy.kisi}</b><span>${sy.davet} davetiye</span></div><div class="sayi"><b>${sy.geliyor}</b><span>geliyor · ${sy.bekliyor} bekleniyor</span></div><div class="sayi"><b>${sy.yerlesen}</b><span>kişi yerleşti · ${sy.masa} masa</span></div><div class="sayi"><b>${sy.gorevBitti}/${sy.gorev}</b><span>görev</span></div></div>
     <div class="paylas-izgara" style="margin-top:16px">
-      <section class="kart"><div class="kart-bas"><h2>Çiftin girişi</h2></div><div class="yigin" style="gap:10px"><div class="baglanti"><code>${esc(link)}/plan</code><button class="dg kucuk" data-y="kopya" data-v="${esc(link)}/plan">${ikon('kopya', 'kk')}</button></div>
-        <div style="display:flex;align-items:center;gap:12px"><span class="soluk">PIN</span><b class="pin-goster" id="dPin">${esc(pin || '—')}</b><span class="bosluk" style="flex:1"></span><button class="dg cizgili kucuk" data-y="pin">Yeni PIN</button></div>
-        <a class="dg vurgu" target="_blank" rel="noopener" href="${esc(waLink('', ciftMesaji({ ...b, kod }, pin)))}">${ikon('mesaj', 'k')} WhatsApp ile çifte gönder</a></div></section>
+      <section class="kart"><div class="kart-bas"><h2>Çiftin girişi</h2></div><div class="yigin" style="gap:12px">
+        <div class="kod-goster"><span class="etiket">Giriş kodu</span><span style="display:flex;align-items:center;gap:6px"><b class="pin-goster" id="dPin">${esc(C.girisKoduYaz(gk) || '—')}</b><button class="dg ikon-d" type="button" data-y="kopya" data-v="${esc(C.girisKoduYaz(gk))}" aria-label="Kodu kopyala">${ikon('kopya', 'k')}</button></span></div>
+        <p class="kucuk-yazi">Çift <b>${esc(girisLink().replace(/^https:\/\//, ''))}</b> adresinde “Etkinlik sahibi” sekmesine bu kodu yazarak girer. Eşler aynı kodu kullanır.</p>
+        <div class="dg-grup"><a class="dg vurgu" target="_blank" rel="noopener" href="${esc(waLink('', ciftMesaji(b, gk)))}">${ikon('mesaj', 'k')} WhatsApp ile çifte gönder</a><button class="dg cizgili kucuk" data-y="pin">${ikon('yenile', 'kk')} Yeni kod</button></div></div></section>
       <section class="kart"><div class="kart-bas"><h2>Davetli bağlantısı</h2></div><div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div class="qr-kutu" style="width:132px;height:132px">${qrSvg(link)}</div><div class="yigin" style="flex:1;min-width:180px;gap:8px"><div class="baglanti"><code>${esc(link)}</code><button class="dg kucuk" data-y="kopya" data-v="${esc(link)}">${ikon('kopya', 'kk')}</button></div><button class="dg cizgili kucuk" data-y="qr">${ikon('indir', 'kk')} QR'ı indir</button><a class="dg sade kucuk" href="${href('/d/' + kod)}" data-git="/d/${kod}">${ikon('goz', 'kk')} Sayfayı gör</a></div></div></section>
       <section class="kart"><div class="kart-bas"><h2>Düğün bilgileri</h2></div><form class="yigin" id="mF">
         <div class="izgara2"><label class="alan"><span>Gelin</span><input class="girdi" name="gelin" value="${esc(b.gelin)}" maxlength="40"></label><label class="alan"><span>Damat</span><input class="girdi" name="damat" value="${esc(b.damat)}" maxlength="40"></label></div>
         <div class="izgara3"><label class="alan"><span>Tarih</span><input class="girdi" type="date" name="tarih" value="${esc(b.tarih)}"></label><label class="alan"><span>Başlangıç</span><input class="girdi" type="time" name="saat" value="${esc(b.saat)}"></label><label class="alan"><span>Bitiş</span><input class="girdi" type="time" name="bitis" value="${esc(b.bitis)}"></label></div>
         <div class="izgara2"><label class="alan"><span>Tür</span><select class="girdi" name="tur">${C.TURLER.map(([k, a]) => `<option value="${k}"${k === b.tur ? ' selected' : ''}>${a}</option>`).join('')}</select></label><label class="alan"><span>Salon alanı</span><select class="girdi" name="alan">${(s?.alanlar || []).map((a) => `<option value="${esc(a.id)}"${a.id === d.alan ? ' selected' : ''}>${esc(a.ad)}</option>`).join('')}</select></label></div>
+        ${Y.rol === 'yonetici' ? `<label class="anahtar"><span><b style="font-weight:500">Ücrete dahil</b><br><small class="soluk">${birim ? `Düğün başı ${TL(birim)} · ${esc(U.ayAdi(b.tarih.slice(0, 7)))} hesabına yazılır.` : 'Bu salonda düğün başı ücret yok.'} Deneme ya da ikram düğünlerinde kapatın.</small></span><input type="checkbox" name="ucretli"${d.ucretsiz ? '' : ' checked'}><i></i></label>` : ''}
         <div class="dg-grup"><button class="dg ana" type="submit">Kaydet</button></div></form></section>
       <section class="kart"><div class="kart-bas"><h2>Bu düğünün salon planı</h2></div><div class="plan-kutu" style="height:180px">${planSvg(C.genelPlan(d), { izgara: false })}</div>
         <p class="kucuk-yazi" style="margin:10px 0">${C.planOzet(d.plan).masa} masa · ${C.planOzet(d.plan).kisi} kişi. Çiftin masaları bu düğüne özel kopyadır; salonun ana planındaki değişiklikler buraya kendiliğinden geçmez.</p>
@@ -223,14 +248,14 @@ async function dugunDetay(el, kod) {
     const a = e.target.closest('[data-y]'); if (!a) return;
     if (a.dataset.y === 'kopya') kopyala(a.dataset.v);
     else if (a.dataset.y === 'qr') qrPng(link, `davet-qr-${kod}.png`, C.ciftAdi(b));
-    else if (a.dataset.y === 'pin') { if (!(await onayla({ baslik: 'Yeni PIN oluşturulsun mu?', metin: 'Çiftin açık oturumları kapanır; yeni PIN’i onlara iletmeniz gerekir.', evet: 'Oluştur' }))) return; try { const x = await api.pin(kod, {}, Y.token); $('#dPin').textContent = x.pin; bildir('Yeni PIN: ' + x.pin, { sure: 8000 }); } catch (er) { bildir(er.message, { hata: true }); } }
+    else if (a.dataset.y === 'pin') { if (!(await onayla({ baslik: 'Yeni giriş kodu oluşturulsun mu?', metin: 'Eski kod çalışmaz ve çiftin açık oturumları kapanır; yeni kodu çifte iletmeniz gerekir.', evet: 'Oluştur' }))) return; try { const x = await api.pin(kod, {}, Y.token); bildir('Yeni giriş kodu: ' + C.girisKoduYaz(x.girisKodu), { sure: 8000 }); dugunDetay(el, kod); } catch (er) { bildir(er.message, { hata: true }); } }
     else if (a.dataset.y === 'yenile') { if (!(await onayla({ baslik: 'Salon planı yeniden uygulansın mı?', metin: 'Bu düğünün masa düzeni, salonun güncel planıyla değiştirilir. Aynı masalarda oturanlar yerinde kalır; kaldırılan masalardakiler masasız kalır.', evet: 'Uygula' }))) return; try { await api.meta(kod, { planYenile: true }, Y.token); await veriAl(); bildir('Salon planı uygulandı'); dugunDetay(el, kod); } catch (er) { bildir(er.message, { hata: true }); } }
-    else if (a.dataset.y === 'sil') { if (!(await onayla({ baslik: `${C.ciftAdi(b)} silinsin mi?`, metin: 'Davetli listesi, oturma planı, görevler ve katılım yanıtları kalıcı olarak silinir. Bu işlem geri alınamaz.', evet: 'Kalıcı olarak sil', tehlike: true }))) return; try { await api.dugunSil(kod, Y.token); await veriAl(); bildir('Düğün silindi'); git(yolY(Y.rol === 'salon' ? '' : 'dugunler')); } catch (er) { bildir(er.message, { hata: true }); } }
+    else if (a.dataset.y === 'sil') { if (!(await onayla({ baslik: `${C.ciftAdi(b)} silinsin mi?`, metin: 'Davetli listesi, oturma planı, görevler ve katılım yanıtları kalıcı olarak silinir. Bu işlem geri alınamaz.', evet: 'Kalıcı olarak sil', tehlike: true }))) return; try { await api.dugunSil(kod, Y.token); await veriAl(); bildir('Düğün silindi'); git(yolY('dugunler')); } catch (er) { bildir(er.message, { hata: true }); } }
   };
   $('#mF', el).onsubmit = async (e) => {
     e.preventDefault(); const v = Object.fromEntries(new FormData(e.target));
     if (!v.tarih) return bildir('Tarih boş olamaz', { hata: true });
-    try { await api.meta(kod, { bilgi: { gelin: v.gelin, damat: v.damat, tarih: v.tarih, saat: v.saat, bitis: v.bitis, tur: v.tur }, ...(v.alan && v.alan !== d.alan ? { alan: v.alan } : {}) }, Y.token); await veriAl(); bildir('Kaydedildi'); dugunDetay(el, kod); } catch (er) { bildir(er.message, { hata: true }); }
+    try { await api.meta(kod, { bilgi: { gelin: v.gelin, damat: v.damat, tarih: v.tarih, saat: v.saat, bitis: v.bitis, tur: v.tur }, ...(v.alan && v.alan !== d.alan ? { alan: v.alan } : {}), ...(Y.rol === 'yonetici' ? { ucretsiz: !v.ucretli } : {}) }, Y.token); await veriAl(); bildir('Kaydedildi'); dugunDetay(el, kod); } catch (er) { bildir(er.message, { hata: true }); }
   };
 }
 
@@ -238,7 +263,12 @@ async function dugunDetay(el, kod) {
 function salonListe(el) {
   const bugun = C.trBugun();
   el.innerHTML = `<div class="bolum-bas"><h1>Salonlar</h1><span class="bosluk"></span><a class="dg ana" href="${href(yolY('yeni-salon'))}" data-git="${yolY('yeni-salon')}">${ikon('arti', 'k')} Yeni salon</a></div>
-  ${Y.veri.salonlar.length ? `<div class="kart-izgara">${Y.veri.salonlar.map((s) => { const yak = Y.veri.dugunler.filter((d) => d.salon === s.slug && d.tarih >= bugun).length; const oz = s.alanlar.map((a) => C.planOzet(a.plan)); return `<a class="kart salon-kart" href="${href(yolY('salon/' + s.slug))}" data-git="${yolY('salon/' + s.slug)}"><div class="ust-s">${logoK(s)}<div style="min-width:0"><b>${esc(s.ad)}</b><small class="soluk">/salon/${esc(s.slug)}</small></div></div><div class="cipler">${s.aktif === false ? '<span class="rozet hata">Kapalı</span>' : ''}<span class="rozet">${s.alanlar.length} alan · ${oz.reduce((n, o) => n + o.masa, 0)} masa</span><span class="rozet vurgu">${yak} yaklaşan düğün</span>${s.giris ? '' : '<span class="rozet">Salon girişi kapalı</span>'}${odemeRozet(odemeDurum(s))}</div></a>`; }).join('')}</div>` : `<div class="kart bos"><span class="serif">Henüz salon yok</span>İlk düğün salonunuzu ekleyin; logosunu, renklerini ve salon planını ayarlayın.<br><a class="dg ana" href="${href(yolY('yeni-salon'))}" data-git="${yolY('yeni-salon')}">Salon ekle</a></div>`}`;
+  ${Y.veri.salonlar.length ? `<div class="kart-izgara">${Y.veri.salonlar.map((s) => { const yak = Y.veri.dugunler.filter((d) => d.salon === s.slug && d.tarih >= bugun).length; const oz = s.alanlar.map((a) => C.planOzet(a.plan)); return `<a class="kart salon-kart" href="${href(yolY('salon/' + s.slug))}" data-git="${yolY('salon/' + s.slug)}"><div class="ust-s">${logoK(s)}<div style="min-width:0"><b>${esc(s.ad)}</b><small class="soluk">/salon/${esc(s.slug)}</small></div></div><div class="cipler">${s.aktif === false ? '<span class="rozet hata">Kapalı</span>' : ''}<span class="rozet">${s.alanlar.length} alan · ${oz.reduce((n, o) => n + o.masa, 0)} masa</span><span class="rozet vurgu">${yak} yaklaşan düğün</span><span class="rozet">${esc(U.ucretYazi(s, TL))}</span>${s.giris ? '' : '<span class="rozet">İşletme girişi kapalı</span>'}${salonParaRozet(s)}</div></a>`; }).join('')}</div>` : `<div class="kart bos"><span class="serif">Henüz salon yok</span>İlk düğün salonunuzu ekleyin; logosunu, renklerini ve salon planını ayarlayın.<br><a class="dg ana" href="${href(yolY('yeni-salon'))}" data-git="${yolY('yeni-salon')}">Salon ekle</a></div>`}`;
+}
+function salonParaRozet(s) {
+  const o = U.salonOzet(s, Y.veri.dugunler), r = o.buAy;
+  if (o.geciken) return `<span class="rozet hata">Gecikti · ${TL(o.geciken)}</span>`;
+  return r && r.tutar ? `<span class="rozet ${r.durum === 'odendi' ? 'iyi' : 'uyari'}">Bu ay ${TL(r.tutar)}${r.durum === 'odendi' ? ' · ödendi' : ''}</span>` : '';
 }
 const SEK = [['bilgi', 'Bilgiler'], ['tema', 'Görünüm'], ['alanlar', 'Salon planları'], ['dugunler', 'Düğünler'], ['giris', 'Giriş ve QR'], ['odeme', 'Ödemeler']];
 function salonDuzen(el, slug, sekme = 'bilgi') {
@@ -260,7 +290,7 @@ function salonDuzen(el, slug, sekme = 'bilgi') {
   };
 }
 function topla(g, x) {
-  $$('[data-s]', g).forEach((i) => { const p = i.dataset.s.split('.'); let o = x; for (let k = 0; k < p.length - 1; k++) o = o[p[k]] ||= {}; o[p.at(-1)] = i.type === 'checkbox' ? i.checked : i.type === 'number' ? +i.value : i.value; });
+  $$('[data-s]', g).forEach((i) => { const p = i.dataset.s.split('.'); let o = x; for (let k = 0; k < p.length - 1; k++) o = o[p[k]] ||= {}; o[p.at(-1)] = i.type === 'checkbox' ? i.checked : i.type === 'number' || i.dataset.sayi ? +i.value : i.value; });
 }
 async function salonKaydet(slug) {
   const x = Y.duz, g = $('#sG'); if (g) topla(g, x);
@@ -293,9 +323,9 @@ function sBilgi(g, x, slug) {
     <label class="alan"><span>Yetkili kişi</span><input class="girdi" data-s="kisi" value="${esc(x.kisi)}" maxlength="80"></label>
     <label class="alan"><span>Notlar <span class="ipucu">(sadece siz görürsünüz)</span></span><textarea class="girdi" data-s="notlar" rows="3" maxlength="4000">${esc(x.notlar)}</textarea></label>
     <label class="anahtar"><span><b style="font-weight:500">Salon etkin</b><br><small class="soluk">Kapalıyken salonun sayfaları, davetli sayfaları ve çift paneli açılmaz.</small></span><input type="checkbox" data-s="aktif" ${x.aktif !== false ? 'checked' : ''}><i></i></label>
-    ${slug ? `<hr class="ayrac"><div><button class="dg tehlike" data-sil="1">${ikon('cop', 'k')} Salonu sil</button></div>` : `<hr class="ayrac"><div class="yigin" style="gap:12px"><div><h3>Salon sahibinin girişi</h3><p class="soluk" style="margin-top:4px">Salon sahibi bu bilgilerle kendi paneline girer; düğün açar ve çiftlere PIN verir. Ödemeleri ve notlarınızı göremez.</p></div>
+    ${slug ? `<hr class="ayrac"><div><button class="dg tehlike" data-sil="1">${ikon('cop', 'k')} Salonu sil</button></div>` : `<hr class="ayrac"><div class="yigin" style="gap:12px"><div><h3>Salon sahibinin girişi</h3><p class="soluk" style="margin-top:4px">Salon sahibi bu bilgilerle kendi işletme paneline girer; düğün açar, çiftlere giriş kodu verir ve istatistiklerini görür. Ödemeleri ve notlarınızı göremez.</p></div>
       <div class="izgara2"><label class="alan"><span>Kullanıcı adı <span class="ipucu">(salonun adresi)</span></span><input class="girdi" id="sKA" value="${esc(x.slug || '')}" readonly tabindex="-1"></label><label class="alan"><span>Şifre</span><span style="display:flex;gap:8px"><input class="girdi" id="sYS" value="${esc(x.yeniSifre || '')}" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="60"><button class="dg cizgili" type="button" id="sYU" aria-label="Yeni şifre üret" style="flex:none;padding:0 14px">${ikon('yenile', 'k')}</button></span></label></div>
-      <small class="ipucu">Boş bırakırsanız salon girişi kapalı olur; sonradan “Giriş ve QR” sekmesinden açabilirsiniz.</small></div>`}</div>`;
+      <small class="ipucu">Boş bırakırsanız işletme girişi kapalı olur; sonradan “Giriş ve QR” sekmesinden açabilirsiniz. Ücreti salon oluşunca “Ödemeler” sekmesinden girin.</small></div>`}</div>`;
   const ad = $('[data-s=ad]', g), sl = $('#sSlug', g);
   if (!slug) {
     const ka = () => { $('#sSlugO', g).textContent = sl.value || '…'; $('#sKA', g).value = sl.value; };
@@ -386,8 +416,8 @@ function sorPencere(baslik, deger = '') {
 function sDugunler(g, x, slug) { dugunListe(g, { salon: slug }); g.querySelector('.bolum-bas h1').textContent = 'Bu salonun düğünleri'; }
 function sGiris(g, x, slug) {
   const sl = paylasLink('/salon/' + slug);
-  g.innerHTML = `<div class="paylas-izgara"><section class="kart"><div class="kart-bas"><h2>Salon sahibinin girişi</h2><span class="bosluk"></span><span class="rozet ${x.giris ? 'iyi' : ''}">${x.giris ? 'Açık' : 'Kapalı'}</span></div>
-      <p class="soluk" style="margin-bottom:12px">Salon sahibi bu bilgilerle girip düğün açar, çiftlere PIN verir ve planları yazdırır. Ödemeleri ve notlarınızı göremez.</p>
+  g.innerHTML = `<div class="paylas-izgara"><section class="kart"><div class="kart-bas"><h2>İşletme girişi</h2><span class="bosluk"></span><span class="rozet ${x.giris ? 'iyi' : ''}">${x.giris ? 'Açık' : 'Kapalı'}</span></div>
+      <p class="soluk" style="margin-bottom:12px">Salon sahibi bu bilgilerle işletme paneline girip düğün açar, çiftlere giriş kodu verir, planları yazdırır ve istatistiklerini görür. Ödemeleri ve notlarınızı göremez.</p>
       ${x.giris ? `${bilgiListe(slug, x.girisSifre)}${x.girisSifre ? '' : '<p class="kucuk-yazi" style="margin:-4px 0 12px">Bu şifre önceki sürümde belirlendiği için görüntülenemiyor. Yeni şifre oluşturursanız burada görünür.</p>'}
         <div class="dg-grup" style="margin-bottom:12px">${x.girisSifre ? `<a class="dg vurgu" target="_blank" rel="noopener" href="${esc(waLink('', salonMesaji(x.ad, slug, x.girisSifre)))}">${ikon('mesaj', 'k')} WhatsApp ile gönder</a>` : ''}<button class="dg cizgili" data-g="yeni">${ikon('yenile', 'k')} Yeni şifre oluştur</button></div>`
       : `<div class="dg-grup" style="margin-bottom:12px"><button class="dg ana" data-g="yeni">Şifre oluştur ve girişi aç</button></div>`}
@@ -399,7 +429,7 @@ function sGiris(g, x, slug) {
     try {
       const r = await api.salonSifre(slug, sifre, Y.token); x.giris = r.giris; x.girisSifre = r.girisSifre || ''; await veriAl();
       sGiris(g, x, slug);
-      if (r.giris) hesapBilgisi(x.ad, slug, sifre); else bildir('Salon girişi kapatıldı');
+      if (r.giris) hesapBilgisi(x.ad, slug, sifre); else bildir('İşletme girişi kapatıldı');
     } catch (er) { bildir(er.message, { hata: true }); }
   };
   g.onclick = async (e) => {
@@ -408,21 +438,43 @@ function sGiris(g, x, slug) {
     else if (b.dataset.g === 'qr') qrPng(sl, `salon-qr-${slug}.png`, x.tema.kisaAd || x.ad);
     else if (b.dataset.g === 'yeni') { if (x.giris && !(await onayla({ baslik: 'Yeni şifre oluşturulsun mu?', metin: 'Salonun açık oturumları kapanır; yeni şifreyi salon sahibine iletmeniz gerekir.', evet: 'Oluştur' }))) return; ayarla(sifreUret()); }
     else if (b.dataset.g === 'sifre') { const v = $('#sSf', g).value.trim(); if (v.length < 6) return bildir('Şifre en az 6 karakter olmalı', { hata: true }); ayarla(v); }
-    else if (b.dataset.g === 'kapat') { if (!(await onayla({ baslik: 'Salon girişi kapatılsın mı?', metin: 'Salon sahibi panele giremez; düğünler ve davetli sayfaları açık kalır.', evet: 'Kapat', tehlike: true }))) return; ayarla(null); }
+    else if (b.dataset.g === 'kapat') { if (!(await onayla({ baslik: 'İşletme girişi kapatılsın mı?', metin: 'Salon sahibi işletme paneline giremez; düğünler ve davetli sayfaları açık kalır.', evet: 'Kapat', tehlike: true }))) return; ayarla(null); }
   };
 }
 function sOdeme(g, x, slug) {
-  const o = x.odeme ||= { tutar: 0, gun: 1, periyot: 'aylik' };
-  const L = [...(x.odemeler || [])].sort((a, b) => (b.tarih || '').localeCompare(a.tarih || ''));
-  const r = odemeDurum(x);
-  g.innerHTML = `<div class="ozet-izgara"><section class="kart"><div class="kart-bas"><h2>Aylık ücret</h2><span class="bosluk"></span>${odemeRozet(r)}</div><div class="yigin">
-      <div class="izgara3"><label class="alan"><span>Tutar (₺)</span><input class="girdi" type="number" min="0" step="50" data-s="odeme.tutar" value="${o.tutar || 0}"></label><label class="alan"><span>Ödeme günü</span><input class="girdi" type="number" min="1" max="28" data-s="odeme.gun" value="${o.gun || 1}"></label><label class="alan"><span>Başlangıç</span><input class="girdi" type="date" data-s="odeme.baslangic" value="${esc(o.baslangic || '')}"></label></div>
-      <p class="kucuk-yazi">Kaydetmeyi unutmayın.</p></div></section>
-    <section class="kart"><div class="kart-bas"><h2>Ödeme ekle</h2></div><form class="yigin" id="oF"><div class="izgara3"><label class="alan"><span>Tarih</span><input class="girdi" type="date" name="tarih" value="${C.trBugun()}"></label><label class="alan"><span>Dönem</span><input class="girdi" type="month" name="donem" value="${C.trBugun().slice(0, 7)}"></label><label class="alan"><span>Tutar</span><input class="girdi" type="number" name="tutar" min="0" value="${o.tutar || ''}"></label></div><input class="girdi" name="not" placeholder="Not (isteğe bağlı)" maxlength="200"><button class="dg ana" type="submit">Ödemeyi kaydet</button></form></section></div>
-    <section class="kart" style="margin-top:16px"><div class="kart-bas"><h2>Ödeme geçmişi</h2><span class="bosluk"></span><span class="rozet">${TL(L.reduce((n, p) => n + p.tutar, 0))} toplam</span></div>${L.length ? L.map((p) => `<div class="satir"><span class="ana"><b>${TL(p.tutar)}</b><small>${esc(C.tarihYaz(p.tarih))}${p.donem ? ' · ' + esc(AYLAR[+p.donem.slice(5) - 1] + ' ' + p.donem.slice(0, 4)) + ' dönemi' : ''}${p.not ? ' · ' + esc(p.not) : ''}</small></span><button class="dg ikon-d" data-osil="${p.id}" aria-label="Sil">${ikon('cop', 'k')}</button></div>`).join('') : '<p class="soluk">Kayıt yok.</p>'}</section>`;
-  g.oninput = () => topla(g, x);
-  $('#oF', g).onsubmit = async (e) => { e.preventDefault(); const v = Object.fromEntries(new FormData(e.target)); if (!(+v.tutar > 0)) return bildir('Tutarı yazın', { hata: true }); x.odemeler = [...(x.odemeler || []), { id: C.rastgele(8), tarih: v.tarih, donem: v.donem, tutar: +v.tutar, not: v.not }]; topla(g, x); if (await salonKaydet(slug)) bildir('Ödeme kaydedildi'); };
-  g.onclick = async (e) => { const b = e.target.closest('[data-osil]'); if (!b) return; if (!(await onayla({ baslik: 'Ödeme kaydı silinsin mi?', evet: 'Sil', tehlike: true }))) return; x.odemeler = x.odemeler.filter((p) => p.id !== b.dataset.osil); await salonKaydet(slug); };
+  const o = (x.odeme ||= {});
+  o.model = U.modelAl(x); o.gun ||= 1;
+  const kayitli = salonBul(slug), oz = U.salonOzet(kayitli, Y.veri.dugunler), buAy = BUAY();
+  const L = [...(kayitli.odemeler || [])].sort((a, b) => (b.tarih || '').localeCompare(a.tarih || ''));
+  const aciklama = () => {
+    const g2 = `${o.gun || 1}’i`;
+    return { dugun: `Her ay, o ay tarihli düğün sayısı × düğün başı ücret hesaplanır; ertesi ayın ${g2} ödenir. Ücrete dahil olmayan düğünleri (deneme, ikram) düğünün sayfasından kapatabilirsiniz.`,
+      aylik: `Her ayın ${g2} sabit ücret alınır; düğün sayısı fark etmez.`,
+      ikisi: `Aylık sabit ücret + o ayın düğünleri × düğün başı ücret; ertesi ayın ${g2} ödenir.`,
+      yok: 'Bu salondan ücret alınmaz. Yine de ödeme kaydedebilirsiniz.' }[o.model];
+  };
+  const dok = [...oz.dokum].reverse();
+  g.innerHTML = `<div class="ozet-izgara"><section class="kart"><div class="kart-bas"><h2>Ücret</h2></div><div class="yigin" style="gap:14px">
+      <div class="segment model-sec" id="oM" role="tablist">${U.MODELLER.map(([k, a]) => `<button type="button" data-model="${k}" class="${o.model === k ? 'on' : ''}">${a}</button>`).join('')}</div>
+      <div class="izgara2">${o.model === 'dugun' || o.model === 'ikisi' ? `<label class="alan"><span>Düğün başı (₺)</span><input class="girdi" type="number" min="0" step="50" inputmode="numeric" data-s="odeme.dugunBasi" value="${o.dugunBasi || ''}" placeholder="0"></label>` : ''}${o.model === 'aylik' || o.model === 'ikisi' ? `<label class="alan"><span>Aylık (₺)</span><input class="girdi" type="number" min="0" step="50" inputmode="numeric" data-s="odeme.tutar" value="${o.tutar || ''}" placeholder="0"></label>` : ''}</div>
+      ${o.model === 'yok' ? '' : `<div class="izgara2"><label class="alan"><span>Ödeme günü</span><select class="girdi" data-s="odeme.gun" data-sayi="1">${Array.from({ length: 28 }, (_, i) => `<option value="${i + 1}"${(o.gun || 1) === i + 1 ? ' selected' : ''}>Her ayın ${i + 1}’i</option>`).join('')}</select></label><label class="alan"><span>Başlangıç <span class="ipucu">(isteğe bağlı)</span></span><input class="girdi" type="date" data-s="odeme.baslangic" value="${esc(o.baslangic || '')}"></label></div>`}
+      <p class="kucuk-yazi" id="oA">${esc(aciklama())}</p>
+      <div><button class="dg ana" type="button" data-o="kaydet">Ücreti kaydet</button></div></div></section>
+    <section class="kart"><div class="kart-bas"><h2>Hesap</h2><span class="bosluk"></span><button class="dg cizgili kucuk" type="button" data-odeme="${esc(slug)}">Ödeme al</button></div>
+      <div class="sayilar iki"><div class="sayi"><b class="tl">${TL(oz.buAy?.tutar || 0)}</b><span>bu ayın hesabı · ${oz.buAy?.dugun || 0} düğün</span></div><div class="sayi"><b class="tl">${TL(oz.alacak)}</b><span>toplam alacak${oz.geciken ? ` · <em class="kirmizi">${TL(oz.geciken)} gecikti</em>` : ''}</span></div>
+        <div class="sayi"><b class="tl">${TL(oz.tahsil)}</b><span>bugüne kadar alındı</span></div><div class="sayi"><b class="tl">${TL(oz.beklenen)}</b><span>önümüzdeki 3 ayın düğünlerinden</span></div></div>
+      <p class="kucuk-yazi" style="margin-top:10px">Kaydedilmiş ücretle hesaplanır.</p></section></div>
+    <section class="kart" style="margin-top:16px"><div class="kart-bas"><h2>Aylık döküm</h2></div><div class="odeme-liste">${dok.map((r) => odemeSatir(kayitli, r, { dokum: true, etiket: r.ay === buAy ? 'Bu ay' : r.ay > buAy ? 'Planlanan' : '' })).join('')}</div></section>
+    <section class="kart" style="margin-top:16px"><div class="kart-bas"><h2>Alınan ödemeler</h2><span class="bosluk"></span><span class="rozet">${TL(L.reduce((n, p) => n + p.tutar, 0))} toplam</span></div>${L.length ? L.map((p) => `<div class="satir"><span class="ana"><b>${TL(p.tutar)}</b><small>${esc(C.tarihYaz(p.tarih))}${p.donem ? ' · ' + esc(U.ayAdi(p.donem)) + ' hesabı' : ''}${p.not ? ' · ' + esc(p.not) : ''}</small></span><button class="dg ikon-d" data-osil="${p.id}" aria-label="Sil">${ikon('cop', 'k')}</button></div>`).join('') : '<p class="soluk">Henüz ödeme kaydı yok.</p>'}</section>`;
+  g.oninput = (e) => { topla(g, x); if (e.target.dataset.s === 'odeme.gun') $('#oA', g).textContent = aciklama(); };
+  g.onchange = g.oninput;
+  g.onclick = async (e) => {
+    const m = e.target.closest('[data-model]'); if (m) { topla(g, x); o.model = m.dataset.model; sOdeme(g, x, slug); return; }
+    if (e.target.closest("[data-o=kaydet]")) { topla(g, x); await salonKaydet(slug); return; }
+    const b = e.target.closest('[data-osil]'); if (!b) return;
+    if (!(await onayla({ baslik: 'Ödeme kaydı silinsin mi?', evet: 'Sil', tehlike: true }))) return;
+    x.odemeler = (x.odemeler || []).filter((p) => p.id !== b.dataset.osil); await salonKaydet(slug);
+  };
 }
 function salonHesap(el) {
   const s = Y.veri.salonlar[0], sl = paylasLink('/salon/' + Y.slug);
@@ -451,20 +503,128 @@ function alanlarSalon(el) {
   el.innerHTML = `<div class="bolum-bas"><h1>Salon planları</h1></div><p class="soluk" style="margin-bottom:14px">Yeni düğünler bu planlarla başlar. Plan değişikliği için yöneticiyle görüşün; tek bir düğünün masa düzenini o düğünün sayfasından değiştirebilirsiniz.</p><div class="kart-izgara">${s.alanlar.map((a) => alanKart(a, { duzenle: false })).join('') || '<div class="kart bos">Henüz salon planı yok.</div>'}</div>`;
 }
 
-// ---------------------------------------------------------------- istatistik
+// ---------------------------------------------------------------- ortak grafik ve istatistik yardımcıları
+const GUNLER = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+const haftaGunu = (t) => new Date(t + 'T12:00:00Z').getUTCDay();
+const yuzde = (a, b) => (b ? Math.round((a / b) * 100) : 0);
+/** Aylara göre düğün sayısı çubukları (bu ay vurgulu, gelecek aylar soluk) */
+function aySutun(L, { once = 5, sonra = 6 } = {}) {
+  const buAy = BUAY(), aylar = []; for (let i = -once; i <= sonra; i++) aylar.push(U.ayEkle(buAy, i));
+  const say = aylar.map((a) => L.filter((d) => (d.tarih || '').startsWith(a)).length), mx = Math.max(1, ...say);
+  return `<div class="cubuklar">${aylar.map((a, i) => `<div title="${esc(U.ayAdi(a))}: ${say[i]} düğün"${a === buAy ? ' class="on"' : ''}><span class="c"><b>${say[i] || ''}</b><i style="height:calc((100% - 20px) * ${(say[i] / mx).toFixed(3)});${a === buAy ? '' : a > buAy ? 'opacity:.35' : 'opacity:.6'}"></i></span><span>${esc(U.ayAdi(a, { kisa: true, yil: false }))}</span></div>`).join('')}</div>`;
+}
+/** Yatay oran çubukları: [[ad, sayı], ...] */
+const oranListe = (L) => { const mx = Math.max(1, ...L.map((x) => x[1])); return `<div class="oranlar">${L.map(([a, n]) => `<div><span>${esc(a)}</span><i><em style="width:${Math.round((n / mx) * 100)}%"></em></i><b>${sayiYaz(n)}</b></div>`).join('')}</div>`; };
+/** Düğünün hazırlık durumu: liste boş, yanıt bekleyen, masalar eksik */
+function hazirlik(d, bugun) {
+  const kalan = Math.round((new Date(d.tarih + 'T12:00:00Z') - new Date(bugun + 'T12:00:00Z')) / 864e5);
+  const gelecek = d.geliyor + d.bekliyor, yer = yuzde(d.yerlesen, gelecek);
+  if (!d.davet) return { sinif: kalan <= 30 ? 'hata' : 'uyari', yazi: 'Davetli listesi boş', yer, kalan };
+  if (yer < 100 && kalan <= 14) return { sinif: yer < 60 ? 'hata' : 'uyari', yazi: `Masalar %${yer}`, yer, kalan };
+  if (yer >= 100) return { sinif: 'iyi', yazi: 'Masalar hazır', yer, kalan };
+  return { sinif: '', yazi: `Masalar %${yer}`, yer, kalan };
+}
+function hazirlikSatir(d, bugun) {
+  const h = hazirlik(d, bugun);
+  return `<a class="dugun-satir" href="${href(yolY('dugun/' + d.kod))}" data-git="${yolY('dugun/' + d.kod)}">${takvimK(d.tarih)}<span style="min-width:0"><b class="ad">${esc(C.ciftAdi(d))}</b><small>${d.tarih === bugun ? '<em class="vurgu-y">Bugün</em> · ' : ''}${esc([d.alanAd, C.saatYaz(d.saat), h.kalan > 0 ? `${h.kalan} gün kaldı` : ''].filter(Boolean).join(' · '))}</small><span class="ilerleme ince"><i style="width:${h.yer}%"></i></span></span><span class="sag"><b>${d.kisi}</b><small><span class="rozet ${h.sinif}">${esc(h.yazi)}</span></small></span></a>`;
+}
+
+// ---------------------------------------------------------------- işletme (salon sahibi) özeti
+async function salonOzet(el) {
+  const s = Y.veri.salonlar[0], bugun = C.trBugun(), ay = bugun.slice(0, 7), yil = bugun.slice(0, 4);
+  const L = Y.veri.dugunler, yak = L.filter((d) => d.tarih && d.tarih >= bugun);
+  const buAy = L.filter((d) => (d.tarih || '').startsWith(ay)), buYil = L.filter((d) => (d.tarih || '').startsWith(yil));
+  const bugunku = L.filter((d) => d.tarih === bugun), y60 = yak.filter((d) => d.tarih <= C.gunEkle(bugun, 60));
+  const git2 = (p) => `href="${href(yolY(p))}" data-git="${yolY(p)}"`;
+  el.innerHTML = `<div class="bolum-bas"><div><p class="etiket">${esc(C.tarihYaz(bugun, { gun: true }))}</p><h1 style="margin-top:4px">Özet</h1></div><span class="bosluk"></span><button class="dg ana" data-y="yeni">${ikon('arti', 'k')} Yeni düğün</button></div>
+    ${!s.alanlar.length ? '<div class="uyari-kutu" style="margin-bottom:14px">Bu salon için henüz salon planı tanımlanmamış. Düğün eklemeden önce yöneticinizden salon planını isteyin.</div>' : ''}
+    ${bugunku.map((d) => `<a class="uyari-kutu iyi bugun-k" ${git2('dugun/' + d.kod)}>${ikon('kalp', 'k')}<span><b>Bugün: ${esc(C.ciftAdi(d))}</b> · ${esc([d.alanAd, C.saatYaz(d.saat)].filter(Boolean).join(' · '))} · ${d.kisi} kişi. Misafirler girişteki QR ile masalarını bulur.</span>${ikon('sag', 'kk')}</a>`).join('')}
+    <div class="sayilar"${bugunku.length ? ' style="margin-top:14px"' : ''}><a class="sayi" ${git2('dugunler')}><b>${buAy.length}</b><span>düğün ${esc(U.ayAdi(ay, { yil: false }))} ayında</span></a><a class="sayi" ${git2('dugunler')}><b>${yak.length}</b><span>yaklaşan düğün</span></a>
+      <div class="sayi"><b>${buYil.length}</b><span>düğün ${yil} yılında</span></div><div class="sayi"><b>${sayiYaz(yak.reduce((n, d) => n + d.kisi, 0))}</b><span>davetli yaklaşan düğünlerde</span></div></div>
+    <div class="ozet-izgara" style="margin-top:16px"><section class="kart"><div class="kart-bas"><h2>Önümüzdeki 60 gün</h2><span class="bosluk"></span><a class="dg sade kucuk" ${git2('dugunler')}>Tümü</a></div>
+        ${y60.length ? y60.slice(0, 14).map((d) => hazirlikSatir(d, bugun)).join('') : '<p class="soluk">Önümüzdeki 60 günde düğün yok.</p>'}
+        <p class="kucuk-yazi" style="margin-top:8px">Listesi boş ya da masaları eksik düğünlerde çifti hatırlatabilirsiniz.</p></section>
+      <div class="yigin-b"><section class="kart"><div class="kart-bas"><h2>Aylara göre düğünler</h2></div>${aySutun(L)}</section>
+        <section class="kart" id="sIst"><div class="kart-bas"><h2>Misafirler</h2><span class="bosluk"></span><span class="rozet">${yil}</span></div><div class="yukleniyor kucuk"><i></i></div></section></div></div>`;
+  el.onclick = (e) => { if (e.target.closest('[data-y=yeni]')) dugunOlustur(Y.slug); };
+  let r; try { r = await api.salonIstat(Y.slug, Y.token); } catch { $('#sIst', el)?.remove(); return; }
+  const k = $('#sIst', el); if (!k) return;
+  const D = r.dugunler.filter((d) => (d.tarih || '').startsWith(yil)), T = (f) => D.reduce((n, d) => n + (f(d) || 0), 0);
+  const gecmis = D.filter((d) => d.tarih < bugun);
+  k.innerHTML = `<div class="kart-bas"><h2>Misafirler</h2><span class="bosluk"></span><span class="rozet">${yil}</span></div>
+    <div class="sayilar iki"><div class="sayi"><b>${sayiYaz(T((d) => d.sayac.ziyaret))}</b><span>davet sayfası açıldı</span></div><div class="sayi"><b>${sayiYaz(T((d) => d.sayac.lcv))}</b><span>katılım yanıtı (LCV)</span></div>
+      <div class="sayi"><b>${sayiYaz(T((d) => d.sayac.bul))}</b><span>kişi masasını telefondan buldu</span></div><div class="sayi"><b>${gecmis.length ? sayiYaz(Math.round(gecmis.reduce((n, d) => n + d.geliyor, 0) / gecmis.length)) : '—'}</b><span>ortalama misafir (geçmiş düğünler)</span></div></div>`;
+}
+
+// ---------------------------------------------------------------- yönetici: gelir
+function gelir(el, ay) {
+  const V = Y.veri, buAy = BUAY();
+  ay = /^\d{4}-\d{2}$/.test(ay || '') ? ay : buAy;
+  const T = U.ayToplam(V.salonlar, V.dugunler, ay), O = V.salonlar.map((s) => U.salonOzet(s, V.dugunler));
+  const alacak = O.reduce((n, o) => n + o.alacak, 0), geciken = O.reduce((n, o) => n + o.geciken, 0), beklenen = O.reduce((n, o) => n + o.beklenen, 0);
+  const aylar = []; for (let i = -8; i <= 3; i++) aylar.push(U.ayEkle(buAy, i));
+  const G = aylar.map((a) => U.ayToplam(V.salonlar, V.dugunler, a)), mx = Math.max(1, ...G.map((g) => Math.max(g.tutar, g.odenen)));
+  const yil = ay.slice(0, 4), YA = Array.from({ length: 12 }, (_, i) => U.ayToplam(V.salonlar, V.dugunler, `${yil}-${String(i + 1).padStart(2, '0')}`));
+  const yT = YA.reduce((n, g) => n + g.tutar, 0), yO = YA.reduce((n, g) => n + g.odenen, 0), yD = YA.reduce((n, g) => n + g.dugun, 0);
+  const odm = V.salonlar.flatMap((s) => (s.odemeler || []).filter((p) => (p.tarih || '').startsWith(ay)).map((p) => ({ s, p }))).sort((a, b) => (b.p.tarih || '').localeCompare(a.p.tarih || ''));
+  const R = T.R.filter(({ s, r }) => s.aktif !== false || r.tutar || r.odenen);
+  const ayYol = (a) => `href="${href(yolY('gelir/' + a))}" data-git="${yolY('gelir/' + a)}"`;
+  el.innerHTML = `<div class="bolum-bas"><h1>Gelir</h1><span class="bosluk"></span><div class="ay-sec"><a class="dg ikon-d cizgili" ${ayYol(U.ayEkle(ay, -1))} aria-label="Önceki ay">${ikon('sol', 'k')}</a><b>${esc(U.ayAdi(ay))}</b><a class="dg ikon-d cizgili" ${ayYol(U.ayEkle(ay, 1))} aria-label="Sonraki ay">${ikon('sag', 'k')}</a></div></div>
+    <div class="sayilar"><div class="sayi"><b class="tl">${TL(T.tutar)}</b><span>${esc(U.ayAdi(ay, { yil: false }))} hesabı · ${T.dugun} düğün</span></div>
+      <div class="sayi"><b class="tl">${TL(T.odenen)}</b><span>alındı${T.kalan ? ` · ${TL(T.kalan)} kaldı` : ''}</span>${T.tutar ? `<div class="ilerleme"><i style="width:${Math.min(100, yuzde(T.odenen, T.tutar))}%"></i></div>` : ''}</div>
+      <div class="sayi"><b class="tl">${TL(alacak)}</b><span>toplam alacak${geciken ? ` · <em class="kirmizi">${TL(geciken)} gecikti</em>` : ''}</span></div>
+      <div class="sayi"><b class="tl">${TL(beklenen)}</b><span>önümüzdeki 3 ayın düğünlerinden</span></div></div>
+    <section class="kart" style="margin-top:16px"><div class="kart-bas"><h2>Salonlar · ${esc(U.ayAdi(ay))}</h2></div>
+      ${R.length ? `<div class="odeme-liste">${R.map(({ s, r }) => odemeSatir(s, r, { ay })).join('')}</div><div class="toplam-satir"><span>Toplam</span><b>${TL(T.tutar)}</b><small>${TL(T.odenen)} alındı</small></div>` : '<p class="soluk">Salon yok.</p>'}</section>
+    <div class="ozet-izgara" style="margin-top:16px"><section class="kart"><div class="kart-bas"><h2>Aylara göre</h2><span class="bosluk"></span><span class="lejant-k"><span><i class="h"></i>Hesap</span><span><i class="o"></i>Alınan</span></span></div>
+        <div class="gc">${aylar.map((a, i) => `<a ${ayYol(a)} class="${a === ay ? 'on' : ''}${a > buAy ? ' ileri' : ''}" title="${esc(U.ayAdi(a))}: ${TL(G[i].tutar)} hesap, ${TL(G[i].odenen)} alındı"><span class="c"><i class="h" style="height:${(G[i].tutar / mx) * 100}%"></i><i class="o" style="height:${(G[i].odenen / mx) * 100}%"></i></span><span>${esc(U.ayAdi(a, { kisa: true, yil: false }))}</span></a>`).join('')}</div>
+        <div class="yil-ozet"><div><span>${yil} hesabı</span><b>${TL(yT)}</b></div><div><span>${yil} alınan</span><b>${TL(yO)}</b></div><div><span>${yil} düğün</span><b>${sayiYaz(yD)}</b></div></div></section>
+      <section class="kart"><div class="kart-bas"><h2>${esc(U.ayAdi(ay, { yil: false }))} ayında alınanlar</h2><span class="bosluk"></span><span class="rozet">${TL(odm.reduce((n, x) => n + x.p.tutar, 0))}</span></div>
+        ${odm.length ? odm.map(({ s, p }) => `<div class="satir">${logoK(s)}<span class="ana"><b>${esc(s.ad)}</b><small>${esc(C.tarihYaz(p.tarih, { yil: false }))}${p.donem ? ' · ' + esc(U.ayAdi(p.donem)) + ' hesabı' : ''}${p.not ? ' · ' + esc(p.not) : ''}</small></span><b class="sayi-yazi">${TL(p.tutar)}</b></div>`).join('') : '<p class="soluk">Bu ay kaydedilmiş ödeme yok.</p>'}</section></div>`;
+}
+
+// ---------------------------------------------------------------- istatistik (yönetici: tüm salonlar · işletme: kendi salonu)
 async function istatistik(el) {
   el.innerHTML = '<div class="yukleniyor"><i></i></div>';
-  let r; try { r = await api.istat(Y.token); } catch (e) { el.innerHTML = `<div class="kart bos">${esc(e.message)}</div>`; return; }
-  const bugun = C.trBugun(), L = r.dugunler;
-  const S = Y.veri.salonlar.map((s) => { const D = L.filter((d) => d.salon === s.slug); const t = (f) => D.reduce((n, d) => n + (f(d) || 0), 0); return { s, n: D.length, yak: D.filter((d) => d.tarih >= bugun).length, kisi: t((d) => d.kisi), gel: t((d) => d.geliyor), lcv: t((d) => d.sayac.lcv), bul: t((d) => d.sayac.bul), zi: t((d) => d.sayac.ziyaret) }; });
-  const aylar = []; for (let i = -5; i <= 6; i++) { const d = new Date(bugun + 'T00:00:00Z'); d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth() + i); aylar.push(d.toISOString().slice(0, 7)); }
-  const say = aylar.map((a) => L.filter((d) => (d.tarih || '').startsWith(a)).length), mx = Math.max(1, ...say);
-  const T = (f) => S.reduce((n, x) => n + x[f], 0);
+  const isletme = Y.rol === 'salon';
+  let r; try { r = isletme ? await api.salonIstat(Y.slug, Y.token) : await api.istat(Y.token); } catch (e) { el.innerHTML = `<div class="kart bos">${esc(e.message)}</div>`; return; }
+  const bugun = C.trBugun(), yil = bugun.slice(0, 4), L = r.dugunler;
+  const t = (f, X = L) => X.reduce((n, d) => n + (f(d) || 0), 0);
+  const gecmis = L.filter((d) => d.tarih && d.tarih < bugun), yak = L.filter((d) => d.tarih && d.tarih >= bugun);
+  const ort = gecmis.length ? Math.round(t((d) => d.geliyor, gecmis) / gecmis.length) : 0;
+  const gunSay = GUNLER.map((g, i) => [g, L.filter((d) => d.tarih && haftaGunu(d.tarih) === i).length]);
+  const turSay = C.TURLER.map(([k, a]) => [a, L.filter((d) => d.tur === k).length]).filter((x) => x[1]);
+  const yillar = [...new Set(L.map((d) => (d.tarih || '').slice(0, 4)).filter(Boolean))].sort();
+  const git2 = (p) => `href="${href(yolY(p))}" data-git="${yolY(p)}"`;
+  const mini = (b, a, cls = '') => `<div class="mini${cls ? ' ' + cls : ''}"><b>${b}</b><span>${a}</span></div>`;
+  // yönetici: her salonun düğün sayısı, ücreti ve parası; işletme: salon alanlarına göre
+  let gruplar = '';
+  if (!isletme) {
+    const S = Y.veri.salonlar.map((s) => {
+      const D = L.filter((d) => d.salon === s.slug), Yk = D.filter((d) => d.tarih && d.tarih >= bugun), G = D.filter((d) => d.tarih && d.tarih < bugun);
+      const oz = U.salonOzet(s, Y.veri.dugunler), m = U.modelAl(s), birim = m === 'dugun' || m === 'ikisi' ? +s.odeme?.dugunBasi || 0 : 0;
+      return { s, D, Yk, G, oz, birim, planlanan: Yk.filter((d) => !d.ucretsiz).length * birim };
+    }).sort((a, b) => b.D.length - a.D.length || a.s.ad.localeCompare(b.s.ad, 'tr'));
+    gruplar = `<div class="bolum-bas" style="margin:26px 0 12px"><h2>Salonlar</h2></div>
+      <div class="ist-salonlar">${S.map((x) => `<section class="kart ist-salon">
+        <a class="ist-bas" ${git2('salon/' + x.s.slug)}>${logoK(x.s)}<span><b>${esc(x.s.ad)}</b><small>${esc(U.ucretYazi(x.s, TL))}${x.s.aktif === false ? ' · kapalı' : ''}</small></span>${ikon('sag', 'kk')}</a>
+        <div class="mini-izgara">${mini(x.D.length, 'düğün toplam')}${mini(x.D.filter((d) => (d.tarih || '').startsWith(yil)).length, yil + ' yılında')}${mini(x.Yk.length, 'yaklaşan')}${mini(x.G.length ? sayiYaz(Math.round(t((d) => d.geliyor, x.G) / x.G.length)) : '—', 'ort. misafir')}</div>
+        <div class="mini-izgara para">${mini(TL(x.oz.tahakkuk), 'hesap (bu aya kadar)')}${mini(TL(x.oz.tahsil), 'alındı')}${mini(TL(x.oz.alacak), x.oz.geciken ? `alacak · <em class="kirmizi">${TL(x.oz.geciken)} gecikti</em>` : 'alacak', x.oz.alacak ? 'vurgu' : '')}${mini(TL(x.planlanan), x.birim ? `${x.Yk.filter((d) => !d.ucretsiz).length} yaklaşan düğünden` : 'düğün başı ücret yok')}</div>
+        <div class="ist-alt"><span>${sayiYaz(t((d) => d.kisi, x.D))} davetli · ${sayiYaz(t((d) => d.sayac.lcv, x.D))} LCV · ${sayiYaz(t((d) => d.sayac.bul, x.D))} masa bulucu</span><a ${git2('salon/' + x.s.slug + '/odeme')}>Ödemeler</a></div></section>`).join('') || '<div class="kart bos">Salon yok.</div>'}</div>`;
+  }
+  const alanSay = isletme ? [...new Set(L.map((d) => d.alanAd || 'Alan yok'))].map((a) => [a, L.filter((d) => (d.alanAd || 'Alan yok') === a).length]).sort((a, b) => b[1] - a[1]) : [];
   el.innerHTML = `<div class="bolum-bas"><h1>İstatistik</h1></div>
-    <div class="sayilar"><div class="sayi"><b>${L.length}</b><span>düğün kaydı · ${T('yak')} yaklaşan</span></div><div class="sayi"><b>${sayiYaz(T('kisi'))}</b><span>davetli (kişi)</span></div><div class="sayi"><b>${sayiYaz(T('lcv'))}</b><span>katılım yanıtı (LCV)</span></div><div class="sayi"><b>${sayiYaz(T('bul'))}</b><span>kişi masa bulucuyu kullandı</span></div></div>
-    <section class="kart" style="margin-top:16px"><div class="kart-bas"><h2>Aylara göre düğünler</h2></div><div class="cubuklar">${aylar.map((a, i) => `<div><b>${say[i] || ''}</b><i style="height:${Math.round((say[i] / mx) * 100)}%;${a === bugun.slice(0, 7) ? '' : 'opacity:.55'}"></i><span>${AYLAR[+a.slice(5) - 1].slice(0, 3)}</span></div>`).join('')}</div></section>
-    <div class="tablo-kaydir" style="margin-top:16px"><table class="tablo"><thead><tr><th>Salon</th><th class="sag">Düğün</th><th class="sag">Yaklaşan</th><th class="sag">Davetli</th><th class="sag">Geliyor</th><th class="sag">LCV yanıtı</th><th class="sag">Davet sayfası</th><th class="sag">Masa bulucu</th></tr></thead><tbody>${S.map((x) => `<tr><td><a href="${href(yolY('salon/' + x.s.slug))}" data-git="${yolY('salon/' + x.s.slug)}">${esc(x.s.ad)}</a></td><td class="sag">${x.n}</td><td class="sag">${x.yak}</td><td class="sag">${sayiYaz(x.kisi)}</td><td class="sag">${sayiYaz(x.gel)}</td><td class="sag">${sayiYaz(x.lcv)}</td><td class="sag">${sayiYaz(x.zi)}</td><td class="sag">${sayiYaz(x.bul)}</td></tr>`).join('') || '<tr><td colspan="8">Salon yok.</td></tr>'}</tbody></table></div>
-    <p class="kucuk-yazi" style="margin-top:14px">“Davet sayfası” ve “masa bulucu” her cihazı bir kez sayar. Düğün Planla Netlify’ın ücretsiz planında çalışır; oyun sunucusu (Render) kullanılmaz, ek sunucu maliyeti yoktur.</p>`;
+    <div class="sayilar"><div class="sayi"><b>${L.length}</b><span>düğün kaydı · ${yak.length} yaklaşan</span></div><div class="sayi"><b>${sayiYaz(t((d) => d.kisi))}</b><span>davetli (kişi)</span></div>
+      <div class="sayi"><b>${sayiYaz(t((d) => d.sayac.lcv))}</b><span>katılım yanıtı (LCV)</span></div><div class="sayi"><b>${sayiYaz(t((d) => d.sayac.bul))}</b><span>kişi masasını telefondan buldu</span></div></div>
+    ${gruplar}
+    <div class="ozet-izgara" style="margin-top:${gruplar ? 26 : 16}px"><section class="kart"><div class="kart-bas"><h2>Aylara göre düğünler</h2></div>${aySutun(L)}</section>
+      <section class="kart"><div class="kart-bas"><h2>${isletme ? 'Salon alanlarına göre' : 'Salonlara göre düğünler'}</h2></div>${isletme ? (alanSay.length ? oranListe(alanSay) : '<p class="soluk">Kayıt yok.</p>') : Y.veri.salonlar.length ? oranListe(Y.veri.salonlar.map((s) => [s.ad, L.filter((d) => d.salon === s.slug).length]).sort((a, b) => b[1] - a[1])) : '<p class="soluk">Salon yok.</p>'}</section>
+      <section class="kart"><div class="kart-bas"><h2>Haftanın günleri</h2></div>${oranListe([...gunSay.slice(1), gunSay[0]])}</section>
+      <section class="kart"><div class="kart-bas"><h2>Misafirler</h2></div><div class="sayilar iki"><div class="sayi"><b>${sayiYaz(t((d) => d.sayac.ziyaret))}</b><span>davet sayfası açıldı</span></div><div class="sayi"><b>${ort ? sayiYaz(ort) : '—'}</b><span>ortalama misafir (geçmiş düğünler)</span></div>
+        <div class="sayi"><b>%${yuzde(t((d) => d.yerlesen, yak), t((d) => d.geliyor + d.bekliyor, yak))}</b><span>yaklaşan düğünlerde masaya yerleşen</span></div><div class="sayi"><b>${sayiYaz(t((d) => d.bekliyor, yak))}</b><span>yanıt bekleyen davetli</span></div></div></section>
+      ${turSay.length > 1 ? `<section class="kart"><div class="kart-bas"><h2>Etkinlik türleri</h2></div>${oranListe(turSay)}</section>` : ''}
+      ${yillar.length > 1 ? `<section class="kart"><div class="kart-bas"><h2>Yıllara göre</h2></div>${oranListe(yillar.map((y) => [y, L.filter((d) => (d.tarih || '').startsWith(y)).length]))}</section>` : ''}</div>
+    <p class="kucuk-yazi" style="margin-top:14px">“Davet sayfası” ve “masa bulucu” her cihazı bir kez sayar. “Ortalama misafir”, geçmiş düğünlerde “geliyor” diyen kişi sayısıdır.${isletme ? '' : ' Hesap, salonun ücretine göre bugüne kadar oluşan tutardır; “alacak” henüz alınmayan kısmıdır.'}</p>`;
 }
 
 // ---------------------------------------------------------------- salon planı düzenleyici

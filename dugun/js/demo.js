@@ -1,5 +1,5 @@
 // Düğün Planla — demo verisi (kurgusal salon ve davetliler; gerçek kişi ya da işletme yoktur)
-import * as C from './cekirdek.js?v=2026-11-21-f';
+import * as C from './cekirdek.js?v=2026-11-21-g';
 
 const ERKEK = ['Ahmet', 'Mehmet', 'Mustafa', 'Ali', 'Hüseyin', 'Hasan', 'İbrahim', 'Murat', 'Ömer', 'Emre', 'Burak', 'Serkan', 'Kemal', 'Yusuf', 'Osman', 'Cem', 'Tolga', 'Onur', 'Volkan', 'Selim', 'Okan', 'Barış', 'Halil', 'Erkan', 'Levent', 'Uğur', 'Sinan', 'Kaan', 'Arda', 'Mert'];
 const KADIN = ['Ayşe', 'Fatma', 'Emine', 'Hatice', 'Zeynep', 'Elif', 'Meryem', 'Şerife', 'Sultan', 'Hacer', 'Esra', 'Merve', 'Büşra', 'Gizem', 'Derya', 'Seda', 'Ebru', 'Aslı', 'Pınar', 'Gül', 'Nur', 'Selin', 'Ece', 'Ceren', 'İrem', 'Damla', 'Sevgi', 'Nermin', 'Filiz', 'Canan'];

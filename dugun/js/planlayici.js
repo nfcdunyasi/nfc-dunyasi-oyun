@@ -1,9 +1,9 @@
 // Düğün Planla — çift paneli: özet, davetliler, oturma planı, görevler ve akış, paylaş/yazdır, ayarlar
-import * as C from './cekirdek.js?v=2026-11-21-f';
-import { api, Senkron, depoYerel, TK } from './api.js?v=2026-11-21-f';
-import { $, $$, esc, ikon, bildir, cekmece, onayla, temaUygula, qrSvg, kopyala, indir, href, git, SITE, paylasLink, zamanOnce, gecikmeli, waLink, ONIZLEME, sayiYaz } from './ui.js?v=2026-11-21-f';
-import { harita } from './harita.js?v=2026-11-21-f';
-import { yazdir, davetliCsv, csvOku, qrPng } from './yazdir.js?v=2026-11-21-f';
+import * as C from './cekirdek.js?v=2026-11-21-g';
+import { api, Senkron, depoYerel, TK } from './api.js?v=2026-11-21-g';
+import { $, $$, esc, ikon, bildir, cekmece, onayla, temaUygula, qrSvg, kopyala, indir, href, git, SITE, paylasLink, zamanOnce, gecikmeli, waLink, ONIZLEME, sayiYaz } from './ui.js?v=2026-11-21-g';
+import { harita } from './harita.js?v=2026-11-21-g';
+import { yazdir, davetliCsv, csvOku, qrPng } from './yazdir.js?v=2026-11-21-g';
 
 let S = null, SURUKLE = false;
 const D = () => S.sen.d;
@@ -24,7 +24,7 @@ const sayacDeger = (el, ad) => +el.querySelector(`[data-sayac="${ad}"] output`).
 // ---------------------------------------------------------------- giriş noktası
 export function planlayiciAc(kok, { kod, token, rol, veri, sekme = 'ozet', cikis }) {
   if (S) S.sen.kapat();
-  S = { kod, rol, salon: veri.salon, pin: veri.pin || '', kok, sekme, cikis, f: { q: '', durum: 'hepsi', grupla: 'grup', secim: null }, gf: 'hazirlik', secili: null, harita: null };
+  S = { kod, rol, salon: veri.salon, pin: veri.girisKodu || '', kok, sekme, cikis, f: { q: '', durum: 'hepsi', grupla: 'grup', secim: null }, gf: 'hazirlik', secili: null, harita: null };
   S.sen = new Senkron({
     kod, token, dugun: C.belgeDuzelt(veri.dugun), rol,
     onDegisim: () => ciz(true),
@@ -626,7 +626,9 @@ function ayarlar(odak = '') {
     <section class="ayar-bolum" id="ayOturma" style="gap:8px"><h3>Gruplar ve yerleşim önceliği</h3><p class="kucuk-yazi">Üstteki gruplar otomatik yerleştirmede sahneye daha yakın oturur.</p>
       <div class="liste" id="grL">${d.gruplar.map((g, i) => `<div class="satir"><span class="baslik-harf">${i + 1}</span><span class="ana"><b>${esc(g)}</b><small>${d.davetliler.filter((x) => C.trNorm(x.grup) === C.trNorm(g)).length} davetiye</small></span><button class="dg ikon-d" data-g="yukari" data-i="${i}" aria-label="Yukarı"${i ? '' : ' disabled'}>${ikon('yukari', 'k')}</button><button class="dg ikon-d" data-g="asagi" data-i="${i}" aria-label="Aşağı"${i < d.gruplar.length - 1 ? '' : ' disabled'}>${ikon('asagi', 'k')}</button><button class="dg ikon-d" data-g="ad" data-i="${i}" aria-label="Adını değiştir">${ikon('kalem', 'k')}</button><button class="dg ikon-d" data-g="sil" data-i="${i}" aria-label="Sil">${ikon('cop', 'k')}</button></div>`).join('')}</div>
       <button class="dg cizgili kucuk" data-g="ekle" style="margin-top:8px">${ikon('arti', 'kk')} Grup ekle</button></section>
-    <section class="ayar-bolum"><h3>Güvenlik</h3>${S.rol === 'cift' ? `<div class="izgara2"><input class="girdi" id="pEski" inputmode="numeric" maxlength="6" placeholder="Mevcut PIN" autocomplete="off"><input class="girdi" id="pYeni" inputmode="numeric" maxlength="6" placeholder="Yeni 6 haneli PIN" autocomplete="off"></div><div><button class="dg cizgili kucuk" data-p="degis">PIN’i değiştir</button></div>` : `<div style="display:flex;align-items:center;gap:12px"><span class="soluk">Çiftin PIN’i</span><b class="pin-goster">${esc(S.pin || '—')}</b></div><div><button class="dg cizgili kucuk" data-p="yeni">Yeni PIN oluştur</button></div>`}
+    <section class="ayar-bolum"><h3>Giriş kodu</h3><div style="display:flex;align-items:center;gap:10px"><b class="pin-goster">${esc(C.girisKoduYaz(S.pin) || '—')}</b>${S.pin ? `<button class="dg ikon-d" type="button" data-p="kopya" aria-label="Kodu kopyala">${ikon('kopya', 'k')}</button>` : ''}</div>
+      <p class="kucuk-yazi">${S.rol === 'cift' ? 'Eşiniz de bu kodla <b>nfcdunyasi.com/dugun</b> adresinden “Etkinlik sahibi” sekmesiyle girebilir.' : 'Çift <b>nfcdunyasi.com/dugun</b> adresinde “Etkinlik sahibi” sekmesine bu kodu yazarak girer.'}</p>
+      <div class="dg-grup">${S.rol === 'cift' && S.pin ? `<a class="dg cizgili kucuk" target="_blank" rel="noopener" href="${esc(waLink('', `Düğün Planla giriş kodumuz: ${C.girisKoduYaz(S.pin)}\n${paylasLink('/dugun')}`))}">${ikon('mesaj', 'kk')} Eşinizle paylaşın</a>` : ''}<button class="dg cizgili kucuk" data-p="yeni">${ikon('yenile', 'kk')} Yeni kod oluştur</button></div>
       <div><button class="dg tehlike kucuk" data-p="cikis">${ikon('cikis', 'kk')} Bu cihazda çıkış yap</button></div></section></div>`,
   alt: `<button class="dg ana" data-kapat>Bitti</button>`,
   onKapat: () => {
@@ -654,14 +656,11 @@ function ayarlar(odak = '') {
       uygula([{ t: 'gruplar', v: G }], 'Gruplar'); yenidenAc(); return;
     }
     const p = e.target.closest('[data-p]'); if (!p) return;
-    if (p.dataset.p === 'cikis') { if (await onayla({ baslik: 'Çıkış yapılsın mı?', metin: 'Tekrar girmek için PIN gerekir. Kaydedilmemiş değişiklik varsa önce gönderilir.', evet: 'Çıkış yap' })) { await S.sen.gonder(); c.kapat(); S.cikis && S.cikis(); } }
-    else if (p.dataset.p === 'degis') {
-      const eski = $('#pEski', c.el).value.replace(/\D/g, ''), yeni = $('#pYeni', c.el).value.replace(/\D/g, '');
-      if (yeni.length !== 6) return bildir('Yeni PIN 6 haneli olmalı', { hata: true });
-      try { const r = await api.pin(S.kod, { eski, yeni }, S.sen.token); S.sen.token = r.token; depoYerel.koy(TK.cift(S.kod), r.token); bildir('PIN değişti. Yeni PIN’i eşinizle paylaşmayı unutmayın.'); $('#pEski', c.el).value = ''; $('#pYeni', c.el).value = ''; } catch (er) { bildir(er.message, { hata: true }); }
-    } else if (p.dataset.p === 'yeni') {
-      if (!(await onayla({ baslik: 'Yeni PIN oluşturulsun mu?', metin: 'Çiftin açık oturumları kapanır; yeni PIN’i onlara iletmeniz gerekir.', evet: 'Oluştur' }))) return;
-      try { const r = await api.pin(S.kod, {}, S.sen.token); S.pin = r.pin; bildir('Yeni PIN: ' + r.pin, { sure: 9000 }); c.kapat(); ayarlar(); } catch (er) { bildir(er.message, { hata: true }); }
+    if (p.dataset.p === 'cikis') { if (await onayla({ baslik: 'Çıkış yapılsın mı?', metin: 'Tekrar girmek için giriş kodu gerekir. Kaydedilmemiş değişiklik varsa önce gönderilir.', evet: 'Çıkış yap' })) { await S.sen.gonder(); c.kapat(); S.cikis && S.cikis(); } }
+    else if (p.dataset.p === 'kopya') kopyala(C.girisKoduYaz(S.pin));
+    else if (p.dataset.p === 'yeni') {
+      if (!(await onayla({ baslik: 'Yeni giriş kodu oluşturulsun mu?', metin: S.rol === 'cift' ? 'Eski kod çalışmaz; eşinizin ve diğer cihazlardaki oturumlar kapanır. Yeni kodu eşinizle paylaşmanız gerekir.' : 'Eski kod çalışmaz ve çiftin açık oturumları kapanır; yeni kodu çifte iletmeniz gerekir.', evet: 'Oluştur' }))) return;
+      try { const r = await api.pin(S.kod, {}, S.sen.token); if (r.token) { S.sen.token = r.token; depoYerel.koy(TK.cift(S.kod), r.token); } S.pin = r.girisKodu; bildir('Yeni giriş kodu: ' + C.girisKoduYaz(r.girisKodu), { sure: 9000 }); c.kapat(); ayarlar(); } catch (er) { bildir(er.message, { hata: true }); }
     }
   });
   const yenidenAc = () => { const st = c.el.querySelector('.cekmece-govde').scrollTop; c.kapat(); ayarlar(); const g2 = $$('dialog.cekmece').at(-1); if (g2) g2.querySelector('.cekmece-govde').scrollTop = st; };

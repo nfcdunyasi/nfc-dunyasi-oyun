@@ -1,8 +1,8 @@
 // Düğün Planla — arka uç erişimi. Gerçek sitede /dugun-api (Netlify fonksiyonu); demoda aynı sunucu kodu tarayıcıda, bellek deposuyla çalışır.
-import * as C from './cekirdek.js?v=2026-11-21-f';
-import { isle, demoPin } from './sunucu.js?v=2026-11-21-f';
-import { davetliUret, DEMO_SALON, demoAlanlar } from './demo.js?v=2026-11-21-f';
-import { bekle, gecikmeli } from './ui.js?v=2026-11-21-f';
+import * as C from './cekirdek.js?v=2026-11-21-g';
+import { isle, demoKod } from './sunucu.js?v=2026-11-21-g';
+import { davetliUret, DEMO_SALON, demoAlanlar } from './demo.js?v=2026-11-21-g';
+import { bekle, gecikmeli } from './ui.js?v=2026-11-21-g';
 
 let DEMO = false;
 const BELLEK = new Map();
@@ -23,16 +23,16 @@ class DemoDepo {
   async delete(k) { this.m.delete(k); this.yaz(); }
   async list({ prefix = '' } = {}) { return { blobs: [...this.m.keys()].filter((k) => k.startsWith(prefix)).map((key) => ({ key })) }; }
 }
-const DEMO_SURUM = 'dp-demo-6';
-try { localStorage.removeItem('dp-demo-4'); localStorage.removeItem('dp-demo-5'); } catch { /* */ }
+const DEMO_SURUM = 'dp-demo-7';
+try { for (const k of ['dp-demo-4', 'dp-demo-5', 'dp-demo-6']) localStorage.removeItem(k); } catch { /* */ }
 const cumartesi = (g) => { let t = g; while (new Date(t + 'T12:00:00Z').getUTCDay() !== 6) t = C.gunEkle(t, 1); return t; };
 let demoDepo = null;
 const demoO = () => ({ demo: true, depo: () => demoDepo, kripto: crypto, simdi: () => Date.now(), adminDogrula: async (t) => t === 'demo-yonetici', gorselUrl: async (slug, tur) => (await demoDepo.get(`gorsel/${slug}/${tur}`)) || '' });
 let DO = null;
-async function demoIstek(yontem, yol, govde, token) {
+async function demoIstek(yontem, yol, govde, token, hizli = false) {
   const [p, q] = yol.split('?');
   const r = await isle({ yontem, yol: p, sorgu: new URLSearchParams(q || ''), baslik: (k) => (k === 'authorization' && token ? 'Bearer ' + token : null), govde: govde ? JSON.parse(JSON.stringify(govde)) : null, ip: 'demo' }, DO);
-  await bekle(70);
+  if (!hizli) await bekle(70);
   const v = r.veri === undefined ? null : JSON.parse(JSON.stringify(r.veri));
   if (r.durum >= 400) { const e = new Error(v?.hata || 'Bir sorun oluştu'); e.durum = r.durum; e.veri = v; throw e; }
   return v;
@@ -42,11 +42,12 @@ export async function demoKur(sifirla = false) {
   if (sifirla) demoDepo.m.clear();
   if (await demoDepo.get('salon/ornek-salon')) return;
   const Y = 'demo-yonetici', bugun = C.trBugun();
-  await demoIstek('PUT', 'salon/ornek-salon', { ...DEMO_SALON, yeni: true, alanlar: demoAlanlar(), odeme: { tutar: 0, gun: 1 } }, Y);
+  const ayBas = (n) => { const d = new Date(bugun + 'T12:00:00Z'); d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth() + n); return d.toISOString().slice(0, 10); };
+  await demoIstek('PUT', 'salon/ornek-salon', { ...DEMO_SALON, yeni: true, alanlar: demoAlanlar(), kisi: 'Ayhan Bey', odeme: { model: 'dugun', dugunBasi: 750, gun: 5, baslangic: ayBas(-6) } }, Y);
   await demoIstek('POST', 'salon/ornek-salon/sifre', { sifre: 'salon123' }, Y);
   // 1) planlama aşamasındaki düğün
   const a = await demoIstek('POST', 'dugun', { salon: 'ornek-salon', alan: 'kristal', kod: 'elif-can-ornek', bilgi: { tur: 'dugun', gelin: 'Elif', damat: 'Can', aile: 'Şahin ve Öztürk aileleri', tarih: cumartesi(C.gunEkle(bugun, 72)), saat: '19:30', bitis: '23:30' } }, Y);
-  await demoPin(DO, a.kod, '123456');
+  await demoKod(DO, a.kod, 'DEMO-2026');
   let t = await demoIstek('GET', `d/${a.kod}/tam`, null, Y);
   const L = davetliUret(128, 11);
   const ops = L.map((v) => ({ t: 'ekle', k: 'davetliler', v }));
@@ -66,13 +67,41 @@ export async function demoKur(sifirla = false) {
   for (const [ad, kisi, durum] of [['Kemal Aksoy', 3, 'geliyor'], ['Derya Güneş', 1, 'gelmiyor'], [L[1].ad, L[1].kisi, 'geliyor']]) await demoIstek('POST', `d/${a.kod}/lcv`, { ad, kisi, durum });
   // 2) bugünkü düğün (masa bulucu)
   const b = await demoIstek('POST', 'dugun', { salon: 'ornek-salon', alan: 'kristal', kod: 'deniz-kerem-ornek', bilgi: { tur: 'dugun', gelin: 'Deniz', damat: 'Kerem', tarih: bugun, saat: '20:00', bitis: '00:00' } }, Y);
-  await demoPin(DO, b.kod, '654321');
+  await demoKod(DO, b.kod, 'DNZK-2468');
   t = await demoIstek('GET', `d/${b.kod}/tam`, null, Y);
   const L2 = davetliUret(110, 23, { geliyor: 0.92, bekliyor: 0 });
   const D2 = { ...t.dugun, davetliler: L2.map((v) => C.temizDavetli(v)) };
   const oy2 = C.otomatikYerlestir(D2, {});
   const ops2 = L2.map((v) => ({ t: 'ekle', k: 'davetliler', v })).concat(oy2.ops);
   await demoIstek('POST', `d/${b.kod}/islem`, { ops: ops2, rev: t.dugun.rev, bid: 'demo3' }, Y);
+  await DO.depo().setJSON(`sayac/${b.kod}`, { ziyaret: 164, bul: 71, lcv: 0 });
+  // 3) istatistik ve gelir ekranları için geçmiş ve gelecek aylara yayılmış düğünler (davetli listeleri kısa)
+  await demoIstek('PUT', 'salon/ornek-bahce', { slug: 'ornek-bahce', ad: 'Örnek Kır Bahçesi', yeni: true, tema: { stil: 'acik', vurgu: '#248a3d', kisaAd: 'Kır Bahçesi', slogan: 'Açık havada davet' }, iletisim: {}, alanlar: [demoAlanlar()[1]], odeme: { model: 'ikisi', tutar: 1500, dugunBasi: 400, gun: 10, baslangic: ayBas(-4) } }, Y, true);
+  const CIFT = [['Selin', 'Emre'], ['Zeynep', 'Burak'], ['Merve', 'Onur'], ['Gizem', 'Kaan'], ['Ceren', 'Arda'], ['Ece', 'Mert'], ['Damla', 'Cem'], ['Aslı', 'Tolga'], ['Büşra', 'Yusuf'], ['İrem', 'Okan'], ['Seda', 'Murat'], ['Pınar', 'Selim'], ['Nur', 'Barış'], ['Esra', 'Uğur'], ['Sevgi', 'Halil'], ['Canan', 'Levent'], ['Hande', 'Serkan'], ['Derya', 'Volkan']];
+  const PLAN = [[-5, 'ornek-salon', 4], [-5, 'ornek-bahce', 18], [-4, 'ornek-salon', 2], [-4, 'ornek-salon', 23], [-3, 'ornek-salon', 9], [-3, 'ornek-bahce', 16], [-2, 'ornek-salon', 6], [-2, 'ornek-salon', 13], [-2, 'ornek-bahce', 27], [-1, 'ornek-salon', 1], [-1, 'ornek-salon', 22], [1, 'ornek-salon', 8], [1, 'ornek-bahce', 15], [2, 'ornek-salon', 12], [3, 'ornek-salon', 4], [4, 'ornek-bahce', 9], [0, 'ornek-salon', 6], [0, 'ornek-bahce', 26]];
+  for (const [i, [ay, salon, gun]] of PLAN.entries()) {
+    const [gelin, damat] = CIFT[i], tarih = cumartesi(C.gunEkle(ayBas(ay), gun - 1)), gecmis = tarih < bugun;
+    const r = await demoIstek('POST', 'dugun', { salon, alan: salon === 'ornek-salon' ? (i % 3 ? 'kristal' : 'bahce') : undefined, kod: `${C.slugla(gelin)}-${C.slugla(damat)}-ornek`, bilgi: { tur: 'dugun', gelin, damat, tarih, saat: '19:30', bitis: '23:30' } }, Y, true);
+    const t3 = await demoIstek('GET', `d/${r.kod}/tam`, null, Y, true);
+    const L3 = davetliUret(28 + ((i * 7) % 20), 40 + i, gecmis ? { geliyor: 0.9, bekliyor: 0 } : { geliyor: 0.6, bekliyor: 0.3 });
+    const D3 = { ...t3.dugun, davetliler: L3.map((v) => C.temizDavetli(v)) };
+    const ops3 = L3.map((v) => ({ t: 'ekle', k: 'davetliler', v })).concat(gecmis || i % 2 ? C.otomatikYerlestir(D3, {}).ops : []);
+    await demoIstek('POST', `d/${r.kod}/islem`, { ops: ops3, rev: t3.dugun.rev, bid: 'dm' + i }, Y, true);
+    if (gecmis) await DO.depo().setJSON(`sayac/${r.kod}`, { ziyaret: 60 + ((i * 37) % 90), bul: 20 + ((i * 13) % 50), lcv: 8 + ((i * 5) % 20) });
+  }
+  // salonların geçmiş ayları ödenmiş olsun (son ayın bir kısmı açık kalsın)
+  const yon = await demoIstek('GET', 'yonetim', null, Y, true);
+  for (const s of yon.salonlar) {
+    const o = s.odeme, D = yon.dugunler.filter((d) => d.salon === s.slug);
+    const odm = [];
+    for (let n = -6; n <= -1; n++) {
+      const ay = ayBas(n).slice(0, 7); if (o.baslangic && ay < o.baslangic.slice(0, 7)) continue;
+      const tutar = (o.model === 'ikisi' || o.model === 'aylik' ? o.tutar : 0) + D.filter((d) => (d.tarih || '').startsWith(ay)).length * (o.dugunBasi || 0);
+      if (!tutar) continue;
+      odm.push({ id: 'od' + s.slug.slice(6, 9) + n, tarih: C.gunEkle(ayBas(n + 1), o.gun - 2), donem: ay, tutar: n === -1 ? Math.round(tutar / 2 / 50) * 50 : tutar, not: n % 2 ? 'Havale' : 'Nakit' });
+    }
+    await demoIstek('PUT', `salon/${s.slug}`, { ...s, tema: s.temaHam, odemeler: odm }, Y, true);
+  }
 }
 
 // ---------------------------------------------------------------- uzak
@@ -94,7 +123,9 @@ export const api = {
   bulucu: (k) => istek('GET', `d/${encodeURIComponent(k)}/bulucu`),
   lcv: (k, b) => istek('POST', `d/${encodeURIComponent(k)}/lcv`, b),
   sayac: (k, tur) => istek('POST', `d/${encodeURIComponent(k)}/sayac`, { tur }).catch(() => null),
-  giris: (k, pin) => istek('POST', `d/${encodeURIComponent(k)}/giris`, { pin }),
+  giris: (k, kod) => istek('POST', `d/${encodeURIComponent(k)}/giris`, { kod }),
+  kodGiris: (kod) => istek('POST', 'giris', { kod }),
+  salonIstat: (s, t) => istek('GET', `salon/${encodeURIComponent(s)}/istat`, null, t),
   salonGiris: (s, sifre) => istek('POST', `salon/${encodeURIComponent(s)}/giris`, { sifre }),
   tam: (k, rev, t) => istek('GET', `d/${encodeURIComponent(k)}/tam${rev ? '?rev=' + encodeURIComponent(rev) : ''}`, null, t),
   islem: (k, b, t) => istek('POST', `d/${encodeURIComponent(k)}/islem`, b, t),

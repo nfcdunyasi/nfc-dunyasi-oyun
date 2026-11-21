@@ -3,6 +3,7 @@ Allow: /
 Disallow: /q/
 Disallow: /oda/
 Disallow: /yonetim/
+Disallow: /panel/
 Disallow: /d/
 Disallow: /salon/
 Disallow: /dugun/yonetim/

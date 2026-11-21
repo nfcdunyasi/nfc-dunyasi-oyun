@@ -2,7 +2,7 @@
 // isle(I, O) → { durum, veri | ham, basliklar }
 //   I: { yontem, yol, sorgu: URLSearchParams, baslik(k), govde, ip }
 //   O: { depo(), kripto (WebCrypto), simdi(), adminDogrula?(token), gorselUrl(slug, tur, surum) }
-import * as C from './cekirdek.js?v=2026-11-21-f';
+import * as C from './cekirdek.js?v=2026-11-21-g';
 
 const GUN = 864e5;
 const yanit = (veri, durum = 200, basliklar = {}) => ({ durum, veri, basliklar });
@@ -38,7 +38,6 @@ async function tokenCoz(O, t) {
   if (!esit(await hmac(O, b), s)) return null;
   try { const p = JSON.parse(dec.decode(b64Coz(b))); return p && p.exp > O.simdi() ? p : null; } catch { return null; }
 }
-const pinUret = (O) => { const b = O.kripto.getRandomValues(new Uint32Array(1)); return String(100000 + (b[0] % 900000)); };
 
 // ---------------------------------------------------------------- hız sınırı ve hatalı giriş
 const HIZ = new Map();
@@ -82,11 +81,26 @@ async function sayacArtir(O, kod, tur) {
   const st = O.depo(), k = 'sayac/' + kod, s = (await st.get(k, { type: 'json' })) || {};
   s[tur] = (s[tur] || 0) + 1; s.t = O.simdi(); await st.setJSON(k, s);
 }
-async function pinYaz(O, kod, pin, pv) {
-  const tuz = C.rastgele(16);
-  await O.depo().setJSON('pin/' + kod, { tuz, hash: await pbkdf(O, pin, tuz), pv, sifreli: await sifrele(O, pin) });
+/** Çiftin giriş kodu: pin/<kod> = { gk, pv, eskiTuz?, eskiHash? }; gk/<KOD> = { kod } (kodla tek adımda giriş için dizin).
+ *  pv artınca çiftin açık oturumları kapanır. Eski sürümün 6 haneli PIN'i (eskiHash) yeni kod üretilene kadar geçerli kalır. */
+async function kodYaz(O, kod, pv, onceki = null, { eskiyiTut = false, gk = '' } = {}) {
+  const st = O.depo();
+  for (let i = 0; i < 12 && !gk; i++) { const x = C.girisKoduUret(); if (!(await st.get('gk/' + x))) gk = x; }
+  if (!gk) throw new Error('Giriş kodu üretilemedi, tekrar deneyin.');
+  const kayit = { gk, pv };
+  if (eskiyiTut && onceki) { const tuz = onceki.gk ? onceki.eskiTuz : onceki.tuz, hash = onceki.gk ? onceki.eskiHash : onceki.hash; if (tuz && hash) Object.assign(kayit, { eskiTuz: tuz, eskiHash: hash }); }
+  await st.setJSON('gk/' + gk, { kod });
+  await st.setJSON('pin/' + kod, kayit);
+  if (onceki?.gk && onceki.gk !== gk) await st.delete('gk/' + onceki.gk);
+  return gk;
 }
-async function pinAcik(O, kod) { const p = await O.depo().get('pin/' + kod, { type: 'json' }); return p?.sifreli ? coz(O, p.sifreli) : ''; }
+/** Kodu olmayan (önceki sürümde PIN ile açılmış) düğüne kod üretir; açık oturumlar ve eski PIN geçerli kalır */
+async function kodHazirla(O, kod) {
+  const p = await O.depo().get('pin/' + kod, { type: 'json' });
+  if (p?.gk) return p.gk;
+  return kodYaz(O, kod, p?.pv || 0, p, { eskiyiTut: true });
+}
+async function kodSil(O, kod) { const st = O.depo(), p = await st.get('pin/' + kod, { type: 'json' }); if (p?.gk) await st.delete('gk/' + p.gk); await st.delete('pin/' + kod); }
 
 /** LCV yanıtları ayrı kayıtlarda bekler (anahtar: lcv/<kod>/<id>/<zaman>); çift/salon belgeyi açınca yalnızca yeni olanlar okunup belgeye işlenir */
 async function lcvBirlestir(O, d) {
@@ -109,6 +123,14 @@ async function lcvBirlestir(O, d) {
 }
 
 // ---------------------------------------------------------------- salon
+/** Ücret modeli: dugun (düğün başı), aylik (sabit), ikisi, yok. Eski kayıtlar (yalnız aylık tutar) aylık sayılır. */
+export const MODEL_K = ['dugun', 'aylik', 'ikisi', 'yok'];
+function odemeTemiz(o = {}) {
+  o = o && typeof o === 'object' ? o : {};
+  const tutar = C.sayi(o.tutar, 0, 1e7, 0), dugunBasi = C.sayi(o.dugunBasi, 0, 1e7, 0);
+  const model = MODEL_K.includes(o.model) ? o.model : o.periyot === 'yok' ? 'yok' : tutar > 0 ? 'aylik' : 'dugun';
+  return { model, tutar, dugunBasi, gun: C.tamSayi(o.gun, 1, 28, 1), baslangic: C.tarihMi(o.baslangic), periyot: model === 'yok' ? 'yok' : 'aylik' };
+}
 function temizSalon(slug, x, eski) {
   const t = x.tema || {}, i = x.iletisim || {};
   const url = (v) => { const s = C.str(v, 500); return /^https:\/\/[^\s"'<>]+$/.test(s) ? s : ''; };
@@ -122,7 +144,7 @@ function temizSalon(slug, x, eski) {
     tema: { stil: STIL_K.includes(t.stil) ? t.stil : ESKI_STIL[t.stil] || 'acik', vurgu: RENK_RE.test(t.vurgu || '') ? t.vurgu.toLowerCase() : '', logo: eski?.tema?.logo || '', kapak: eski?.tema?.kapak || '', logoZemin: ['yok', 'acik', 'koyu'].includes(t.logoZemin) ? t.logoZemin : 'yok', kisaAd: C.str(t.kisaAd, 40), slogan: C.str(t.slogan, 90) },
     iletisim: { adres: C.str(i.adres, 200), telefon: C.str(i.telefon, 30), harita: url(i.harita), instagram: C.str(i.instagram, 60).replace(/^@/, '').replace(/[^A-Za-z0-9._]/g, '').slice(0, 30), web: url(i.web) },
     alanlar, giris: eski?.giris || null, kisi: C.str(x.kisi, 80), notlar: C.metin(x.notlar, 4000),
-    odeme: { tutar: C.sayi(x.odeme?.tutar, 0, 1e7, 0), gun: C.tamSayi(x.odeme?.gun, 1, 28, 1), baslangic: C.tarihMi(x.odeme?.baslangic), periyot: x.odeme?.periyot === 'yok' ? 'yok' : 'aylik' },
+    odeme: odemeTemiz(x.odeme),
     odemeler: (Array.isArray(x.odemeler) ? x.odemeler : []).slice(0, 600).map((p) => ({ id: C.idMi(p?.id) || C.rastgele(8), tarih: C.tarihMi(p?.tarih), donem: /^\d{4}-\d{2}$/.test(p?.donem || '') ? p.donem : '', tutar: C.sayi(p?.tutar, 0, 1e7, 0), not: C.str(p?.not, 200) })),
     olusturma: eski?.olusturma || Date.now(), guncelleme: Date.now(),
   };
@@ -178,6 +200,18 @@ export async function isle(I, O) {
       if (!esit(await pbkdf(O, b.sifre ?? '', s.giris.tuz), s.giris.hash)) { await denemeYaz(O, anahtarlar); return hata('Şifre hatalı.', 401); }
       return yanit({ token: await imzala(O, { r: 's', s: s.slug, pv: s.giris.pv || 0, exp: simdi + 30 * GUN }) });
     }
+    // çift (etkinlik sahibi) yalnızca salonun verdiği giriş koduyla girer
+    if (m === 'POST' && y[0] === 'giris' && !y[1]) {
+      const ipk = await ipAnahtar(O, I.ip);
+      if (!hizSinir('g:' + I.ip, 40, 15 * 60e3, simdi) || !(await denemeVar(O, [ipk], 10))) return hata('Çok fazla hatalı deneme yapıldı. 15 dakika sonra tekrar deneyin.', 429);
+      const gk = C.girisKoduNorm(b.kod);
+      const ix = gk.length === 8 ? await st.get('gk/' + gk, { type: 'json' }) : null;
+      const p = ix && C.KOD_RE.test(ix.kod || '') ? await st.get('pin/' + ix.kod, { type: 'json' }) : null;
+      if (!p || !esit(p.gk, gk)) { await denemeYaz(O, [ipk]); return hata('Giriş kodu hatalı. Düğün salonunuzun verdiği kodu kontrol edin.', 401); }
+      const d = await dugunAl(O, ix.kod); if (!d) return hata('Bu düğün kaydı bulunamadı. Salonunuzla görüşün.', 404);
+      const s = await salonAl(O, d.salon); if (!s || s.aktif === false) return hata('Bu salonun Düğün Planla hesabı şu anda kapalı.', 403);
+      return yanit({ kod: d.kod, token: await imzala(O, { r: 'c', k: d.kod, pv: p.pv || 0, exp: simdi + 180 * GUN }) });
+    }
     if (y[0] === 'd' && y[1]) {
       const kod = y[1].toLowerCase(), alt = y[2] || '';
       if (m === 'GET' && !alt) {
@@ -221,8 +255,10 @@ export async function isle(I, O) {
         const s = await salonAl(O, d.salon); if (!s || s.aktif === false) return hata('Bu salonun Düğün Planla hesabı şu anda kapalı.', 403);
         const ipk = await ipAnahtar(O, I.ip), anahtarlar = ['k/' + kod, ipk];
         if (!(await denemeVar(O, anahtarlar))) return hata('Çok fazla hatalı deneme yapıldı. 15 dakika sonra tekrar deneyin.', 429);
-        const p = await st.get('pin/' + kod, { type: 'json' }), pin = String(b.pin ?? '').replace(/\D/g, '');
-        if (!p || pin.length !== 6 || !esit(await pbkdf(O, pin, p.tuz), p.hash)) { await denemeYaz(O, anahtarlar); return hata('PIN hatalı. Salonunuzdan aldığınız 6 haneli PIN’i girin.', 401); }
+        const p = await st.get('pin/' + kod, { type: 'json' }), v = String(b.kod ?? b.pin ?? ''), gk = C.girisKoduNorm(v), pin = v.replace(/\D/g, '');
+        let ok = !!(p?.gk && gk.length === 8 && esit(p.gk, gk));
+        if (!ok && p && pin.length === 6 && pin === gk) { const tuz = p.gk ? p.eskiTuz : p.tuz, hash = p.gk ? p.eskiHash : p.hash; ok = !!(tuz && hash && esit(await pbkdf(O, pin, tuz), hash)); }
+        if (!ok) { await denemeYaz(O, anahtarlar); return hata('Giriş kodu hatalı. Salonunuzun verdiği kodu kontrol edin.', 401); }
         return yanit({ token: await imzala(O, { r: 'c', k: kod, pv: p.pv || 0, exp: simdi + 180 * GUN }) });
       }
       // ---- giriş isteyenler
@@ -234,7 +270,7 @@ export async function isle(I, O) {
       if (m === 'GET' && alt === 'tam') {
         if (await lcvBirlestir(O, d)) { d.rev = (parseInt(d.rev, 10) + 1 || 2) + '-' + C.rastgele(5); await dugunYaz(O, d); }
         if (I.sorgu?.get('rev') && I.sorgu.get('rev') === d.rev) return yanit({ ayni: true, rev: d.rev });
-        return yanit({ dugun: d, rol: k.rol, salon: s ? await salonGenel(O, s) : null, ...(k.rol !== 'cift' ? { pin: await pinAcik(O, kod) } : {}) });
+        return yanit({ dugun: d, rol: k.rol, salon: s ? await salonGenel(O, s) : null, girisKodu: await kodHazirla(O, kod) });
       }
       if (m === 'POST' && alt === 'islem') {
         const ops = Array.isArray(b.ops) ? b.ops : [];
@@ -249,21 +285,16 @@ export async function isle(I, O) {
         await dugunYaz(O, d);
         return yanit({ rev: d.rev, ...(b.rev !== onceki ? { dugun: d } : {}) });
       }
+      // yeni giriş kodu: eski kod ve eski PIN çalışmaz, açık oturumlar kapanır (isteyen çiftse kendi oturumu yenilenir)
       if (m === 'POST' && alt === 'pin') {
-        const p = (await st.get('pin/' + kod, { type: 'json' })) || { pv: 0 };
-        if (k.rol === 'cift') {
-          const yeni = String(b.yeni ?? '').replace(/\D/g, '');
-          if (yeni.length !== 6) return hata('Yeni PIN 6 haneli bir sayı olmalı.');
-          if (!esit(await pbkdf(O, String(b.eski ?? '').replace(/\D/g, ''), p.tuz || 'x'), p.hash)) return hata('Mevcut PIN hatalı.');
-          await pinYaz(O, kod, yeni, (p.pv || 0) + 1);
-          return yanit({ token: await imzala(O, { r: 'c', k: kod, pv: (p.pv || 0) + 1, exp: simdi + 180 * GUN }) });
-        }
-        const pin = pinUret(O); await pinYaz(O, kod, pin, (p.pv || 0) + 1);
-        return yanit({ pin });
+        const p = await st.get('pin/' + kod, { type: 'json' }), pv = (p?.pv || 0) + 1;
+        const girisKodu = await kodYaz(O, kod, pv, p);
+        return yanit({ girisKodu, ...(k.rol === 'cift' ? { token: await imzala(O, { r: 'c', k: kod, pv, exp: simdi + 180 * GUN }) } : {}) });
       }
       if (k.rol === 'cift') return hata('Bu işlem için yetkiniz yok.', 403);
       if (m === 'PUT' && alt === 'meta') {
         d.bilgi = C.temizBilgi(b.bilgi || {}, 'yonetici', d.bilgi);
+        if (k.rol === 'yonetici' && typeof b.ucretsiz === 'boolean') { if (b.ucretsiz) d.ucretsiz = true; else delete d.ucretsiz; }
         if (b.alan || b.planYenile) {
           const a = s?.alanlar?.find((x) => x.id === (b.alan || d.alan)); if (!a) return hata('Salon alanı bulunamadı.');
           d.alan = a.id; d.alanAd = a.ad; C.uygula(d, [{ t: 'plan', v: a.plan }], 'yonetici');
@@ -275,7 +306,8 @@ export async function isle(I, O) {
       if (m === 'DELETE' && !alt) {
         const { blobs } = await st.list({ prefix: `lcv/${kod}/` });
         for (const x of blobs) await st.delete(x.key);
-        for (const key of ['dugun/' + kod, 'pin/' + kod, 'sayac/' + kod, d.idxK].filter(Boolean)) await st.delete(key);
+        await kodSil(O, kod);
+        for (const key of ['dugun/' + kod, 'sayac/' + kod, d.idxK].filter(Boolean)) await st.delete(key);
         return yanit({ tamam: true });
       }
       return hata('Bulunamadı', 404);
@@ -289,6 +321,12 @@ export async function isle(I, O) {
       const dugunler = await idxListe(O, `idx/${s.slug}/`);
       return yanit({ salon: k.rol === 'yonetici' ? { ...(await salonYonetici(O, s)), tema: (await salonGenel(O, s)).tema, temaHam: s.tema } : await salonGenel(O, s, true), dugunler, rol: k.rol });
     }
+    if (m === 'GET' && y[0] === 'salon' && y[2] === 'istat') {
+      const s = await salonAl(O, y[1]); if (!s) return hata('Salon bulunamadı.', 404);
+      if (k.rol === 'salon' && k.salon !== s.slug) return hata(OTURUM, 401);
+      const L = await idxListe(O, `idx/${s.slug}/`), S = await Promise.all(L.map((x) => st.get('sayac/' + x.kod, { type: 'json' })));
+      return yanit({ dugunler: L.map((x, i) => ({ ...x, sayac: S[i] || {} })) });
+    }
     if (m === 'POST' && y[0] === 'dugun' && !y[1]) {
       const s = await salonAl(O, b.salon); if (!s) return hata('Salon bulunamadı.', 404);
       if (k.rol === 'salon' && k.salon !== s.slug) return hata(OTURUM, 401);
@@ -299,9 +337,9 @@ export async function isle(I, O) {
       if (kod && (await st.get('dugun/' + kod))) return hata('Bu düğün kodu kullanılıyor, başka bir kod yazın.');
       for (let i = 0; !kod && i < 8; i++) { const x = C.kodUret(b.bilgi); if (!(await st.get('dugun/' + x))) kod = x; }
       const d = C.yeniDugun({ kod, salon: s.slug, alan: a, bilgi: b.bilgi, simdi });
-      const pin = pinUret(O); await pinYaz(O, kod, pin, 0);
       await dugunYaz(O, d);
-      return yanit({ kod, pin, ozet: C.ozetCikar(d) });
+      const girisKodu = await kodYaz(O, kod, 0);
+      return yanit({ kod, girisKodu, ozet: C.ozetCikar(d) });
     }
     // salon kendi şifresini değiştirir (mevcut şifreyi bilmesi gerekir); yeni oturum anahtarı döner
     if (m === 'POST' && y[0] === 'salon' && y[2] === 'sifre' && k.rol === 'salon') {
@@ -337,7 +375,7 @@ export async function isle(I, O) {
         if (!eski) return yanit({ tamam: true });
         const L = await idxListe(O, `idx/${slug}/`);
         if (L.length && I.sorgu?.get('hepsi') !== '1') return hata(`Bu salonda ${L.length} düğün kaydı var. Önce düğünleri silin.`);
-        for (const x of L) { const { blobs } = await st.list({ prefix: `lcv/${x.kod}/` }); for (const z of blobs) await st.delete(z.key); for (const key of ['dugun/' + x.kod, 'pin/' + x.kod, 'sayac/' + x.kod, `idx/${slug}/${x.tarih || 'tarihsiz'}/${x.kod}`]) await st.delete(key); }
+        for (const x of L) { const { blobs } = await st.list({ prefix: `lcv/${x.kod}/` }); for (const z of blobs) await st.delete(z.key); await kodSil(O, x.kod); for (const key of ['dugun/' + x.kod, 'sayac/' + x.kod, `idx/${slug}/${x.tarih || 'tarihsiz'}/${x.kod}`]) await st.delete(key); }
         for (const key of ['salon/' + slug, `gorsel/${slug}/logo`, `gorsel/${slug}/kapak`]) await st.delete(key);
         return yanit({ tamam: true });
       }
@@ -362,5 +400,5 @@ export async function isle(I, O) {
     return hata('Sunucu hatası: ' + (e?.message || e), 500);
   }
 }
-/** Yalnızca tarayıcı demosu: bilinen bir PIN atar */
-export async function demoPin(O, kod, pin) { await pinYaz(O, kod, pin, 0); }
+/** Yalnızca tarayıcı demosu: bilinen bir giriş kodu atar */
+export async function demoKod(O, kod, gk) { await kodYaz(O, kod, 0, await O.depo().get('pin/' + kod, { type: 'json' }), { gk: C.girisKoduNorm(gk) }); }

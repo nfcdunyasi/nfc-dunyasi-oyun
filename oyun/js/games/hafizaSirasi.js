@@ -3,8 +3,8 @@
 // herkes önündeki küçük tuş takımında aynı diziyi tekrar eder, karakterler tuşlara basar. Her tur dizi bir renk uzar,
 // yanlış basan ya da süresinde bitiremeyen elenir; son kalan kazanır. Masa kiti (masa3d.js) ve Kurye Yarışı motoruyla
 // çizilir; WebGL yoksa 2D görünüm gösterilir.
-import { _masa } from './masa3d.js?v=2026-11-21-f';
-import * as sfx from '../sfx.js?v=2026-11-21-f';
+import { _masa } from './masa3d.js?v=2026-11-21-g';
+import * as sfx from '../sfx.js?v=2026-11-21-g';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs, mix3, rgbA, sst, trophyModel } = K;

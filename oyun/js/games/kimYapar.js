@@ -4,8 +4,8 @@
 // oy verilen kişinin önüne yığılır. En çok oyu alana yukarıdan bir madalya iner, masa ona döner ve hep birlikte onu
 // gösterir. Kimin kime oy verdiği hiçbir zaman görünmez. Masa kiti (masa3d.js) ve Kurye Yarışı motoruyla çizilir;
 // WebGL yoksa 2D görünüm gösterilir.
-import { _masa } from './masa3d.js?v=2026-11-21-f';
-import * as sfx from '../sfx.js?v=2026-11-21-f';
+import { _masa } from './masa3d.js?v=2026-11-21-g';
+import * as sfx from '../sfx.js?v=2026-11-21-g';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs, trophyModel } = K;

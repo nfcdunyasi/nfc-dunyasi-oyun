@@ -3,8 +3,8 @@
 // yumruklar üç kez iner ve eller aynı anda açılır. Masanın ortasındaki tablada taş, kâğıt ve makas maketleri turu canlandırır:
 // taş makası ezer, makas kâğıdı keser, kâğıt taşı sarar. Puan modunda 5 tur oynanır; eleme modunda en az kişiyi yenenler
 // elenir, son kalan kazanır. Masa kiti (masa3d.js) ve Kurye Yarışı motoruyla çizilir; WebGL yoksa 2D görünüm gösterilir.
-import { _masa } from './masa3d.js?v=2026-11-21-f';
-import * as sfx from '../sfx.js?v=2026-11-21-f';
+import { _masa } from './masa3d.js?v=2026-11-21-g';
+import * as sfx from '../sfx.js?v=2026-11-21-g';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs, vn, mix3, rgbA, sst } = K;

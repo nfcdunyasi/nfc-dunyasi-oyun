@@ -482,8 +482,13 @@ export function araEslesir(ad, q) {
 }
 export function ozetCikar(d) {
   const s = sayilar(d);
-  return { kod: d.kod, salon: d.salon, alan: d.alan, alanAd: d.alanAd || '', tur: d.bilgi.tur, tarih: d.bilgi.tarih, saat: d.bilgi.saat, gelin: d.bilgi.gelin, damat: d.bilgi.damat, davet: s.davet, kisi: s.kisi, geliyor: s.geliyor, bekliyor: s.bekliyor, gelmiyor: s.gelmiyor, yerlesen: s.yerlesen, kapasite: s.kapasite, lcv: s.lcv, gorev: s.gorev, gorevBitti: s.gorevBitti, olusturma: d.olusturma, guncelleme: d.guncelleme };
+  return { kod: d.kod, salon: d.salon, alan: d.alan, alanAd: d.alanAd || '', tur: d.bilgi.tur, tarih: d.bilgi.tarih, saat: d.bilgi.saat, gelin: d.bilgi.gelin, damat: d.bilgi.damat, davet: s.davet, kisi: s.kisi, geliyor: s.geliyor, bekliyor: s.bekliyor, gelmiyor: s.gelmiyor, yerlesen: s.yerlesen, kapasite: s.kapasite, lcv: s.lcv, gorev: s.gorev, gorevBitti: s.gorevBitti, olusturma: d.olusturma, guncelleme: d.guncelleme, ...(d.ucretsiz ? { ucretsiz: true } : {}) };
 }
+/** Çiftin tek giriş kodu: 4 sessiz harf + 4 rakam (I/O/0/1 gibi karışan karakterler yok), ör. KRTM-4825 */
+export const GK_HARF = 'BCDFGHJKLMNPRSTVYZ', GK_RAKAM = '23456789';
+export const girisKoduUret = () => rastgele(4, GK_HARF) + rastgele(4, GK_RAKAM);
+export const girisKoduNorm = (v) => String(v ?? '').toUpperCase().replace(/\u0130/g, 'I').replace(/[^A-Z0-9]/g, '');
+export const girisKoduYaz = (v) => { const s = girisKoduNorm(v); return s.length === 8 ? s.slice(0, 4) + '-' + s.slice(4) : s; };
 export function kodUret(b) {
   const a = slugla((b?.gelin || '').split(' ')[0], 14), c = slugla((b?.damat || '').split(' ')[0], 14);
   return [a, c].filter(Boolean).join('-') + (a || c ? '-' : 'davet-') + rastgele(3, 'abcdefghjkmnpqrstuvwxyz23456789');

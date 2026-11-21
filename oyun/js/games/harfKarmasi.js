@@ -5,8 +5,8 @@
 // Bulanın önündeki küçük ıstaka yeşil yanar. Açılışta ortadaki taşlar zıplayarak doğru sıraya geçer, kelime parlar,
 // herkesin taşları masaya açılır. Bulan 500 + hızına göre 500'e kadar puan alır.
 // Masa kiti (masa3d.js) ile çizilir; WebGL yoksa 2D görünüm.
-import { _masa } from './masa3d.js?v=2026-11-21-f';
-import * as sfx from '../sfx.js?v=2026-11-21-f';
+import { _masa } from './masa3d.js?v=2026-11-21-g';
+import * as sfx from '../sfx.js?v=2026-11-21-g';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs } = K;
