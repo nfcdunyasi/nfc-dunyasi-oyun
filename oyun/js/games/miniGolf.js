@@ -1,7 +1,7 @@
 // Mini Golf — 3D mini golf oyunu (NFC Dünyası Oyun)
 // Kurye Yarışı'nın küçük WebGL motorunu yeniden kullanır. Herkes aynı anda vurur; sonucu sunucu hesaplar,
 // telefon aynı fizik çekirdeğiyle animasyonu oynatır.
-import { _eng } from './kuryeYarisi.js?v=2026-11-21-c';
+import { _eng } from './kuryeYarisi.js?v=2026-11-21-e';
 const { ctx2d, podiumHTML, EmoteUI, aoOn, drawToon, detailOn, KIT, postFX, shadowBegin, shadowCast, shadowEnd, emitSoft, autoRes, sfx, clamp, lerp, damp, esc, hexRGB, C, shade, M, makeGL, MB, freeMesh, drawMesh, IDENT, drawSky, drawDynamic, useProg, TOD, norm3, brandInfo, Res, Snd, pcol, vibrate, medal, ONE3, injectStyle } = _eng();
 
 // Ortak çekirdek (sunucudaki botlar ve fizik de birebir aynı kodu kullanır)

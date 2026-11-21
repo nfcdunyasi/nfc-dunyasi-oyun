@@ -12,3 +12,27 @@
     X-Robots-Tag = "noindex, nofollow"
     X-Frame-Options = "DENY"
     Referrer-Policy = "no-referrer"
+
+# Düğün Planla: davet ve salon sayfaları kişisel ad içerir, arama motorlarına kapalı
+[[headers]]
+  for = "/d/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/salon/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/dugun/yonetim/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "no-referrer"
+
+[[headers]]
+  for = "/dugun/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

@@ -4,3 +4,11 @@
 
 # Basılı QR kodların ana adresi: oyun sonradan başka yere taşınırsa SADECE bu satırı değiştir
 /oyna   /oyun/   302
+
+# Düğün Planla: salonun kalıcı QR/NFC sayfası, davet bağlantıları, demo ve yönetim aynı sayfa uygulamasında açılır
+/salon/*          /dugun/index.html   200
+/d/*              /dugun/index.html   200
+/dugun/demo       /dugun/index.html   200
+/dugun/demo/*     /dugun/index.html   200
+/dugun/yonetim    /dugun/index.html   200
+/dugun/yonetim/*  /dugun/index.html   200

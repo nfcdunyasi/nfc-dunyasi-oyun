@@ -4,8 +4,8 @@
 // yer, sarı = başka yerde, gri = yok). Masadakilerin önünde birer harf rafı durur: harflerini göremezsin, yalnızca son
 // denemelerinin renklerini ve kaçıncı denemede olduklarını görürsün. Kelime bitince cevabın küpleri masanın ortasından
 // yükselip açılır. Masa kiti (masa3d.js) ve Kurye Yarışı motoruyla çizilir; WebGL yoksa 2D görünüm.
-import { _masa } from './masa3d.js?v=2026-11-21-c';
-import * as sfx from '../sfx.js?v=2026-11-21-c';
+import { _masa } from './masa3d.js?v=2026-11-21-e';
+import * as sfx from '../sfx.js?v=2026-11-21-e';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs, trophyModel } = K;

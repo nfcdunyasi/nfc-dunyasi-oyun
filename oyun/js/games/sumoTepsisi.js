@@ -1,8 +1,8 @@
 // Sumo Tepsisi — 3D itişme oyunu (NFC Dünyası Oyun)
 // Kurye Yarışı'nın küçük WebGL motorunu yeniden kullanır. Fizik sunucuda döner (30 Hz); telefon girdi gönderir,
 // kendi karakterini tahmin eder, rakipleri yumuşatarak gösterir.
-import { _eng } from './kuryeYarisi.js?v=2026-11-21-c';
-import { _masa } from './masa3d.js?v=2026-11-21-c';
+import { _eng } from './kuryeYarisi.js?v=2026-11-21-e';
+import { _masa } from './masa3d.js?v=2026-11-21-e';
 const { ctx2d, podiumHTML, placeLabels, EmoteUI, aoOn, detailOn, drawToon, postFX, KIT, shadowBegin, shadowCast, shadowEnd, emitSoft, autoRes, sfx, clamp, lerp, damp, esc, hexRGB, C, shade, M, makeGL, MB, freeMesh, drawMesh, drawSky, drawDynamic, useProg, TOD, norm3, brandInfo, Res, Snd, pcol, vibrate, medal, ONE3, injectStyle } = _eng();
 let MA = null;
 const masa = () => MA || (MA = _masa());   // masa karakterleri: oyuncu her oyunda aynı görünür (burada aşçı kılığında)

@@ -3,5 +3,9 @@ Allow: /
 Disallow: /q/
 Disallow: /oda/
 Disallow: /yonetim/
+Disallow: /d/
+Disallow: /salon/
+Disallow: /dugun/yonetim/
+Disallow: /dugun/demo/
 
 Sitemap: https://nfcdunyasi.com/sitemap.xml

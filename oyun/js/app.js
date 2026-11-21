@@ -1,7 +1,7 @@
-import * as sfx from './sfx.js?v=2026-11-21-c';
-import { $, esc, toast, vibrate, fmtTime } from './ui.js?v=2026-11-21-c';
-import { gameRenderers } from './games/index.js?v=2026-11-21-c';
-import { THEMES, THEME_VARS } from './themes.js?v=2026-11-21-c';
+import * as sfx from './sfx.js?v=2026-11-21-e';
+import { $, esc, toast, vibrate, fmtTime } from './ui.js?v=2026-11-21-e';
+import { gameRenderers } from './games/index.js?v=2026-11-21-e';
+import { THEMES, THEME_VARS } from './themes.js?v=2026-11-21-e';
 
 const SESSION_KEY = 'nfcd:session';
 const NICK_KEY = 'nfcd:nick';

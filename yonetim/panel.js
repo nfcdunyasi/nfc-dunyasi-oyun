@@ -1,8 +1,8 @@
 // Okut ve Oyna · Yönetici paneli (nfcdunyasi.com/yonetim)
 // İşletmeler ve temaları, takip durumu, QR kartları, ödemeler ve oyun soruları tek yerden yönetilir.
 // Veriler Netlify fonksiyonunda (/api) saklanır; yerleşik temalar /oyun/js/themes.js içinden okunur.
-import { THEMES } from '/oyun/js/themes.js?v=2026-11-21-c';
-import { qrMatris } from '/yonetim/qr.js?v=2026-11-21-c';
+import { THEMES } from '/oyun/js/themes.js?v=2026-11-21-e';
+import { qrMatris } from '/yonetim/qr.js?v=2026-11-21-e';
 
 const SITE = 'https://nfcdunyasi.com';
 const SUNUCU = String(window.OYUN_SUNUCU || '').replace(/\/+$/, '');
@@ -135,7 +135,7 @@ function iskelet() {
     <img src="/oyun/img/logo-icon.png" alt="">
     <b><small>Okut ve Oyna</small>Yönetici Paneli</b>
     <nav class="sekmeler-ust">${SEKMELER.map(([k, i, a]) => `<a href="#/${k}" data-sekme="${k}">${i} ${a}</a>`).join('')}</nav>
-    <div class="sag"><a class="dugme kucuk" href="#/ayarlar" aria-label="Ayarlar">⚙️</a></div>
+    <div class="sag"><a class="dugme kucuk" href="/dugun/yonetim/" title="Düğün Planla yönetici paneli">💍 Düğün Planla</a><a class="dugme kucuk" href="#/ayarlar" aria-label="Ayarlar">⚙️</a></div>
   </div></header>
   <main class="sayfa" id="icerik"></main>
   <nav class="alt-sekme">${SEKMELER.map(([k, i, a]) => `<a href="#/${k}" data-sekme="${k}"><i>${i}</i>${a}</a>`).join('')}</nav>`;
