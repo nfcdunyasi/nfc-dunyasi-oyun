@@ -4,8 +4,8 @@
 // bilyeler tek tek seçilen kefeye uçar, terazi her bilyede biraz daha o tarafa yatar ve sallanarak durur. Çoğunluk
 // sevinir, azınlık omuz silker; masa tek yürek olursa konfeti patlar. Sonda "ruh ikizleri", "aykırı ruh" ve "masanın
 // sesi" ilan edilir. Masa kiti (masa3d.js) ve Kurye Yarışı motoruyla çizilir; WebGL yoksa 2D görünüm gösterilir.
-import { _masa } from './masa3d.js?v=2026-11-21-e';
-import * as sfx from '../sfx.js?v=2026-11-21-e';
+import { _masa } from './masa3d.js?v=2026-11-21-f';
+import * as sfx from '../sfx.js?v=2026-11-21-f';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs } = K;

@@ -1,8 +1,8 @@
 // Okut ve Oyna · Yönetici paneli (nfcdunyasi.com/yonetim)
 // İşletmeler ve temaları, takip durumu, QR kartları, ödemeler ve oyun soruları tek yerden yönetilir.
 // Veriler Netlify fonksiyonunda (/api) saklanır; yerleşik temalar /oyun/js/themes.js içinden okunur.
-import { THEMES } from '/oyun/js/themes.js?v=2026-11-21-e';
-import { qrMatris } from '/yonetim/qr.js?v=2026-11-21-e';
+import { THEMES } from '/oyun/js/themes.js?v=2026-11-21-f';
+import { qrMatris } from '/yonetim/qr.js?v=2026-11-21-f';
 
 const SITE = 'https://nfcdunyasi.com';
 const SUNUCU = String(window.OYUN_SUNUCU || '').replace(/\/+$/, '');

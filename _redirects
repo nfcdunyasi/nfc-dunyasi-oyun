@@ -10,5 +10,6 @@
 /d/*              /dugun/index.html   200
 /dugun/demo       /dugun/index.html   200
 /dugun/demo/*     /dugun/index.html   200
+/dugun/giris      /dugun/index.html   200
 /dugun/yonetim    /dugun/index.html   200
 /dugun/yonetim/*  /dugun/index.html   200

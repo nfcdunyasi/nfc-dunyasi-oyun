@@ -1,15 +1,29 @@
 // Düğün Planla — yönetici paneli (tüm salonlar) ve salon paneli (tek salon): salonlar, temalar, salon planları, düğünler, ödemeler, istatistik
-import * as C from './cekirdek.js?v=2026-11-21-e';
-import { api, depoYerel, TK } from './api.js?v=2026-11-21-e';
-import { $, $$, esc, ikon, markaIkon, bildir, cekmece, onayla, temaUygula, temaSifirla, STILLER, VURGULAR, stilAdi, qrSvg, kopyala, href, git, SITE, paylasLink, TL, sayiYaz, resimKucult, waLink, ayrilmaKoy, ONIZLEME, tamYol } from './ui.js?v=2026-11-21-e';
-import { harita, planSvg } from './harita.js?v=2026-11-21-e';
-import { qrPng } from './yazdir.js?v=2026-11-21-e';
+import * as C from './cekirdek.js?v=2026-11-21-f';
+import { api, depoYerel, TK } from './api.js?v=2026-11-21-f';
+import { $, $$, esc, ikon, markaIkon, bildir, cekmece, onayla, temaUygula, temaSifirla, STILLER, VURGULAR, stilAdi, qrSvg, kopyala, href, git, SITE, paylasLink, TL, sayiYaz, resimKucult, waLink, ayrilmaKoy, ONIZLEME, tamYol } from './ui.js?v=2026-11-21-f';
+import { harita, planSvg } from './harita.js?v=2026-11-21-f';
+import { qrPng } from './yazdir.js?v=2026-11-21-f';
 
 let Y = null, E = null;
 const yolY = (p = '') => Y.taban + (p ? '/' + p : '');
 const kopya = (o) => JSON.parse(JSON.stringify(o));
 const AYLAR = C.AYLAR;
 const takvimK = (t) => { if (!t) return '<div class="takvim-k"><b>—</b><span>tarih yok</span></div>'; const [, a, g] = t.split('-').map(Number); return `<div class="takvim-k"><b>${g}</b><span>${AYLAR[a - 1].slice(0, 3)}</span></div>`; };
+const SIFRE_ABC = 'abcdefghjkmnpqrstuvwxyz23456789';
+const sifreUret = () => C.rastgele(4, SIFRE_ABC) + '-' + C.rastgele(4, SIFRE_ABC);
+const girisLink = () => paylasLink('/dugun/giris');
+const salonMesaji = (ad, slug, sifre) => `Merhaba, ${ad} için Düğün Planla salon paneliniz hazır.\nGiriş: ${girisLink()}\nKullanıcı adı: ${slug}\nŞifre: ${sifre}\nPanelden düğün açıp çiftlere giriş PIN'i verebilirsiniz.`;
+const kopyaD = (v) => `<button class="dg ikon-d" type="button" data-kopya="${esc(v)}" aria-label="Kopyala">${ikon('kopya', 'k')}</button>`;
+function bilgiListe(slug, sifre) {
+  return `<div class="bilgi-liste"><div><span>Giriş adresi</span><b>${esc(girisLink().replace(/^https:\/\//, ''))}</b>${kopyaD(girisLink())}</div><div><span>Kullanıcı adı</span><b>${esc(slug)}</b>${kopyaD(slug)}</div>${sifre === null ? '' : `<div><span>Şifre</span><b>${sifre ? esc(sifre) : '••••••••'}</b>${sifre ? kopyaD(sifre) : ''}</div>`}</div>`;
+}
+document.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-kopya]'); if (b) kopyala(b.dataset.kopya); });
+/** Salon sahibinin giriş bilgileri (salon oluşturulunca ya da şifre yenilenince) */
+function hesapBilgisi(ad, slug, sifre) {
+  cekmece({ baslik: 'Salon paneli hazır', govde: `<div class="yigin"><p class="soluk">Bu bilgileri salon sahibine iletin. Şifreyi daha sonra salonun “Giriş ve QR” sekmesinden de görebilirsiniz.</p>${bilgiListe(slug, sifre)}
+    <div class="dg-grup"><a class="dg vurgu" target="_blank" rel="noopener" href="${esc(waLink('', salonMesaji(ad, slug, sifre)))}">${ikon('mesaj', 'k')} WhatsApp ile gönder</a><button class="dg cizgili" type="button" data-kopya="${esc(salonMesaji(ad, slug, sifre))}">${ikon('kopya', 'k')} Hepsini kopyala</button></div></div>`, alt: '<button class="dg ana" data-kapat>Tamam</button>' });
+}
 const logoK = (s) => (s?.tema?.logo ? `<span class="logo-k"><img src="${esc(s.tema.logo)}" alt=""></span>` : `<span class="logo-k">${esc(C.basHarf(s?.ad) || '?')}</span>`);
 
 // ---------------------------------------------------------------- giriş ve kabuk
@@ -31,9 +45,9 @@ async function veriAl() {
 }
 function girisEkrani(kok, { rol, slug, alt, mesaj = '' }) {
   temaSifirla();
-  kok.innerHTML = `<div class="giris-sayfa"><div class="giris-kart">${markaIkon(64, 'giris-ikon')}<div><h1>${rol === 'salon' ? 'Salon paneli' : 'Düğün Planla'}</h1><p class="soluk" style="margin-top:6px">${rol === 'salon' ? 'Salonunuza verilen şifreyle girin.' : 'Yönetici paneli. Okut ve Oyna paneliyle aynı kullanıcı adı ve şifre.'}</p></div>
+  kok.innerHTML = `<div class="giris-sayfa"><div class="giris-kart">${markaIkon(64, 'giris-ikon')}<div><h1>${rol === 'salon' ? 'Salon paneli' : 'Düğün Planla'}</h1><p class="soluk" style="margin-top:6px">${rol === 'salon' ? `Kullanıcı adınız <b>${esc(slug)}</b>. Salonunuza verilen şifreyle girin.` : 'Yönetici paneli. Okut ve Oyna paneliyle aynı kullanıcı adı ve şifre.'}</p></div>
     <form id="yG" autocomplete="on">${rol === 'salon' ? '' : `<label class="alan"><span>Kullanıcı adı</span><input class="girdi" name="k" autocomplete="username" autocapitalize="none" required></label>`}<label class="alan"><span>Şifre</span><input class="girdi" name="s" type="password" autocomplete="current-password" required></label><button class="dg ana tam buyuk" type="submit">Giriş yap</button><p class="hata-yazi" id="yH">${esc(mesaj)}</p></form>
-    ${api.demo ? `<p class="rozet vurgu">${rol === 'salon' ? 'Demo şifresi: salon123' : 'Demo: herhangi bir kullanıcı adı ve şifre'}</p>` : ''}</div></div>`;
+    ${api.demo ? `<p class="rozet vurgu">${rol === 'salon' ? 'Demo şifresi: salon123' : 'Demo: herhangi bir kullanıcı adı ve şifre'}</p>` : `<a class="dg sade kucuk" href="/dugun/giris${rol === 'salon' ? '' : '?salon'}">${rol === 'salon' ? 'Başka bir hesapla giriş' : 'Salon sahibi misiniz? Salon girişi'}</a>`}</div></div>`;
   $('#yG').addEventListener('submit', async (e) => {
     e.preventDefault(); const f = new FormData(e.target), b = e.target.querySelector('button'); b.disabled = true; b.textContent = 'Giriş yapılıyor…';
     try {
@@ -45,7 +59,7 @@ function girisEkrani(kok, { rol, slug, alt, mesaj = '' }) {
 function cikis() { depoYerel.sil(Y.rol === 'salon' ? TK.salon(Y.slug) : TK.yonetici); const { rol, slug, kok } = Y; Y = null; girisEkrani(kok, { rol, slug, alt: '' }); }
 function kabuk(aktif) {
   const s0 = Y.rol === 'salon' ? Y.veri.salonlar[0] : null;
-  const N = Y.rol === 'salon' ? [['', 'takvim', 'Düğünler'], ['alanlar', 'masa', 'Salon planları']] : [['', 'ozet', 'Özet'], ['salonlar', 'salon', 'Salonlar'], ['dugunler', 'takvim', 'Düğünler'], ['istatistik', 'istatistik', 'İstatistik']];
+  const N = Y.rol === 'salon' ? [['', 'takvim', 'Düğünler'], ['alanlar', 'masa', 'Salon planları'], ['hesap', 'ayar', 'Hesap']] : [['', 'ozet', 'Özet'], ['salonlar', 'salon', 'Salonlar'], ['dugunler', 'takvim', 'Düğünler'], ['istatistik', 'istatistik', 'İstatistik']];
   Y.kok.innerHTML = `<div class="kabuk yon"><header class="yon-ust"><div class="ic"><a class="marka" href="${href(yolY())}" data-git="${yolY()}">${s0 ? logoK(s0) : markaIkon(28)}<span>${esc(s0 ? s0.ad : 'Düğün Planla')}</span></a>
     <nav>${N.map(([k, i, a]) => `<a href="${href(yolY(k))}" data-git="${yolY(k)}" class="${aktif === k ? 'on' : ''}">${a}</a>`).join('')}</nav><span class="bosluk"></span>
     ${Y.rol === 'yonetici' && !api.demo ? `<a class="dg sade kucuk" href="/yonetim/">Okut ve Oyna</a>` : ''}<button class="dg ikon-d" data-y="cikis" aria-label="Çıkış">${ikon('cikis')}</button></div></header>
@@ -54,12 +68,13 @@ function kabuk(aktif) {
   return $('#yI');
 }
 function sayfa(alt) {
-  ayrilmaKoy(null); E = null;
+  ayrilmaKoy(null); E = null; Y.alt = alt;
   const p = alt.split('/').filter(Boolean);
   if (Y.rol === 'salon') {
     if (p[0] === 'dugun' && p[1]) return dugunDetay(kabuk(''), p[1]);
     if (p[0] === 'dugun-plan' && p[1]) return dugunPlanDuzen(p[1]);
     if (p[0] === 'alanlar') return alanlarSalon(kabuk('alanlar'));
+    if (p[0] === 'hesap') return salonHesap(kabuk('hesap'));
     return dugunListe(kabuk(''), { salon: Y.slug });
   }
   if (p[0] === 'salonlar') return salonListe(kabuk('salonlar'));
@@ -83,6 +98,31 @@ function odemeDurum(s, ay = C.trBugun().slice(0, 7)) {
 }
 const odemeRozet = (r) => (!r ? '' : r.durum === 'odendi' ? '<span class="rozet iyi">Bu ay ödendi</span>' : r.durum === 'gecikti' ? `<span class="rozet hata">Gecikti · ${TL(r.tutar - r.odenen)}</span>` : `<span class="rozet uyari">${esc(C.tarihYaz(r.vade, { yil: false }))} · ${TL(r.tutar - r.odenen)}</span>`);
 
+const odemeRozetYazi = (r) => (r.durum === 'odendi' ? 'bu ay ödendi' : r.durum === 'gecikti' ? `${TL(r.tutar - r.odenen)} gecikti` : `${TL(r.tutar - r.odenen)} · son gün ${C.tarihYaz(r.vade, { yil: false })}`);
+/** Salonun kaydını yerinde değiştirip kaydeder (ödeme ekleme, plan kaydı) */
+async function salonGuncelle(slug, f) {
+  const s = salonBul(slug), x = { ...kopya(s), tema: kopya(s.temaHam || s.tema) };
+  f(x);
+  await api.salonKaydet(slug, { ...x, tema: { stil: x.tema.stil, vurgu: x.tema.vurgu, logoZemin: x.tema.logoZemin, kisaAd: x.tema.kisaAd, slogan: x.tema.slogan } }, Y.token);
+  await veriAl(); Y.duz = null;
+}
+/** Okut ve Oyna'daki gibi hızlı ödeme kaydı */
+function odemeAl(slug, ay = C.trBugun().slice(0, 7)) {
+  const s = salonBul(slug); if (!s) return;
+  const r = odemeDurum(s, ay);
+  const c = cekmece({ baslik: 'Ödeme al', govde: `<form class="yigin" id="qO" autocomplete="off"><div style="display:flex;gap:12px;align-items:center">${logoK(s)}<b>${esc(s.ad)}</b></div>
+    <div class="izgara2"><label class="alan"><span>Tutar (₺)</span><input class="girdi" type="number" name="tutar" inputmode="numeric" min="0" value="${r ? Math.max(0, r.tutar - r.odenen) : s.odeme?.tutar || ''}"></label><label class="alan"><span>Alındığı gün</span><input class="girdi" type="date" name="tarih" value="${C.trBugun()}"></label></div>
+    <label class="alan"><span>Hangi ayın ödemesi?</span><input class="girdi" type="month" name="donem" value="${ay}"></label>
+    <label class="alan"><span>Not <span class="ipucu">(isteğe bağlı)</span></span><input class="girdi" name="not" maxlength="200" placeholder="Nakit, havale, kurulum ücreti…"></label></form>`,
+  alt: `<button class="dg sade" data-kapat>Vazgeç</button><button class="dg ana" id="qK">Kaydet</button>` });
+  $('#qK', c.el).onclick = async (e) => {
+    const v = Object.fromEntries(new FormData($('#qO', c.el))); if (!(+v.tutar > 0)) return bildir('Tutarı yazın', { hata: true });
+    e.target.disabled = true;
+    try { await salonGuncelle(slug, (x) => { x.odemeler = [...(x.odemeler || []), { id: C.rastgele(8), tarih: v.tarih || C.trBugun(), donem: v.donem || '', tutar: +v.tutar, not: v.not }]; }); c.kapat(); bildir(`${TL(+v.tutar)} kaydedildi`); sayfa(Y.alt || ''); }
+    catch (er) { bildir(er.message, { hata: true }); e.target.disabled = false; }
+  };
+}
+
 // ---------------------------------------------------------------- özet
 function ozet(el) {
   const V = Y.veri, bugun = C.trBugun(), sinir = C.gunEkle(bugun, 120);
@@ -96,8 +136,8 @@ function ozet(el) {
     ${toplam ? `<div class="sayi"><b style="font-size:26px">${TL(alinan)}</b><span>${TL(toplam)} bu ay alınacak</span><div class="ilerleme"><i style="width:${Math.round((alinan / toplam) * 100)}%"></i></div></div>` : `<a class="sayi" href="${href(yolY('dugunler'))}" data-git="${yolY('dugunler')}"><b>${V.dugunler.length}</b><span>düğün kaydı toplam</span></a>`}</div>
   ${!V.salonlar.length ? `<section class="kart bos" style="margin-top:16px"><span class="serif">Henüz salon yok</span>İlk düğün salonunuzu ekleyin; logosunu, rengini ve salon planını ayarlayın.<br><a class="dg ana" href="${href(yolY('yeni-salon'))}" data-git="${yolY('yeni-salon')}">Salon ekle</a></section>` : ''}
   <div class="ozet-izgara" style="margin-top:16px"${V.salonlar.length ? '' : ' hidden'}><section class="kart"><div class="kart-bas"><h2>Yaklaşan düğünler</h2><span class="bosluk"></span><a class="dg sade kucuk" href="${href(yolY('dugunler'))}" data-git="${yolY('dugunler')}">Tümü</a></div>${yak.length ? yak.slice(0, 12).map(dugunSatir).join('') : '<p class="soluk">Önümüzdeki 4 ayda düğün yok.</p>'}</section>
-    <section class="kart"><div class="kart-bas"><h2>Bu ay ödemeler</h2></div>${od.length ? od.map(([s, r]) => `<a class="satir" href="${href(yolY('salon/' + s.slug + '/odeme'))}" data-git="${yolY('salon/' + s.slug + '/odeme')}">${logoK(s)}<span class="ana"><b>${esc(s.ad)}</b><small>${TL(r.tutar)} / ay</small></span>${odemeRozet(r)}</a>`).join('') : '<p class="soluk">Aylık ücret girilmiş salon yok.</p>'}</section></div>`;
-  el.onclick = (e) => { if (e.target.closest('[data-y=yeni-dugun]')) dugunOlustur(); };
+    <section class="kart"><div class="kart-bas"><h2>Bu ay ödemeler</h2></div>${od.length ? od.map(([s, r]) => `<div class="satir">${logoK(s)}<a class="ana" href="${href(yolY('salon/' + s.slug + '/odeme'))}" data-git="${yolY('salon/' + s.slug + '/odeme')}" style="color:inherit;text-decoration:none"><b>${esc(s.ad)}</b><small>${TL(r.tutar)} / ay · ${odemeRozetYazi(r)}</small></a>${r.durum === 'odendi' ? `<span class="rozet iyi">Ödendi</span>` : `<button class="dg cizgili kucuk" type="button" data-odeme="${esc(s.slug)}">Ödeme al</button>`}</div>`).join('') : `<p class="soluk">Aylık ücret girilmiş salon yok. Ücreti salonun “Ödemeler” sekmesinden girin.</p>`}</section></div>`;
+  el.onclick = (e) => { if (e.target.closest('[data-y=yeni-dugun]')) dugunOlustur(); const o = e.target.closest('[data-odeme]'); if (o) odemeAl(o.dataset.odeme, ay); };
 }
 function dugunSatir(d) {
   const s = salonBul(d.salon), bugun = C.trBugun();
@@ -198,13 +238,13 @@ async function dugunDetay(el, kod) {
 function salonListe(el) {
   const bugun = C.trBugun();
   el.innerHTML = `<div class="bolum-bas"><h1>Salonlar</h1><span class="bosluk"></span><a class="dg ana" href="${href(yolY('yeni-salon'))}" data-git="${yolY('yeni-salon')}">${ikon('arti', 'k')} Yeni salon</a></div>
-  ${Y.veri.salonlar.length ? `<div class="kart-izgara">${Y.veri.salonlar.map((s) => { const yak = Y.veri.dugunler.filter((d) => d.salon === s.slug && d.tarih >= bugun).length; const oz = s.alanlar.map((a) => C.planOzet(a.plan)); return `<a class="kart salon-kart" href="${href(yolY('salon/' + s.slug))}" data-git="${yolY('salon/' + s.slug)}"><div class="ust-s">${logoK(s)}<div style="min-width:0"><b>${esc(s.ad)}</b><small class="soluk">/salon/${esc(s.slug)}</small></div></div><div class="cipler">${s.aktif === false ? '<span class="rozet hata">Kapalı</span>' : ''}<span class="rozet">${s.alanlar.length} alan · ${oz.reduce((n, o) => n + o.masa, 0)} masa</span><span class="rozet vurgu">${yak} yaklaşan düğün</span>${odemeRozet(odemeDurum(s))}</div></a>`; }).join('')}</div>` : `<div class="kart bos"><span class="serif">Henüz salon yok</span>İlk düğün salonunuzu ekleyin; logosunu, renklerini ve salon planını ayarlayın.<br><a class="dg ana" href="${href(yolY('yeni-salon'))}" data-git="${yolY('yeni-salon')}">Salon ekle</a></div>`}`;
+  ${Y.veri.salonlar.length ? `<div class="kart-izgara">${Y.veri.salonlar.map((s) => { const yak = Y.veri.dugunler.filter((d) => d.salon === s.slug && d.tarih >= bugun).length; const oz = s.alanlar.map((a) => C.planOzet(a.plan)); return `<a class="kart salon-kart" href="${href(yolY('salon/' + s.slug))}" data-git="${yolY('salon/' + s.slug)}"><div class="ust-s">${logoK(s)}<div style="min-width:0"><b>${esc(s.ad)}</b><small class="soluk">/salon/${esc(s.slug)}</small></div></div><div class="cipler">${s.aktif === false ? '<span class="rozet hata">Kapalı</span>' : ''}<span class="rozet">${s.alanlar.length} alan · ${oz.reduce((n, o) => n + o.masa, 0)} masa</span><span class="rozet vurgu">${yak} yaklaşan düğün</span>${s.giris ? '' : '<span class="rozet">Salon girişi kapalı</span>'}${odemeRozet(odemeDurum(s))}</div></a>`; }).join('')}</div>` : `<div class="kart bos"><span class="serif">Henüz salon yok</span>İlk düğün salonunuzu ekleyin; logosunu, renklerini ve salon planını ayarlayın.<br><a class="dg ana" href="${href(yolY('yeni-salon'))}" data-git="${yolY('yeni-salon')}">Salon ekle</a></div>`}`;
 }
 const SEK = [['bilgi', 'Bilgiler'], ['tema', 'Görünüm'], ['alanlar', 'Salon planları'], ['dugunler', 'Düğünler'], ['giris', 'Giriş ve QR'], ['odeme', 'Ödemeler']];
 function salonDuzen(el, slug, sekme = 'bilgi') {
   const eski = slug ? salonBul(slug) : null;
   if (slug && !eski) { el.innerHTML = `<div class="kart bos"><span class="serif">Salon bulunamadı</span><a class="dg cizgili" href="${href(yolY('salonlar'))}" data-git="${yolY('salonlar')}">Salonlara dön</a></div>`; return; }
-  if (!Y.duz || Y.duz.slug !== (slug || '') || !slug) Y.duz = eski ? { ...kopya(eski), tema: kopya(eski.temaHam || eski.tema), temaUrl: eski.tema } : { slug: '', ad: '', aktif: true, tema: { stil: 'acik', vurgu: '', logoZemin: 'yok', kisaAd: '', slogan: '' }, iletisim: {}, alanlar: [], kisi: '', notlar: '', odeme: { tutar: 0, gun: 1, periyot: 'aylik' }, odemeler: [], yeni: true, temaUrl: {} };
+  if (!Y.duz || Y.duz.slug !== (slug || '') || !slug) Y.duz = eski ? { ...kopya(eski), tema: kopya(eski.temaHam || eski.tema), temaUrl: eski.tema } : { slug: '', ad: '', aktif: true, tema: { stil: 'acik', vurgu: '', logoZemin: 'yok', kisaAd: '', slogan: '' }, iletisim: {}, alanlar: [], kisi: '', notlar: '', odeme: { tutar: 0, gun: 1, periyot: 'aylik' }, odemeler: [], yeni: true, temaUrl: {}, yeniSifre: sifreUret() };
   const x = Y.duz;
   if (!slug) sekme = 'bilgi';
   const sek = SEK.filter(([k]) => slug || k === 'bilgi');
@@ -229,10 +269,15 @@ async function salonKaydet(slug) {
   if (!x.ad.trim()) return bildir('Salon adını yazın', { hata: true });
   if (!C.SLUG_RE.test(hedef)) return bildir('Salon adresi geçersiz: küçük harf, rakam ve tire kullanın', { hata: true });
   if (hedef === 'ornek-salon' && !api.demo) return bildir('Bu adres ayrılmış, başka bir adres seçin', { hata: true });
+  const sifre = yeni ? (x.yeniSifre || '').trim() : '';
+  if (sifre && sifre.length < 6) return bildir('Salon şifresi en az 6 karakter olmalı', { hata: true });
   try {
     const r = await api.salonKaydet(hedef, { ...x, yeni, tema: { stil: x.tema.stil, vurgu: x.tema.vurgu, logoZemin: x.tema.logoZemin, kisaAd: x.tema.kisaAd, slogan: x.tema.slogan } }, Y.token);
+    let sifreOk = false;
+    if (sifre) { try { await api.salonSifre(r.salon.slug, sifre, Y.token); sifreOk = true; } catch (e) { bildir('Salon kaydedildi ama şifre ayarlanamadı: ' + e.message, { hata: true }); } }
     await veriAl(); Y.duz = null; bildir('Kaydedildi');
-    if (yeni) git(yolY('salon/' + r.salon.slug + '/tema')); else salonDuzen($('#yI'), slug, $('.sekmeler .on')?.dataset.sk || 'bilgi');
+    if (yeni) { git(yolY('salon/' + r.salon.slug + '/tema')); if (sifreOk) setTimeout(() => hesapBilgisi(r.salon.ad, r.salon.slug, sifre), 250); }
+    else salonDuzen($('#yI'), slug, $('.sekmeler .on')?.dataset.sk || 'bilgi');
     return true;
   } catch (e) { bildir(e.message, { hata: true }); return false; }
 }
@@ -248,9 +293,17 @@ function sBilgi(g, x, slug) {
     <label class="alan"><span>Yetkili kişi</span><input class="girdi" data-s="kisi" value="${esc(x.kisi)}" maxlength="80"></label>
     <label class="alan"><span>Notlar <span class="ipucu">(sadece siz görürsünüz)</span></span><textarea class="girdi" data-s="notlar" rows="3" maxlength="4000">${esc(x.notlar)}</textarea></label>
     <label class="anahtar"><span><b style="font-weight:500">Salon etkin</b><br><small class="soluk">Kapalıyken salonun sayfaları, davetli sayfaları ve çift paneli açılmaz.</small></span><input type="checkbox" data-s="aktif" ${x.aktif !== false ? 'checked' : ''}><i></i></label>
-    ${slug ? `<hr class="ayrac"><div><button class="dg tehlike" data-sil="1">${ikon('cop', 'k')} Salonu sil</button></div>` : ''}</div>`;
+    ${slug ? `<hr class="ayrac"><div><button class="dg tehlike" data-sil="1">${ikon('cop', 'k')} Salonu sil</button></div>` : `<hr class="ayrac"><div class="yigin" style="gap:12px"><div><h3>Salon sahibinin girişi</h3><p class="soluk" style="margin-top:4px">Salon sahibi bu bilgilerle kendi paneline girer; düğün açar ve çiftlere PIN verir. Ödemeleri ve notlarınızı göremez.</p></div>
+      <div class="izgara2"><label class="alan"><span>Kullanıcı adı <span class="ipucu">(salonun adresi)</span></span><input class="girdi" id="sKA" value="${esc(x.slug || '')}" readonly tabindex="-1"></label><label class="alan"><span>Şifre</span><span style="display:flex;gap:8px"><input class="girdi" id="sYS" value="${esc(x.yeniSifre || '')}" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="60"><button class="dg cizgili" type="button" id="sYU" aria-label="Yeni şifre üret" style="flex:none;padding:0 14px">${ikon('yenile', 'k')}</button></span></label></div>
+      <small class="ipucu">Boş bırakırsanız salon girişi kapalı olur; sonradan “Giriş ve QR” sekmesinden açabilirsiniz.</small></div>`}</div>`;
   const ad = $('[data-s=ad]', g), sl = $('#sSlug', g);
-  if (!slug) { ad.oninput = () => { if (!sl.dataset.el) { sl.value = C.slugla(ad.value); $('#sSlugO', g).textContent = sl.value || '…'; } }; sl.oninput = () => { sl.dataset.el = '1'; sl.value = sl.value.toLowerCase().replace(/[^a-z0-9-]/g, ''); $('#sSlugO', g).textContent = sl.value || '…'; }; }
+  if (!slug) {
+    const ka = () => { $('#sSlugO', g).textContent = sl.value || '…'; $('#sKA', g).value = sl.value; };
+    ad.oninput = () => { if (!sl.dataset.el) { sl.value = C.slugla(ad.value); ka(); } };
+    sl.oninput = () => { sl.dataset.el = '1'; sl.value = sl.value.toLowerCase().replace(/[^a-z0-9-]/g, ''); ka(); };
+    $('#sYS', g).oninput = (e) => { x.yeniSifre = e.target.value.trim(); };
+    $('#sYU', g).onclick = () => { x.yeniSifre = sifreUret(); $('#sYS', g).value = x.yeniSifre; };
+  }
   g.oninput = () => topla(g, x);
   const sb = $('[data-sil]', g); if (sb) sb.onclick = () => salonSil(slug);
 }
@@ -332,22 +385,30 @@ function sorPencere(baslik, deger = '') {
 }
 function sDugunler(g, x, slug) { dugunListe(g, { salon: slug }); g.querySelector('.bolum-bas h1').textContent = 'Bu salonun düğünleri'; }
 function sGiris(g, x, slug) {
-  const sl = paylasLink('/salon/' + slug), panel = `${sl}/yonetim`;
-  g.innerHTML = `<div class="paylas-izgara"><section class="kart"><div class="kart-bas"><h2>Kalıcı salon QR'ı</h2></div><p class="soluk" style="margin-bottom:12px">Salonun girişine konacak QR ya da NFC standı bu adrese gider. O gün salonda düğün varsa misafir doğrudan masa bulucuya ulaşır; yoksa salonun sayfası açılır.</p>
-      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div class="qr-kutu" style="width:150px;height:150px">${qrSvg(sl)}</div><div class="yigin" style="flex:1;min-width:180px;gap:8px"><div class="baglanti"><code>${esc(sl)}</code><button class="dg kucuk" data-g="kopya" data-v="${esc(sl)}">${ikon('kopya', 'kk')}</button></div><button class="dg cizgili kucuk" data-g="qr">${ikon('indir', 'kk')} QR'ı indir (PNG)</button><a class="dg sade kucuk" href="${href('/salon/' + slug)}" data-git="/salon/${slug}">${ikon('goz', 'kk')} Sayfayı gör</a></div></div></section>
-    <section class="kart"><div class="kart-bas"><h2>Salon paneli girişi</h2><span class="bosluk"></span><span class="rozet ${x.giris ? 'iyi' : ''}">${x.giris ? 'Açık' : 'Kapalı'}</span></div><p class="soluk" style="margin-bottom:12px">Salon çalışanları bu şifreyle kendi düğünlerini ekleyebilir, çiftlere PIN verebilir ve planları yazdırabilir. Ödemeleri ve notlarınızı göremezler.</p>
-      <div class="baglanti" style="margin-bottom:10px"><code>${esc(panel)}</code><button class="dg kucuk" data-g="kopya" data-v="${esc(panel)}">${ikon('kopya', 'kk')}</button></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><input class="girdi" id="sSf" type="text" placeholder="${x.giris ? 'Yeni şifre' : 'Şifre (en az 6 karakter)'}" autocomplete="off" style="flex:1;min-width:160px"><button class="dg ana" data-g="sifre">${x.giris ? 'Şifreyi değiştir' : 'Girişi aç'}</button></div>
-      ${x.giris ? `<button class="dg sade kucuk" data-g="kapat" style="margin-top:8px">Girişi kapat</button>` : ''}</section></div>`;
+  const sl = paylasLink('/salon/' + slug);
+  g.innerHTML = `<div class="paylas-izgara"><section class="kart"><div class="kart-bas"><h2>Salon sahibinin girişi</h2><span class="bosluk"></span><span class="rozet ${x.giris ? 'iyi' : ''}">${x.giris ? 'Açık' : 'Kapalı'}</span></div>
+      <p class="soluk" style="margin-bottom:12px">Salon sahibi bu bilgilerle girip düğün açar, çiftlere PIN verir ve planları yazdırır. Ödemeleri ve notlarınızı göremez.</p>
+      ${x.giris ? `${bilgiListe(slug, x.girisSifre)}${x.girisSifre ? '' : '<p class="kucuk-yazi" style="margin:-4px 0 12px">Bu şifre önceki sürümde belirlendiği için görüntülenemiyor. Yeni şifre oluşturursanız burada görünür.</p>'}
+        <div class="dg-grup" style="margin-bottom:12px">${x.girisSifre ? `<a class="dg vurgu" target="_blank" rel="noopener" href="${esc(waLink('', salonMesaji(x.ad, slug, x.girisSifre)))}">${ikon('mesaj', 'k')} WhatsApp ile gönder</a>` : ''}<button class="dg cizgili" data-g="yeni">${ikon('yenile', 'k')} Yeni şifre oluştur</button></div>`
+      : `<div class="dg-grup" style="margin-bottom:12px"><button class="dg ana" data-g="yeni">Şifre oluştur ve girişi aç</button></div>`}
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><input class="girdi" id="sSf" type="text" placeholder="${x.giris ? 'Ya da şifreyi kendiniz yazın' : 'Şifreyi kendiniz yazın (en az 6 karakter)'}" autocomplete="off" autocapitalize="none" spellcheck="false" style="flex:1;min-width:160px"><button class="dg cizgili" data-g="sifre">${x.giris ? 'Değiştir' : 'Girişi aç'}</button></div>
+      ${x.giris ? `<button class="dg sade kucuk" data-g="kapat" style="margin-top:10px">Girişi kapat</button>` : ''}</section>
+    <section class="kart"><div class="kart-bas"><h2>Kalıcı salon QR'ı</h2></div><p class="soluk" style="margin-bottom:12px">Salonun girişine konacak QR ya da NFC standı bu adrese gider. O gün salonda düğün varsa misafir doğrudan masa bulucuya ulaşır; yoksa salonun sayfası açılır.</p>
+      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div class="qr-kutu" style="width:150px;height:150px">${qrSvg(sl)}</div><div class="yigin" style="flex:1;min-width:180px;gap:8px"><div class="baglanti"><code>${esc(sl)}</code><button class="dg kucuk" data-g="kopya" data-v="${esc(sl)}">${ikon('kopya', 'kk')}</button></div><button class="dg cizgili kucuk" data-g="qr">${ikon('indir', 'kk')} QR'ı indir (PNG)</button><a class="dg sade kucuk" href="${href('/salon/' + slug)}" data-git="/salon/${slug}">${ikon('goz', 'kk')} Sayfayı gör</a></div></div></section></div>`;
+  const ayarla = async (sifre) => {
+    try {
+      const r = await api.salonSifre(slug, sifre, Y.token); x.giris = r.giris; x.girisSifre = r.girisSifre || ''; await veriAl();
+      sGiris(g, x, slug);
+      if (r.giris) hesapBilgisi(x.ad, slug, sifre); else bildir('Salon girişi kapatıldı');
+    } catch (er) { bildir(er.message, { hata: true }); }
+  };
   g.onclick = async (e) => {
     const b = e.target.closest('[data-g]'); if (!b) return;
     if (b.dataset.g === 'kopya') kopyala(b.dataset.v);
     else if (b.dataset.g === 'qr') qrPng(sl, `salon-qr-${slug}.png`, x.tema.kisaAd || x.ad);
-    else if (b.dataset.g === 'sifre' || b.dataset.g === 'kapat') {
-      const s = b.dataset.g === 'kapat' ? null : $('#sSf', g).value;
-      if (s !== null && s.length < 6) return bildir('Şifre en az 6 karakter olmalı', { hata: true });
-      try { const r = await api.salonSifre(slug, s, Y.token); x.giris = r.giris; await veriAl(); bildir(r.giris ? 'Salon girişi açık. Şifreyi salonla paylaşın.' : 'Salon girişi kapatıldı'); sGiris(g, x, slug); } catch (er) { bildir(er.message, { hata: true }); }
-    }
+    else if (b.dataset.g === 'yeni') { if (x.giris && !(await onayla({ baslik: 'Yeni şifre oluşturulsun mu?', metin: 'Salonun açık oturumları kapanır; yeni şifreyi salon sahibine iletmeniz gerekir.', evet: 'Oluştur' }))) return; ayarla(sifreUret()); }
+    else if (b.dataset.g === 'sifre') { const v = $('#sSf', g).value.trim(); if (v.length < 6) return bildir('Şifre en az 6 karakter olmalı', { hata: true }); ayarla(v); }
+    else if (b.dataset.g === 'kapat') { if (!(await onayla({ baslik: 'Salon girişi kapatılsın mı?', metin: 'Salon sahibi panele giremez; düğünler ve davetli sayfaları açık kalır.', evet: 'Kapat', tehlike: true }))) return; ayarla(null); }
   };
 }
 function sOdeme(g, x, slug) {
@@ -362,6 +423,28 @@ function sOdeme(g, x, slug) {
   g.oninput = () => topla(g, x);
   $('#oF', g).onsubmit = async (e) => { e.preventDefault(); const v = Object.fromEntries(new FormData(e.target)); if (!(+v.tutar > 0)) return bildir('Tutarı yazın', { hata: true }); x.odemeler = [...(x.odemeler || []), { id: C.rastgele(8), tarih: v.tarih, donem: v.donem, tutar: +v.tutar, not: v.not }]; topla(g, x); if (await salonKaydet(slug)) bildir('Ödeme kaydedildi'); };
   g.onclick = async (e) => { const b = e.target.closest('[data-osil]'); if (!b) return; if (!(await onayla({ baslik: 'Ödeme kaydı silinsin mi?', evet: 'Sil', tehlike: true }))) return; x.odemeler = x.odemeler.filter((p) => p.id !== b.dataset.osil); await salonKaydet(slug); };
+}
+function salonHesap(el) {
+  const s = Y.veri.salonlar[0], sl = paylasLink('/salon/' + Y.slug);
+  el.innerHTML = `<div class="bolum-bas"><h1>Hesap</h1></div><div class="paylas-izgara">
+    <section class="kart"><div class="kart-bas"><h2>Giriş bilgileri</h2></div>${bilgiListe(Y.slug, null)}
+      <form class="yigin" id="hS" autocomplete="on" style="gap:10px"><input type="text" name="k" value="${esc(Y.slug)}" autocomplete="username" hidden><label class="alan"><span>Mevcut şifre</span><input class="girdi" type="password" name="eski" autocomplete="current-password" required></label><label class="alan"><span>Yeni şifre</span><input class="girdi" type="password" name="yeni" autocomplete="new-password" minlength="6" required></label><button class="dg ana" type="submit">Şifreyi değiştir</button></form></section>
+    <section class="kart"><div class="kart-bas"><h2>Salonun kalıcı QR'ı</h2></div><p class="soluk" style="margin-bottom:12px">Girişe konacak QR ya da NFC standı. O gün düğün varsa misafiri masa bulucuya götürür.</p>
+      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div class="qr-kutu" style="width:140px;height:140px">${qrSvg(sl)}</div><div class="yigin" style="flex:1;min-width:180px;gap:8px"><div class="baglanti"><code>${esc(sl)}</code><button class="dg kucuk" type="button" data-kopya="${esc(sl)}">${ikon('kopya', 'kk')}</button></div><button class="dg cizgili kucuk" type="button" data-h="qr">${ikon('indir', 'kk')} QR'ı indir (PNG)</button><a class="dg sade kucuk" href="${href('/salon/' + Y.slug)}" data-git="/salon/${Y.slug}">${ikon('goz', 'kk')} Sayfayı gör</a></div></div></section></div>
+    <div class="dg-grup" style="margin-top:22px"><button class="dg cizgili" type="button" data-h="cikis">${ikon('cikis', 'k')} Çıkış yap</button></div>`;
+  el.onclick = async (e) => {
+    const b = e.target.closest('[data-h]'); if (!b) return;
+    if (b.dataset.h === 'qr') qrPng(sl, `salon-qr-${Y.slug}.png`, s.tema?.kisaAd || s.ad);
+    else if (b.dataset.h === 'cikis' && (await onayla({ baslik: 'Çıkış yapılsın mı?', evet: 'Çıkış yap' }))) cikis();
+  };
+  $('#hS', el).onsubmit = async (e) => {
+    e.preventDefault(); const f = new FormData(e.target), btn = e.target.querySelector('button');
+    if (String(f.get('yeni')).length < 6) return bildir('Yeni şifre en az 6 karakter olmalı', { hata: true });
+    btn.disabled = true;
+    try { const r = await api.salonSifreDegis(Y.slug, f.get('eski'), f.get('yeni'), Y.token); Y.token = r.token; depoYerel.koy(TK.salon(Y.slug), r.token); e.target.reset(); bildir('Şifreniz değiştirildi'); }
+    catch (er) { bildir(er.message, { hata: true }); }
+    btn.disabled = false;
+  };
 }
 function alanlarSalon(el) {
   const s = Y.veri.salonlar[0];
@@ -389,12 +472,7 @@ async function alanPlanDuzen(slug, alanId) {
   const s = salonBul(slug), a = s?.alanlar.find((x) => x.id === alanId);
   if (!a) { kabuk('salonlar').innerHTML = '<div class="kart bos">Salon planı bulunamadı.</div>'; return; }
   const olustur = /[?&]olustur=1/.test(location.search + location.hash);
-  duzenleyici({ baslik: `${s.ad} · ${a.ad}`, plan: a.plan, geri: yolY(`salon/${slug}/alanlar`), olustur, kaydet: async (plan) => {
-    const x = { ...kopya(s), tema: kopya(s.temaHam || s.tema) };
-    x.alanlar = x.alanlar.map((z) => (z.id === alanId ? { ...z, plan } : z));
-    await api.salonKaydet(slug, { ...x, tema: { stil: x.tema.stil, vurgu: x.tema.vurgu, logoZemin: x.tema.logoZemin, kisaAd: x.tema.kisaAd, slogan: x.tema.slogan } }, Y.token);
-    await veriAl(); Y.duz = null;
-  } });
+  duzenleyici({ baslik: `${s.ad} · ${a.ad}`, plan: a.plan, geri: yolY(`salon/${slug}/alanlar`), olustur, kaydet: (plan) => salonGuncelle(slug, (x) => { x.alanlar = x.alanlar.map((z) => (z.id === alanId ? { ...z, plan } : z)); }) });
 }
 async function dugunPlanDuzen(kod) {
   Y.kok.innerHTML = '<div class="yukleniyor"><i></i></div>';

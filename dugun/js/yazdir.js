@@ -1,8 +1,8 @@
 // Düğün Planla — yazdırılabilir belgeler, Excel (CSV) aktarımı ve QR görseli
-import * as C from './cekirdek.js?v=2026-11-21-e';
-import { esc, qrSvg, indir, bildir, ONIZLEME } from './ui.js?v=2026-11-21-e';
-import { planSvg } from './harita.js?v=2026-11-21-e';
-import { qrMatris } from '/yonetim/qr.js?v=2026-11-21-e';
+import * as C from './cekirdek.js?v=2026-11-21-f';
+import { esc, qrSvg, indir, bildir, ONIZLEME } from './ui.js?v=2026-11-21-f';
+import { planSvg } from './harita.js?v=2026-11-21-f';
+import { qrMatris } from '/yonetim/qr.js?v=2026-11-21-f';
 
 const TARAF = Object.fromEntries(C.TARAFLAR), DURUM = Object.fromEntries(C.DURUMLAR), ETK = Object.fromEntries(C.ETIKETLER);
 const harfSira = (a, b) => a.localeCompare(b, 'tr', { sensitivity: 'base' });

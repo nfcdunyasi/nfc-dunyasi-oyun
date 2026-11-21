@@ -1,9 +1,9 @@
 // Düğün Planla — giriş noktası: yönlendirme, tanıtım sayfası, salon sayfası, çift girişi, demo
-import * as C from './cekirdek.js?v=2026-11-21-e';
-import { api, depoYerel, TK } from './api.js?v=2026-11-21-e';
-import { $, $$, esc, ikon, markaIkon, bildir, yol, git, href, demoYol, temaUygula, temaSifirla, cekmeceKapatHepsi, ayrilmaKoy, onayla, ONIZLEME } from './ui.js?v=2026-11-21-e';
-import { davetliAc, logoHtml, imza, hataSayfasi } from './davetli.js?v=2026-11-21-e';
-import { planSvg } from './harita.js?v=2026-11-21-e';
+import * as C from './cekirdek.js?v=2026-11-21-f';
+import { api, depoYerel, TK } from './api.js?v=2026-11-21-f';
+import { $, $$, esc, ikon, markaIkon, bildir, yol, git, href, demoYol, temaUygula, temaSifirla, cekmeceKapatHepsi, ayrilmaKoy, onayla, ONIZLEME } from './ui.js?v=2026-11-21-f';
+import { davetliAc, logoHtml, imza, hataSayfasi } from './davetli.js?v=2026-11-21-f';
+import { planSvg } from './harita.js?v=2026-11-21-f';
 
 const kok = document.getElementById('uygulama');
 const WA = 'https://wa.me/905432250512?text=' + encodeURIComponent('Merhaba, salonumuz için Düğün Planla hakkında bilgi almak istiyorum.');
@@ -11,7 +11,7 @@ let aktifPlan = null, sonYol = null;
 function robots(acik) { let m = document.querySelector('meta[name=robots]'); if (!m) { m = document.createElement('meta'); m.name = 'robots'; document.head.appendChild(m); } m.content = acik ? 'index, follow' : 'noindex, nofollow'; }
 const yukleniyor = () => { kok.innerHTML = '<div class="yukleniyor"><i></i></div>'; };
 const marka = (alt = '') => `<a class="marka" href="${href('/dugun')}" data-git="/dugun">${markaIkon(28)}<span>Düğün Planla${alt}</span></a>`;
-const altBilgi = (baglar = true) => `<footer class="sayfa-alt"><span>Düğün Planla, bir NFC Dünyası ürünüdür.</span>${baglar ? '<span class="dg-grup"><a href="/">nfcdunyasi.com</a><a href="/oyun/">Okut ve Oyna</a></span>' : ''}</footer>`;
+const altBilgi = (baglar = true) => `<footer class="sayfa-alt"><span>Düğün Planla, bir NFC Dünyası ürünüdür.</span>${baglar ? `<span class="dg-grup"><a href="${href('/dugun/giris?salon')}" data-git="/dugun/giris?salon">Salon girişi</a><a href="/">nfcdunyasi.com</a><a href="/oyun/">Okut ve Oyna</a></span>` : ''}</footer>`;
 
 async function yonlendir(zorla = false) {
   let p = (yol().split('?')[0].replace(/\/+$/, '') || '/');
@@ -29,10 +29,11 @@ async function yonlendir(zorla = false) {
   if (aktifPlan) { aktifPlan.ctl.kapat(); aktifPlan = null; }
   ayrilmaKoy(null); window.scrollTo(0, 0); document.title = 'Düğün Planla · NFC Dünyası';
   if (P[0] === 'd' && P[1]) { temaSifirla(); return davetliAc(kok, P[1].toLowerCase()); }
-  if (P[0] === 'salon' && P[1] && P[2] === 'yonetim') { const { yonetimAc } = await import('./yonetim.js?v=2026-11-21-e'); return yonetimAc(kok, { rol: 'salon', slug: P[1].toLowerCase(), alt: P.slice(3).join('/') }); }
+  if (P[0] === 'salon' && P[1] && P[2] === 'yonetim') { const { yonetimAc } = await import('./yonetim.js?v=2026-11-21-f'); return yonetimAc(kok, { rol: 'salon', slug: P[1].toLowerCase(), alt: P.slice(3).join('/') }); }
   if (P[0] === 'salon' && P[1]) return salonSayfasi(P[1].toLowerCase());
-  if (P[0] === 'yonetim') { const { yonetimAc } = await import('./yonetim.js?v=2026-11-21-e'); return yonetimAc(kok, { rol: 'yonetici', alt: P.slice(1).join('/') }); }
+  if (P[0] === 'yonetim') { const { yonetimAc } = await import('./yonetim.js?v=2026-11-21-f'); return yonetimAc(kok, { rol: 'yonetici', alt: P.slice(1).join('/') }); }
   temaSifirla();
+  if (P[0] === 'dugun' && P[1] === 'giris' && !demo) return girisSayfasi();
   if (demo) return demoMerkez();
   return acilis();
 }
@@ -59,7 +60,7 @@ async function planAc(kod, sekme) {
   pinEkrani(kod, genel, sekme);
 }
 async function planBaslat(kod, token, r, sekme, genel) {
-  const { planlayiciAc } = await import('./planlayici.js?v=2026-11-21-e');
+  const { planlayiciAc } = await import('./planlayici.js?v=2026-11-21-f');
   document.title = `${C.ciftAdi(r.dugun.bilgi)} · Düğün Planla`;
   aktifPlan = {
     kod, ctl: planlayiciAc(kok, {
@@ -138,7 +139,7 @@ function urunGorseli() {
 }
 function acilis() {
   document.title = 'Düğün Planla · Davetli listesi, oturma planı ve masa bulucu | NFC Dünyası';
-  kok.innerHTML = `<div class="acilis"><div class="acilis-ust">${marka()}<span class="bosluk"></span><a class="dg sade kucuk" href="${href('/dugun/demo')}" data-git="/dugun/demo">Demo</a><a class="dg sade kucuk" href="#kod" data-act="kod">Giriş</a></div>
+  kok.innerHTML = `<div class="acilis"><div class="acilis-ust">${marka()}<span class="bosluk"></span><a class="dg sade kucuk" href="${href('/dugun/demo')}" data-git="/dugun/demo">Demo</a><a class="dg sade kucuk" href="${href('/dugun/giris')}" data-git="/dugun/giris">Giriş</a></div>
     <div class="sayfa">
     <section class="kahraman"><p class="ust-yazi">Düğün Planla</p><h1>Oturma planı artık dert değil.</h1>
       <p class="lead">Davetli listesini, katılım yanıtlarını ve salonun gerçek planı üzerindeki masaları tek yerden yönetin. Düğün günü misafirleriniz masalarını telefonlarından bulsun.</p>
@@ -160,6 +161,38 @@ function acilis() {
     ${altBilgi()}</div></div>`;
   kok.onclick = (e) => { if (e.target.closest('[data-act=kod]')) { e.preventDefault(); $('#kod').scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => $('#kodG')?.focus({ preventScroll: true }), 350); } };
   $('#kodF').addEventListener('submit', (e) => { e.preventDefault(); const k = kodTemizle(new FormData(e.target).get('kod')); if (k) git('/d/' + k + '/plan'); else bildir('Kodu kontrol edin; örneğin elif-can-4k7', { hata: true }); });
+}
+
+// ---------------------------------------------------------------- tek giriş sayfası: çift (kod + PIN), salon (kullanıcı adı + şifre), yönetici (admin)
+function girisSayfasi() {
+  document.title = 'Giriş · Düğün Planla';
+  const salonIlk = /[?&]salon\b/.test(location.search + location.hash);
+  const acik = depoYerel.al(TK.yonetici);
+  kok.innerHTML = `<div class="giris-sayfa"><div class="giris-kart">
+    <a href="${href('/dugun')}" data-git="/dugun" aria-label="Düğün Planla">${markaIkon(64, 'giris-ikon')}</a>
+    <div><h1>Giriş yapın</h1><p class="soluk" style="margin-top:6px" id="gAc"></p></div>
+    <div class="segment tam-g" id="gT" role="tablist"><button type="button" data-v="cift" class="${salonIlk ? '' : 'on'}">Düğün sahibi</button><button type="button" data-v="salon" class="${salonIlk ? 'on' : ''}">Salon ve yönetici</button></div>
+    <form id="gC" autocomplete="off"${salonIlk ? ' hidden' : ''}><label class="alan"><span>Düğün kodu</span><input class="girdi" name="kod" placeholder="örn. elif-can-4k7" autocapitalize="none" spellcheck="false" required></label><button class="dg ana tam buyuk" type="submit">Devam</button><p class="hata-yazi" id="gCH"></p></form>
+    <form id="gS" autocomplete="on"${salonIlk ? '' : ' hidden'}><label class="alan"><span>Kullanıcı adı</span><input class="girdi" name="k" autocomplete="username" autocapitalize="none" spellcheck="false" required></label><label class="alan"><span>Şifre</span><input class="girdi" name="s" type="password" autocomplete="current-password" required></label><button class="dg ana tam buyuk" type="submit">Giriş yap</button><p class="hata-yazi" id="gSH"></p></form>
+    ${acik ? `<a class="dg sade kucuk" href="${href('/yonetim')}" data-git="/yonetim">Yönetici paneline devam ${ikon('sag', 'kk')}</a>` : ''}
+    ${imza()}</div></div>`;
+  const aciklama = { cift: 'Salonunuzun verdiği düğün kodunu yazın, ardından 6 haneli PIN’inizi girin.', salon: 'Salonunuza verilen kullanıcı adı ve şifreyle girin.' };
+  const sec = (v) => { $$('#gT button').forEach((b) => b.classList.toggle('on', b.dataset.v === v)); $('#gC').hidden = v !== 'cift'; $('#gS').hidden = v !== 'salon'; $('#gAc').textContent = aciklama[v]; };
+  sec(salonIlk ? 'salon' : 'cift');
+  $('#gT').onclick = (e) => { const b = e.target.closest('button'); if (b) sec(b.dataset.v); };
+  $('#gC').addEventListener('submit', (e) => { e.preventDefault(); const k = kodTemizle(new FormData(e.target).get('kod')); if (k) git('/d/' + k + '/plan'); else $('#gCH').textContent = 'Kodu kontrol edin; örneğin elif-can-4k7.'; });
+  $('#gS').addEventListener('submit', async (e) => {
+    e.preventDefault(); const f = new FormData(e.target), b = e.target.querySelector('button'), H = $('#gSH');
+    const k = String(f.get('k') || '').trim().toLowerCase(), sf = String(f.get('s') || '');
+    H.textContent = ''; b.disabled = true; b.textContent = 'Giriş yapılıyor…';
+    try {
+      if (k === 'admin') { const r = await api.adminGiris(k, sf); depoYerel.koy(TK.yonetici, r.token); git('/yonetim'); return; }
+      const slug = C.slugla(k); if (!C.SLUG_RE.test(slug)) throw new Error('Kullanıcı adı ya da şifre hatalı.');
+      let r; try { r = await api.salonGiris(slug, sf); } catch (er) { if (er.durum === 404 || er.durum === 401) throw new Error('Kullanıcı adı ya da şifre hatalı.'); throw er; }
+      depoYerel.koy(TK.salon(slug), r.token); git('/salon/' + slug + '/yonetim');
+    } catch (er) { H.textContent = er.message; b.disabled = false; b.textContent = 'Giriş yap'; }
+  });
+  if (!matchMedia('(pointer:coarse)').matches) (salonIlk ? $('#gS [name=k]') : $('#gC [name=kod]')).focus();
 }
 
 // ---------------------------------------------------------------- demo merkezi

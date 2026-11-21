@@ -2,7 +2,7 @@
 // isle(I, O) → { durum, veri | ham, basliklar }
 //   I: { yontem, yol, sorgu: URLSearchParams, baslik(k), govde, ip }
 //   O: { depo(), kripto (WebCrypto), simdi(), adminDogrula?(token), gorselUrl(slug, tur, surum) }
-import * as C from './cekirdek.js?v=2026-11-21-e';
+import * as C from './cekirdek.js?v=2026-11-21-f';
 
 const GUN = 864e5;
 const yanit = (veri, durum = 200, basliklar = {}) => ({ durum, veri, basliklar });
@@ -136,7 +136,8 @@ async function salonGenel(O, s, tam = false) {
   };
   return g;
 }
-const salonYonetici = (s) => ({ ...s, giris: !!s.giris });
+/** Yönetici görünümü: giriş özeti gizli kalır; salon şifresi yalnız yöneticiye, şifreli kopyasından açılarak gösterilir */
+const salonYonetici = async (O, s) => ({ ...s, giris: !!s.giris, girisSifre: s.giris?.sifreli ? await coz(O, s.giris.sifreli) : '' });
 
 // ---------------------------------------------------------------- kimlik
 async function kimlik(I, O) {
@@ -286,7 +287,7 @@ export async function isle(I, O) {
       const s = await salonAl(O, y[1]); if (!s) return hata('Salon bulunamadı.', 404);
       if (k.rol === 'salon' && k.salon !== s.slug) return hata(OTURUM, 401);
       const dugunler = await idxListe(O, `idx/${s.slug}/`);
-      return yanit({ salon: k.rol === 'yonetici' ? { ...salonYonetici(s), tema: (await salonGenel(O, s)).tema, temaHam: s.tema } : await salonGenel(O, s, true), dugunler, rol: k.rol });
+      return yanit({ salon: k.rol === 'yonetici' ? { ...(await salonYonetici(O, s)), tema: (await salonGenel(O, s)).tema, temaHam: s.tema } : await salonGenel(O, s, true), dugunler, rol: k.rol });
     }
     if (m === 'POST' && y[0] === 'dugun' && !y[1]) {
       const s = await salonAl(O, b.salon); if (!s) return hata('Salon bulunamadı.', 404);
@@ -302,11 +303,20 @@ export async function isle(I, O) {
       await dugunYaz(O, d);
       return yanit({ kod, pin, ozet: C.ozetCikar(d) });
     }
+    // salon kendi şifresini değiştirir (mevcut şifreyi bilmesi gerekir); yeni oturum anahtarı döner
+    if (m === 'POST' && y[0] === 'salon' && y[2] === 'sifre' && k.rol === 'salon') {
+      const s = await salonAl(O, y[1]); if (!s || k.salon !== s.slug || !s.giris) return hata(OTURUM, 401);
+      if (!esit(await pbkdf(O, b.eski ?? '', s.giris.tuz), s.giris.hash)) return hata('Mevcut şifre hatalı.');
+      const sf = String(b.yeni ?? ''); if (sf.length < 6) return hata('Yeni şifre en az 6 karakter olmalı.');
+      const tuz = C.rastgele(16), pv = (s.giris.pv || 0) + 1; s.giris = { tuz, hash: await pbkdf(O, sf, tuz), pv, sifreli: await sifrele(O, sf) };
+      await st.setJSON('salon/' + s.slug, s);
+      return yanit({ token: await imzala(O, { r: 's', s: s.slug, pv, exp: simdi + 30 * GUN }) });
+    }
     if (k.rol !== 'yonetici') return hata('Bu işlem için yetkiniz yok.', 403);
     if (m === 'GET' && y[0] === 'yonetim') {
       const { blobs } = await st.list({ prefix: 'salon/' });
       const S = (await Promise.all(blobs.map((x) => st.get(x.key, { type: 'json' })))).filter(Boolean);
-      const salonlar = await Promise.all(S.map(async (s) => ({ ...salonYonetici(s), tema: (await salonGenel(O, s)).tema, temaHam: s.tema })));
+      const salonlar = await Promise.all(S.map(async (s) => ({ ...(await salonYonetici(O, s)), tema: (await salonGenel(O, s)).tema, temaHam: s.tema })));
       return yanit({ salonlar: salonlar.sort((a, b) => a.ad.localeCompare(b.ad, 'tr')), dugunler: await idxListe(O, 'idx/') });
     }
     if (m === 'GET' && y[0] === 'istat') {
@@ -321,7 +331,7 @@ export async function isle(I, O) {
       if (m === 'PUT') {
         if (b.yeni && eski) return hata('Bu adres başka bir salonda kullanılıyor, başka bir adres seçin.');
         const s = temizSalon(slug, b, eski); await st.setJSON('salon/' + slug, s);
-        return yanit({ salon: { ...salonYonetici(s), tema: (await salonGenel(O, s)).tema, temaHam: s.tema } });
+        return yanit({ salon: { ...(await salonYonetici(O, s)), tema: (await salonGenel(O, s)).tema, temaHam: s.tema } });
       }
       if (m === 'DELETE') {
         if (!eski) return yanit({ tamam: true });
@@ -335,8 +345,8 @@ export async function isle(I, O) {
     if (m === 'POST' && y[0] === 'salon' && y[2] === 'sifre') {
       const s = await salonAl(O, y[1]); if (!s) return hata('Salon bulunamadı.', 404);
       if (b.sifre == null || b.sifre === '') s.giris = null;
-      else { const sf = String(b.sifre); if (sf.length < 6) return hata('Salon şifresi en az 6 karakter olmalı.'); const tuz = C.rastgele(16); s.giris = { tuz, hash: await pbkdf(O, sf, tuz), pv: (s.giris?.pv || 0) + 1 }; }
-      await st.setJSON('salon/' + s.slug, s); return yanit({ giris: !!s.giris });
+      else { const sf = String(b.sifre); if (sf.length < 6) return hata('Salon şifresi en az 6 karakter olmalı.'); const tuz = C.rastgele(16); s.giris = { tuz, hash: await pbkdf(O, sf, tuz), pv: (s.giris?.pv || 0) + 1, sifreli: await sifrele(O, sf) }; }
+      await st.setJSON('salon/' + s.slug, s); return yanit({ giris: !!s.giris, girisSifre: s.giris ? String(b.sifre) : '' });
     }
     if (m === 'PUT' && y[0] === 'gorsel' && y.length === 3 && ['logo', 'kapak'].includes(y[2])) {
       const s = await salonAl(O, y[1]); if (!s) return hata('Önce salonu kaydedin.', 404);
@@ -345,7 +355,7 @@ export async function isle(I, O) {
       const key = `gorsel/${s.slug}/${y[2]}`;
       if (v) { await st.set(key, v); s.tema[y[2]] = (await sha(O, v)).slice(0, 10); } else { await st.delete(key); s.tema[y[2]] = ''; }
       await st.setJSON('salon/' + s.slug, s);
-      return yanit({ salon: { ...salonYonetici(s), tema: (await salonGenel(O, s)).tema, temaHam: s.tema } });
+      return yanit({ salon: { ...(await salonYonetici(O, s)), tema: (await salonGenel(O, s)).tema, temaHam: s.tema } });
     }
     return hata('Bulunamadı', 404);
   } catch (e) {

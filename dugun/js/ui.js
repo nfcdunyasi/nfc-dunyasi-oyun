@@ -1,5 +1,5 @@
 // Düğün Planla — ortak arayüz yardımcıları: ikonlar, çekmece, onay, bildirim, tema, QR, yönlendirme
-import { qrMatris } from '/yonetim/qr.js?v=2026-11-21-e';
+import { qrMatris } from '/yonetim/qr.js?v=2026-11-21-f';
 
 export const $ = (s, r = document) => r.querySelector(s);
 export const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -97,13 +97,16 @@ export function cekmece({ baslik = '', govde = '', alt = '', genis = false, onAc
   dl.innerHTML = `<div class="cekmece-bas"><i class="tut"></i><h2>${baslik}</h2><button class="dg ikon-d" type="button" data-kapat aria-label="Kapat">${ikon('carpi')}</button></div><div class="cekmece-govde">${govde}</div>${alt ? `<div class="cekmece-alt">${alt}</div>` : ''}`;
   document.body.appendChild(dl);
   let kapandi = false;
-  const kapat = (sonuc) => { if (kapandi) return; kapandi = true; acikCekmece = acikCekmece.filter((x) => x !== dl); try { dl.close(); } catch { /* */ } dl.remove(); onKapat && onKapat(sonuc); };
+  const g = dl.querySelector('.cekmece-govde');
+  // Gövdenin yüksekliği açıkça verilir: bazı Safari sürümleri esnek kutuda gövdeyi sıfıra indirip içeriği gizliyordu
+  const boyutla = () => { if (!dl.isConnected) return removeEventListener('resize', boyutla); const genis = matchMedia('(min-width: 720px)').matches, ust = Math.min(innerHeight * (genis ? 0.86 : 0.92), genis ? 860 : 900); const a = dl.querySelector('.cekmece-alt'); g.style.maxHeight = Math.max(120, Math.floor(ust - dl.querySelector('.cekmece-bas').offsetHeight - (a ? a.offsetHeight : 0))) + 'px'; };
+  const kapat = (sonuc) => { if (kapandi) return; kapandi = true; removeEventListener('resize', boyutla); acikCekmece = acikCekmece.filter((x) => x !== dl); try { dl.close(); } catch { /* */ } dl.remove(); onKapat && onKapat(sonuc); };
   dl.addEventListener('cancel', (e) => { e.preventDefault(); if (!kapatilamaz) kapat(); });
   dl.addEventListener('click', (e) => { if (e.target === dl && !kapatilamaz) kapat(); if (e.target.closest('[data-kapat]')) kapat(); });
   try { dl.showModal(); } catch { dl.setAttribute('open', ''); }
   acikCekmece.push(dl);
-  const g = dl.querySelector('.cekmece-govde');
-  if (!matchMedia('(pointer:coarse)').matches) setTimeout(() => { const f = g.querySelector('input:not([type=hidden]):not([type=checkbox]):not([readonly]),textarea'); f && f.focus(); }, 30);
+  boyutla(); addEventListener('resize', boyutla);
+  if (!matchMedia('(pointer:coarse)').matches) setTimeout(() => { const a = document.activeElement; if (a && dl.contains(a) && a.matches('input,textarea,select')) return; const f = g.querySelector('input:not([type=hidden]):not([type=checkbox]):not([readonly]),textarea'); f && f.focus(); }, 30);
   else dl.querySelector('[data-kapat]').blur();
   onAc && onAc(dl, kapat);
   return { el: dl, kapat };

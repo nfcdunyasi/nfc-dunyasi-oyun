@@ -3,8 +3,8 @@
 // parçaları (yuvarlak masa ve örtü, sandalye, halı, sarkıt lamba, duvar, çay bardağı...), oturma düzeni, kamera
 // sığdırma ve oyun kabuğu (HUD, kartlar, isim etiketleri, emoji tepkileri, WebGL yaşam döngüsü, 2D yedek görünüm).
 // Kurye Yarışı'nın küçük WebGL motorunu kullanır.
-import { _eng } from './kuryeYarisi.js?v=2026-11-21-e';
-import * as sfx from '../sfx.js?v=2026-11-21-e';
+import { _eng } from './kuryeYarisi.js?v=2026-11-21-f';
+import * as sfx from '../sfx.js?v=2026-11-21-f';
 
 const E = _eng();
 const { limb, ik2, psurf, ctx2d, podiumHTML, placeLabels, EmoteUI, KIT, drawToon, aoOn, detailOn, postFX, shadowBegin, shadowCast, shadowEnd, emitSoft, autoRes, clamp, lerp, damp, esc, hexRGB, C, shade, M, makeGL, MB, freeMesh, makeTexture, updateTexture, useProg, drawMesh, drawSky, drawDynamic, norm3, brandInfo, Res, Snd, pcol, vibrate, medal, ONE3, injectStyle } = E;

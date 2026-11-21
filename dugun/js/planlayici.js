@@ -1,9 +1,9 @@
 // Düğün Planla — çift paneli: özet, davetliler, oturma planı, görevler ve akış, paylaş/yazdır, ayarlar
-import * as C from './cekirdek.js?v=2026-11-21-e';
-import { api, Senkron, depoYerel, TK } from './api.js?v=2026-11-21-e';
-import { $, $$, esc, ikon, bildir, cekmece, onayla, temaUygula, qrSvg, kopyala, indir, href, git, SITE, paylasLink, zamanOnce, gecikmeli, waLink, ONIZLEME, sayiYaz } from './ui.js?v=2026-11-21-e';
-import { harita } from './harita.js?v=2026-11-21-e';
-import { yazdir, davetliCsv, csvOku, qrPng } from './yazdir.js?v=2026-11-21-e';
+import * as C from './cekirdek.js?v=2026-11-21-f';
+import { api, Senkron, depoYerel, TK } from './api.js?v=2026-11-21-f';
+import { $, $$, esc, ikon, bildir, cekmece, onayla, temaUygula, qrSvg, kopyala, indir, href, git, SITE, paylasLink, zamanOnce, gecikmeli, waLink, ONIZLEME, sayiYaz } from './ui.js?v=2026-11-21-f';
+import { harita } from './harita.js?v=2026-11-21-f';
+import { yazdir, davetliCsv, csvOku, qrPng } from './yazdir.js?v=2026-11-21-f';
 
 let S = null, SURUKLE = false;
 const D = () => S.sen.d;
@@ -347,6 +347,7 @@ function oturmaCiz(el, s) {
       <div id="oSecim"></div><div id="oAraSonuc"></div><div id="hrt"></div>
       <button class="tepsi" type="button" data-act="tepsi">${ikon('davetli', 'k')}<span>Masası olmayanlar</span><b id="oTepsi"></b><span class="bosluk"></span>${ikon('yukari', 'k')}</button>
       <aside class="yan-panel"><div class="kart sik" id="oOzet"></div><div class="kart sik"><div class="kart-bas" style="margin-bottom:10px"><h3>Masası olmayanlar</h3><span class="bosluk"></span><span class="rozet" id="oSay"></span></div><label class="arama" style="display:block;margin-bottom:10px">${ikon('ara', 'k')}<input class="girdi" id="oYAra" type="search" placeholder="Ara" autocomplete="off" style="min-height:38px"></label><div class="kaydir" id="oListe"></div></div></aside></div>`;
+    haritaBoyu();
     S.harita = harita($('#hrt', el), {
       plan: d.plan, mod: 'plan', bilgi: (m) => S._bilgi(m), vurgu: () => S.vurgu, ipucu: '',
       onMasa: (id) => masaDokun(id), onBos: () => { if (S.vurgu) { S.vurgu = null; S.harita.ciz(); } },
@@ -354,7 +355,7 @@ function oturmaCiz(el, s) {
     if (!SURUKLE) { SURUKLE = true; surukleBagla(el); }
     $('#oAra', el).addEventListener('input', (e) => araSonuc(e.target.value));
     $('#oYAra', el).addEventListener('input', () => yanListe());
-  } else S.harita.planDegis(d.plan);
+  } else { haritaBoyu(); S.harita.planDegis(d.plan); }
   const kisiM = masasiz.reduce((n, x) => n + x.kisi, 0);
   $('#oBilgi', el).innerHTML = `<b>${s.yerlesen}</b> / ${s.geliyor + s.bekliyor} kişi yerleşti · ${s.masa} masa · ${s.kapasite} kişilik`;
   $('#oTepsi', el).textContent = `${kisiM} kişi`;
@@ -362,6 +363,15 @@ function oturmaCiz(el, s) {
   $('#oSecim', el).innerHTML = sec ? `<div class="secim-bant"><span><b>${esc(sec.ad)}</b> (${sec.kisi} kişi) için bir masaya dokunun</span><button class="dg kucuk" data-act="secim-iptal">Vazgeç</button></div>` : '';
   $('#oOzet', el).innerHTML = `<div class="lejant"><span><i style="background:var(--gelin)"></i>Gelin tarafı</span><span><i style="background:var(--damat)"></i>Damat tarafı</span><span><i style="background:var(--ortak)"></i>Ortak</span></div><p class="kucuk-yazi" style="margin-top:10px">Davetliyi sürükleyip masaya bırakın ya da önce davetliye, sonra masaya tıklayın. Masaya tıklayınca o masadakileri görürsünüz.</p>`;
   yanListe();
+}
+/** Telefonda harita, planın en/boy oranı kadar yer kaplar; üstte altta boş şerit kalmaz (ekrandan da büyük olmaz) */
+let BOYU_DINLE = false;
+function haritaBoyu() {
+  const h = document.getElementById('hrt'); if (!h || !S) return;
+  if (!BOYU_DINLE) { BOYU_DINLE = true; addEventListener('resize', haritaBoyu); }
+  if (innerWidth >= 1000) { h.style.height = ''; return; }
+  const p = D().plan, oran = (p.boy + 3.2) / (p.en + 3.2);
+  h.style.height = Math.round(Math.max(300, h.clientWidth * oran)) + 'px';
 }
 function yanListe() {
   const el = $('#oListe'); if (!el) return;
@@ -399,8 +409,8 @@ function masaSayfasi(mid) {
   const gelmeyen = d.davetliler.filter((x) => x.masa === mid && !C.aktifMi(x));
   const et = Object.entries(t?.etiket || {}).map(([k, n]) => `${ETIKET_AD[k]} (${n})`).join(' · ');
   const c = cekmece({
-    baslik: `<div class="masa-bas"><span class="no">${m.ozel === 'gelin-damat' ? 'G&D' : m.no}</span><div style="min-width:0"><div class="bas-ad">${esc(C.masaEtiket(d, m))}${C.masaAdi(d, m) && m.ozel !== 'gelin-damat' ? ` · ${esc(C.masaAdi(d, m))}` : ''}</div><div class="bas-alt">${t?.kisi || 0}\u00a0/\u00a0${m.kap}\u00a0kişi${m.ek ? ` · +${m.ek}\u00a0ek\u00a0sandalye` : ''}${uz != null ? ` · sahneye\u00a0${String(uz.toFixed(1)).replace('.', ',')}\u00a0m` : ''}</div></div></div>`,
-    govde: `<div class="yigin">${yer ? `<p class="kucuk-yazi">${esc(yer)}${t?.cocuk ? ` · ${t.cocuk} çocuk` : ''}${et ? ' · ' + esc(et) : ''}</p>` : ''}
+    baslik: `<div class="masa-bas"><span class="no">${m.ozel === 'gelin-damat' ? 'G&D' : m.no}</span><div style="min-width:0"><div class="bas-ad">${esc(C.masaEtiket(d, m))}${C.masaAdi(d, m) && m.ozel !== 'gelin-damat' ? ` · ${esc(C.masaAdi(d, m))}` : ''}</div><div class="bas-alt">${t?.kisi || 0}\u00a0/\u00a0${m.kap}\u00a0kişi${m.ek ? ` · +${m.ek}\u00a0ek\u00a0sandalye` : ''}</div></div></div>`,
+    govde: `<div class="yigin">${yer || uz != null ? `<p class="kucuk-yazi">${esc([yer, uz != null ? `sahneye ${String(uz.toFixed(1)).replace('.', ',')} m` : ''].filter(Boolean).join(' · '))}${t?.cocuk ? ` · ${t.cocuk} çocuk` : ''}${et ? ' · ' + esc(et) : ''}</p>` : ''}
       ${L.length ? `<div class="liste">${L.map((x) => `<div class="satir"><i class="nokta" style="background:var(--${x.taraf})"></i><button class="ana" type="button" data-m="davetli" data-id="${x.id}" style="background:none;border:0;padding:0;text-align:left;cursor:pointer;color:inherit;font:inherit"><b>${esc(x.ad)}</b><small>${esc(x.grup || 'Grupsuz')} · ${x.kisi} kişi${x.durum === 'bekliyor' ? ' · yanıt bekleniyor' : ''}</small></button><button class="dg sade kucuk" type="button" data-m="tasi" data-id="${x.id}">Taşı</button><button class="dg ikon-d" type="button" data-m="cikar" data-id="${x.id}" aria-label="Masadan çıkar">${ikon('carpi', 'k')}</button></div>`).join('')}</div>` : '<p class="soluk">Bu masa boş.</p>'}
       ${gelmeyen.length ? `<div class="uyari-kutu">${ikon('uyari', 'k')}<span>${gelmeyen.map((x) => esc(x.ad)).join(', ')} gelmeyeceğini bildirdi ama bu masada görünüyor. <button class="dg sade kucuk" data-m="gelmeyen-cikar">Çıkar</button></span></div>` : ''}
       <button class="dg cizgili" type="button" data-m="ekle">${ikon('arti', 'k')} Bu masaya davetli ekle</button>

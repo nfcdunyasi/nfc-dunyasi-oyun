@@ -1,8 +1,8 @@
 // Düğün Planla — arka uç erişimi. Gerçek sitede /dugun-api (Netlify fonksiyonu); demoda aynı sunucu kodu tarayıcıda, bellek deposuyla çalışır.
-import * as C from './cekirdek.js?v=2026-11-21-e';
-import { isle, demoPin } from './sunucu.js?v=2026-11-21-e';
-import { davetliUret, DEMO_SALON, demoAlanlar } from './demo.js?v=2026-11-21-e';
-import { bekle, gecikmeli } from './ui.js?v=2026-11-21-e';
+import * as C from './cekirdek.js?v=2026-11-21-f';
+import { isle, demoPin } from './sunucu.js?v=2026-11-21-f';
+import { davetliUret, DEMO_SALON, demoAlanlar } from './demo.js?v=2026-11-21-f';
+import { bekle, gecikmeli } from './ui.js?v=2026-11-21-f';
 
 let DEMO = false;
 const BELLEK = new Map();
@@ -23,8 +23,8 @@ class DemoDepo {
   async delete(k) { this.m.delete(k); this.yaz(); }
   async list({ prefix = '' } = {}) { return { blobs: [...this.m.keys()].filter((k) => k.startsWith(prefix)).map((key) => ({ key })) }; }
 }
-const DEMO_SURUM = 'dp-demo-5';
-try { localStorage.removeItem('dp-demo-4'); } catch { /* */ }
+const DEMO_SURUM = 'dp-demo-6';
+try { localStorage.removeItem('dp-demo-4'); localStorage.removeItem('dp-demo-5'); } catch { /* */ }
 const cumartesi = (g) => { let t = g; while (new Date(t + 'T12:00:00Z').getUTCDay() !== 6) t = C.gunEkle(t, 1); return t; };
 let demoDepo = null;
 const demoO = () => ({ demo: true, depo: () => demoDepo, kripto: crypto, simdi: () => Date.now(), adminDogrula: async (t) => t === 'demo-yonetici', gorselUrl: async (slug, tur) => (await demoDepo.get(`gorsel/${slug}/${tur}`)) || '' });
@@ -108,6 +108,7 @@ export const api = {
   salonKaydet: (s, b, t) => istek('PUT', `salon/${encodeURIComponent(s)}`, b, t),
   salonSil: (s, hepsi, t) => istek('DELETE', `salon/${encodeURIComponent(s)}${hepsi ? '?hepsi=1' : ''}`, null, t),
   salonSifre: (s, sifre, t) => istek('POST', `salon/${encodeURIComponent(s)}/sifre`, { sifre }, t),
+  salonSifreDegis: (s, eski, yeni, t) => istek('POST', `salon/${encodeURIComponent(s)}/sifre`, { eski, yeni }, t),
   gorsel: (s, tur, veri, t) => istek('PUT', `gorsel/${encodeURIComponent(s)}/${tur}`, { veri }, t),
   async adminGiris(kullanici, sifre) {
     if (DEMO) return { token: 'demo-yonetici' };

@@ -1,5 +1,5 @@
-import { esc } from '../ui.js?v=2026-11-21-e';
-import { act, btn, hostOr, center, scoreList, countdown, keepInput } from './_kit.js?v=2026-11-21-e';
+import { esc } from '../ui.js?v=2026-11-21-f';
+import { act, btn, hostOr, center, scoreList, countdown, keepInput } from './_kit.js?v=2026-11-21-f';
 
 let tick = null;
 export function destroy() { clearInterval(tick); tick = null; }

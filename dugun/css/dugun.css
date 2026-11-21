@@ -195,7 +195,9 @@ dialog.cekmece[open] { animation: yukari .28s cubic-bezier(.2, .8, .2, 1); }
 .cekmece-bas [data-kapat].ikon-d .ikon { width: 14px; height: 14px; stroke-width: 2.6; }
 .cekmece-bas .tut { position: absolute; top: 6px; left: calc(50% - 18px); width: 36px; height: 5px; border-radius: 5px; background: var(--cizgi2); }
 @media (min-width: 720px) { .cekmece-bas .tut { display: none; } }
-.cekmece-govde { padding: 6px 20px 22px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; flex: 1; }
+.cekmece-bas, .cekmece-alt { flex: none; }
+/* Safari'de flex:1 (0 taban) gövdeyi sıfır yüksekliğe indiriyordu: içerik kadar yer alır, sığmazsa küçülüp kayar */
+.cekmece-govde { padding: 6px 20px 22px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; flex: 0 1 auto; min-height: 0; }
 .cekmece-alt { display: flex; gap: 10px; padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px)); border-top: .5px solid var(--cizgi2); background: var(--yuzey); flex-wrap: wrap; }
 .cekmece-alt .dg { flex: 1 1 0; }
 .cekmece-alt .dg.sade, .cekmece-alt .dg.tehlike { flex: 0 0 auto; }
@@ -242,6 +244,8 @@ dialog.cekmece[open] { animation: yukari .28s cubic-bezier(.2, .8, .2, 1); }
 /* ---------- harita ---------- */
 .harita { position: relative; overflow: hidden; touch-action: none; background: var(--yuzey); border-radius: var(--r); user-select: none; -webkit-user-select: none; }
 .harita svg { display: block; width: 100%; height: 100%; }
+/* Plan metre ölçeğinde çizilir: sayfanın harf aralığı (px) SVG'ye geçerse iPhone'da rakamlar üst üste biner */
+svg { letter-spacing: 0; word-spacing: 0; }
 .harita-arac { position: absolute; display: flex; flex-direction: column; right: 10px; top: 10px; z-index: 2; border-radius: 10px; overflow: hidden; background: color-mix(in srgb, var(--yuzey) 92%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: 0 1px 6px rgb(0 0 0 / .14); }
 .harita-arac button { width: 40px; height: 40px; display: grid; place-items: center; border: 0; border-top: .5px solid var(--cizgi2); background: none; color: var(--yazi); cursor: pointer; }
 .harita-arac button:first-child { border-top: 0; }
@@ -292,7 +296,7 @@ dialog.cekmece[open] { animation: yukari .28s cubic-bezier(.2, .8, .2, 1); }
 
 /* ---------- masalar görünümü ---------- */
 .oturma { display: grid; gap: 12px; }
-.oturma .harita { height: calc(100dvh - var(--ust-y) - var(--alt-y) - 160px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); min-height: 320px; }
+.oturma .harita { height: calc(100dvh - var(--ust-y) - var(--alt-y) - 160px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); max-height: calc(100dvh - var(--ust-y) - var(--alt-y) - 160px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); min-height: 300px; }
 .oturma-ust { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .oturma-ust .bilgi { flex: 1 0 100%; font-size: 15px; color: var(--soluk); }
 .oturma-ust .bilgi b { color: var(--yazi); font-weight: 600; }
@@ -307,7 +311,7 @@ dialog.cekmece[open] { animation: yukari .28s cubic-bezier(.2, .8, .2, 1); }
 .tepsi .bosluk { flex: 1; }
 .tepsi > .ikon:last-child { color: var(--silik); }
 .yan-panel { display: none; }
-@media (min-width: 1000px) { .oturma .harita { height: calc(100dvh - 200px); } }
+@media (min-width: 1000px) { .oturma .harita { height: calc(100dvh - 200px); max-height: none; } }
 @media (min-width: 1200px) {
   .oturma { grid-template-columns: minmax(0, 1fr) 320px; align-items: start; }
   .oturma .harita { height: calc(100dvh - 140px); grid-row: span 2; }
@@ -649,3 +653,13 @@ button.kart.bos { border: 1.5px dashed var(--cizgi2); background: transparent; c
 .y-plan .m-zemin { fill: #fff; } .y-plan .m-sandalye.dolu { fill: #555; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* ---------- giriş bilgileri listesi (salon hesabı) ---------- */
+.bilgi-liste { display: grid; border-radius: 12px; background: var(--yuzey2); margin-bottom: 12px; overflow: hidden; }
+.bilgi-liste > div { display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 14px; min-height: 48px; }
+.bilgi-liste > div + div { border-top: .5px solid var(--cizgi2); }
+.bilgi-liste span { flex: none; width: 108px; color: var(--soluk); font-size: 14px; }
+.bilgi-liste b { flex: 1; min-width: 0; font-weight: 600; font-size: 15.5px; overflow-wrap: anywhere; user-select: all; -webkit-user-select: all; }
+.bilgi-liste .ikon-d { flex: none; color: var(--vurgu); }
+@media (max-width: 400px) { .bilgi-liste span { width: 92px; font-size: 13px; } }
+.giris-kart .segment button { min-height: 36px; font-size: 15px; }
