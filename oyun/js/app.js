@@ -1,8 +1,8 @@
-import * as sfx from './sfx.js?v=2026-11-24-a';
-import { $, esc, toast, vibrate, fmtTime } from './ui.js?v=2026-11-24-a';
-import { gameRenderers } from './games/index.js?v=2026-11-24-a';
-import { THEMES, THEME_VARS } from './themes.js?v=2026-11-24-a';
-import { yonOyun, YATAY, YON_IKON } from './yon.js?v=2026-11-24-a';
+import * as sfx from './sfx.js?v=2026-11-24-b';
+import { $, esc, toast, vibrate, fmtTime } from './ui.js?v=2026-11-24-b';
+import { gameRenderers } from './games/index.js?v=2026-11-24-b';
+import { THEMES, THEME_VARS } from './themes.js?v=2026-11-24-b';
+import { yonOyun, YATAY, YON_IKON } from './yon.js?v=2026-11-24-b';
 
 const SESSION_KEY = 'nfcd:session';
 const NICK_KEY = 'nfcd:nick';

@@ -4,8 +4,8 @@
 // "?" yazan arkası masaya dönük, seçim gizli). Açılışta herkes kartını aynı anda kaldırıp çevirir: harfler (A B C D)
 // görünür, doğru cevap büyük bir afişte çıkar, emoji yüzü sevinir ya da şaşırır, bilenlerin başında puan çıkar. Sonda ilk
 // üç kişi madalya kartını kaldırır, birincinin önünde kupa. Masa kiti (masa3d.js) ile çizilir; WebGL yoksa 2D görünüm.
-import { _masa } from './masa3d.js?v=2026-11-24-a';
-import * as sfx from '../sfx.js?v=2026-11-24-a';
+import { _masa } from './masa3d.js?v=2026-11-24-b';
+import * as sfx from '../sfx.js?v=2026-11-24-b';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs } = K;

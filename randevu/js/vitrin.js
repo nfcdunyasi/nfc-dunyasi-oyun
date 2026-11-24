@@ -1,8 +1,8 @@
 // Randevu Vaktim — vitrin (ana sayfa): listedeki tüm işletmeler. Arama (işletme, hizmet, ürün, semt), kategori sekmeleri,
 // şehir ve sıralama. Yönetici girişi sağ üst köşede küçük bir düğme. Veri: /randevu-api/dizin (tek kayıt, önbellekli).
-import * as C from './cekirdek.js?v=2026-11-24-a';
-import { api, ONIZLEME, demoSifirla } from './api.js?v=2026-11-24-a';
-import { $, $$, esc, ikon, markaIkon, href, sorgu, temaUygula, URUN_TEMA, metaRobots, yukleniyor, hataKutu, turIkon, kapakStil, logo, fiyatAralik, gecikmeli } from './rui.js?v=2026-11-24-a';
+import * as C from './cekirdek.js?v=2026-11-24-b';
+import { api, ONIZLEME, demoSifirla } from './api.js?v=2026-11-24-b';
+import { $, $$, esc, ikon, markaIkon, href, sorgu, temaUygula, URUN_TEMA, metaRobots, yukleniyor, hataKutu, turIkon, kapakStil, logo, fiyatAralik, gecikmeli } from './rui.js?v=2026-11-24-b';
 
 const KOK = () => $('#uygulama');
 let V = null; // { L, fark, t }

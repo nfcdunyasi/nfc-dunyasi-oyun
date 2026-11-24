@@ -2,10 +2,10 @@
 //   /randevu                      vitrin: işletmeler, arama, kategoriler   /randevu/giris   usta, işletme ve NFC Dünyası girişi
 //   /randevu/<işletme>            randevu al (temalı)        /randevu/<işletme>/r/<kod> randevu durumu (ödeme, onay)
 //   /randevu/panel/...            usta / işletme paneli      /randevu/yonetim/...      NFC Dünyası yönetici paneli
-import { api, yerel, TK, ONIZLEME } from './api.js?v=2026-11-24-a';
-import { $, markaIkon, git, href, yol, cizKur, temaUygula, URUN_TEMA, metaRobots } from './rui.js?v=2026-11-24-a';
-import * as M from './musteri.js?v=2026-11-24-a';
-import * as VT from './vitrin.js?v=2026-11-24-a';
+import { api, yerel, TK, ONIZLEME } from './api.js?v=2026-11-24-b';
+import { $, markaIkon, git, href, yol, cizKur, temaUygula, URUN_TEMA, metaRobots } from './rui.js?v=2026-11-24-b';
+import * as M from './musteri.js?v=2026-11-24-b';
+import * as VT from './vitrin.js?v=2026-11-24-b';
 
 const KOK = $('#uygulama');
 let panelM = null, yonetimM = null;
@@ -17,8 +17,8 @@ async function ciz() {
   const [, a, b, c] = P;
   if (!a) return VT.vitrin();
   if (a === 'giris') return girisSayfasi();
-  if (a === 'panel') { panelM = await import('./panel.js?v=2026-11-24-a'); return panelM.panel(P.slice(2)); }
-  if (a === 'yonetim') { yonetimM = await import('./yonetim.js?v=2026-11-24-a'); return yonetimM.yonetim(P.slice(2)); }
+  if (a === 'panel') { panelM = await import('./panel.js?v=2026-11-24-b'); return panelM.panel(P.slice(2)); }
+  if (a === 'yonetim') { yonetimM = await import('./yonetim.js?v=2026-11-24-b'); return yonetimM.yonetim(P.slice(2)); }
   if (b === 'r' && c) return M.durumSayfasi(a.toLowerCase(), c);
   return M.isletmeSayfasi(a.toLowerCase());
 }

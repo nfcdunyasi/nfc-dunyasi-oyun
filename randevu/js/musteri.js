@@ -1,13 +1,13 @@
 // Randevu Vaktim — müşteri tarafı (üyelik yok).
 // İşletme sayfası: kapak, kimlik, hizmetler (işletmenin kategorilerine göre), ekip, ürünler, çalışma saatleri ve kurallar.
 // Randevu: hizmet(ler) seç → kişi (ya da "fark etmez") → gün ve saat → ad ve telefon → IBAN'a ön ödeme ve "Ödeme yaptım" → işletme onayı.
-import * as C from './cekirdek.js?v=2026-11-24-a';
-import { galeriAc } from './galeri.js?v=2026-11-24-a';
-import { api, yerel } from './api.js?v=2026-11-24-a';
+import * as C from './cekirdek.js?v=2026-11-24-b';
+import { galeriAc } from './galeri.js?v=2026-11-24-b';
+import { api, yerel } from './api.js?v=2026-11-24-b';
 import {
   $, $$, esc, TL, ikon, bildir, onayla, cekmece, kopyala, waLink, git, href, sorgu, temaUygula, avatar, logo, durumRozet, saatAraligi, hizmetYazi, randevuNo,
   geriSayim, dkSn, takvimeEkle, yukleniyor, hataKutu, metaRobots, markaIkon, kapakStil, paylasLink,
-} from './rui.js?v=2026-11-24-a';
+} from './rui.js?v=2026-11-24-b';
 
 const KOK = () => $('#uygulama');
 let S = null; // { slug, isletme, fark, secim: { h: [], p: '', tarih: '', dk: null, atanan: '' }, takvim: { pid: { t, bas, gunler } }, ilk: { t, v } }

@@ -5,8 +5,8 @@
 // dedi. Sonra doğru damga havalanıp manşetin üstüne iner, kâğıda kocaman mürekkeple DOĞRU ya da YANLIŞ basılır; bilenler
 // sevinir, bilemeyenler başını tutar, başlarında puan çıkar. Üst üste bilenin başında alev yanar (seri bonusu).
 // Masa kiti (masa3d.js) ile çizilir; WebGL yoksa 2D görünüm.
-import { _masa } from './masa3d.js?v=2026-11-24-a';
-import * as sfx from '../sfx.js?v=2026-11-24-a';
+import { _masa } from './masa3d.js?v=2026-11-24-b';
+import * as sfx from '../sfx.js?v=2026-11-24-b';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs } = K;

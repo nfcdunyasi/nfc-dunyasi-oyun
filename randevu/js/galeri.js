@@ -1,5 +1,5 @@
 // Randevu Vaktim — fotoğraf görüntüleyici: tam ekran, kaydırarak / oklarla gezinme, alt yazı ve eylem düğmesi.
-import { ikon } from './rui.js?v=2026-11-24-a';
+import { ikon } from './rui.js?v=2026-11-24-b';
 
 /** L: [{foto, ...}], i: başlangıç; alt(x) → fotoğrafın altındaki HTML; bagla(el, x, kapat) → alt kısımdaki düğmeler */
 export function galeriAc(L, i = 0, { alt = () => '', bagla = null } = {}) {

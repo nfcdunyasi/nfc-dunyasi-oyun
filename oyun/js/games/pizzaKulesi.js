@@ -1,7 +1,7 @@
 // Pizza Kulesi — 3D pizza istifleme yarışı (NFC Dünyası Oyun)
 // Kurye Yarışı'nın küçük WebGL motorunu yeniden kullanır. Kule telefonda simüle edilir (herkes aynı tohumla aynı hızları görür);
 // sunucu her katı sayar ve sıralamayı tutar.
-import { _eng } from './kuryeYarisi.js?v=2026-11-24-a';
+import { _eng } from './kuryeYarisi.js?v=2026-11-24-b';
 const { ctx2d, podiumHTML, EmoteUI, aoOn, detailOn, postFX, shadowBegin, shadowCast, shadowEnd, emitSoft, autoRes, sfx, clamp, lerp, damp, esc, hexRGB, C, shade, M, makeGL, MB, freeMesh, drawMesh, drawDynamic, drawSky, useProg, TOD, norm3, brandInfo, Res, Snd, pcol, vibrate, medal, ONE3, injectStyle, makeTexture, updateTexture } = _eng();
 
 /* ============================ kurallar ============================ */

@@ -2,11 +2,11 @@
 // Tek girişle üç ürünün özeti: Okut ve Oyna (/api, işletmeler ve aylık ödemeler), Düğün Planla (/dugun-api, salonlar,
 // düğünler ve düğün başı ücret) ve Randevu Vaktim (/randevu-api, işletmeler, randevular ve aylık ücret).
 // Oturum anahtarı üç panelle ortaktır (localStorage 'yonetim-token').
-import { THEMES } from '/oyun/js/themes.js?v=2026-11-24-a';
-import { $, esc, ikon, markaIkon, bildir, onayla, TL, sayiYaz } from '/dugun/js/ui.js?v=2026-11-24-a';
-import * as C from '/dugun/js/cekirdek.js?v=2026-11-24-a';
-import * as U from '/dugun/js/ucret.js?v=2026-11-24-a';
-import * as RC from '/randevu/js/cekirdek.js?v=2026-11-24-a';
+import { THEMES } from '/oyun/js/themes.js?v=2026-11-24-b';
+import { $, esc, ikon, markaIkon, bildir, onayla, TL, sayiYaz } from '/dugun/js/ui.js?v=2026-11-24-b';
+import * as C from '/dugun/js/cekirdek.js?v=2026-11-24-b';
+import * as U from '/dugun/js/ucret.js?v=2026-11-24-b';
+import * as RC from '/randevu/js/cekirdek.js?v=2026-11-24-b';
 
 const ANAHTAR = 'yonetim-token';
 const kok = $('#uygulama');

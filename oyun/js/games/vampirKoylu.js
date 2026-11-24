@@ -4,8 +4,8 @@
 // Gündüz herkes şüphelendiğini parmağıyla gösterir (oklar masaya düşer), kısa sözler balon olur. Oylamada kovulan da
 // hayalete döner ve rolü açılır. Sonda vampirlerin yakası kalkar, gözleri parlar. Masa kiti (masa3d.js) ve Kurye Yarışı
 // motoruyla çizilir; WebGL yoksa 2D görünüm gösterilir.
-import { _masa } from './masa3d.js?v=2026-11-24-a';
-import * as sfx from '../sfx.js?v=2026-11-24-a';
+import { _masa } from './masa3d.js?v=2026-11-24-b';
+import * as sfx from '../sfx.js?v=2026-11-24-b';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs, HC, HR } = K;

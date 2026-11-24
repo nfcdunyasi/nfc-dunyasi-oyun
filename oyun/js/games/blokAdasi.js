@@ -1,9 +1,9 @@
 // Blok Adası — bloklardan bir ada: kaz, topla, inşa et (NFC Dünyası Oyun)
 // Herkes aynı dünyada. Dünya tohumdan üretilir (sunucuyla birebir aynı üretici), değişiklikler sunucudan akar.
 // Kendi küçük blok çizicisi (doku atlası, köşe gölgesi, su, bitkiler) + Kurye Yarışı motorunun karakter/gökyüzü araçları.
-import { _eng } from './kuryeYarisi.js?v=2026-11-24-a';
-import { _masa } from './masa3d.js?v=2026-11-24-a';
-import * as sfx from '../sfx.js?v=2026-11-24-a';
+import { _eng } from './kuryeYarisi.js?v=2026-11-24-b';
+import { _masa } from './masa3d.js?v=2026-11-24-b';
+import * as sfx from '../sfx.js?v=2026-11-24-b';
 const { EmoteUI, Snd, esc, pcol, vibrate, medal, injectStyle, clamp, lerp, damp, hexRGB, C, shade, M, makeGL, MB, freeMesh, drawMesh, drawSky, useProg, norm3, brandInfo, ONE3, autoRes, podiumHTML } = _eng();
 const { styleOf } = _masa();
 

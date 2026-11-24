@@ -2,7 +2,7 @@
 // Modeller: dugun (düğün başı), aylik (sabit), ikisi (aylık + düğün başı), yok.
 // Bir ayın hesabı = aylık sabit + o ay tarihli (ücrete dahil) düğün sayısı × düğün başı ücret.
 // Düğün başı ücret varsa hesap, düğünler bittikten sonra ertesi ayın ödeme gününde ödenir; yalnız aylık ücrette aynı ayın ödeme gününde.
-import * as C from './cekirdek.js?v=2026-11-24-a';
+import * as C from './cekirdek.js?v=2026-11-24-b';
 
 export const MODELLER = [['dugun', 'Düğün başı'], ['aylik', 'Aylık sabit'], ['ikisi', 'Aylık + düğün başı'], ['yok', 'Ücret yok']];
 export function modelAl(s) {

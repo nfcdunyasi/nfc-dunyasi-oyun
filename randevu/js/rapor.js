@@ -1,8 +1,8 @@
 // Randevu Vaktim — NFC Dünyası yönetimi raporları: tüm işletmelerin kazançları ve tek işletmenin istatistiği
 // (usta usta ciro, randevu, gelmeyen, iptal; hizmetler, günler, saatler, günlük ciro grafiği).
-import * as C from './cekirdek.js?v=2026-11-24-a';
-import { api } from './api.js?v=2026-11-24-a';
-import { $, esc, TL, ikon, avatar, logo, href, git, yukleniyor, hataKutu } from './rui.js?v=2026-11-24-a';
+import * as C from './cekirdek.js?v=2026-11-24-b';
+import { api } from './api.js?v=2026-11-24-b';
+import { $, esc, TL, ikon, avatar, logo, href, git, yukleniyor, hataKutu } from './rui.js?v=2026-11-24-b';
 
 const yuzde = (a, b) => (b ? Math.round((a / b) * 100) : 0);
 const ayGun = (ay) => { const [y, m] = ay.split('-').map(Number); return new Date(Date.UTC(y, m, 0)).getUTCDate(); };

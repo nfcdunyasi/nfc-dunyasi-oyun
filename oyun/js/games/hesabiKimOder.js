@@ -2,8 +2,8 @@
 // Herkes yuvarlak masada oturur; masanın ortasındaki çarkın oku döner, mandal çivilere çarptıkça tıkırdar.
 // Ok kimin dilimine durursa hesap kılıfı ona uçar, üstüne para yağar. Eleme modunda ok kimi gösterirse o kurtulur,
 // en son kalan öder. Masa kiti (masa3d.js) ve Kurye Yarışı motoruyla çizilir; WebGL yoksa 2D çark gösterilir.
-import { _masa } from './masa3d.js?v=2026-11-24-a';
-import * as sfx from '../sfx.js?v=2026-11-24-a';
+import { _masa } from './masa3d.js?v=2026-11-24-b';
+import * as sfx from '../sfx.js?v=2026-11-24-b';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs, mix3, rgbA, sst } = K;
