@@ -1,7 +1,8 @@
-import * as sfx from './sfx.js?v=2026-11-22-c';
-import { $, esc, toast, vibrate, fmtTime } from './ui.js?v=2026-11-22-c';
-import { gameRenderers } from './games/index.js?v=2026-11-22-c';
-import { THEMES, THEME_VARS } from './themes.js?v=2026-11-22-c';
+import * as sfx from './sfx.js?v=2026-11-24-a';
+import { $, esc, toast, vibrate, fmtTime } from './ui.js?v=2026-11-24-a';
+import { gameRenderers } from './games/index.js?v=2026-11-24-a';
+import { THEMES, THEME_VARS } from './themes.js?v=2026-11-24-a';
+import { yonOyun, YATAY, YON_IKON } from './yon.js?v=2026-11-24-a';
 
 const SESSION_KEY = 'nfcd:session';
 const NICK_KEY = 'nfcd:nick';
@@ -292,6 +293,8 @@ function render() {
     updateGame();
   }
   renderTimer();
+  // ekran yönü: oyunun gerektirdiği yönde tutulmayan telefonda "çevirin" uyarısı (bkz. yon.js)
+  yonOyun(next.startsWith('game:') ? state.room.gameId : null, next.startsWith('game:') ? gameMeta(state.room.gameId) : null);
 }
 
 /* ======================= Ses düğmeleri ======================= */
@@ -489,7 +492,7 @@ function gameCard(g) {
       <span class="gemo" aria-hidden="true">${g.emoji}</span>
       <span class="mt-2 text-lg font-extrabold leading-tight">${esc(g.name)}</span>
       <span class="gdesc mt-1 text-xs font-medium leading-snug text-murekkep/75">${esc(g.description)}</span>
-      <span class="mt-auto pt-2 text-xs font-extrabold">${!g.ready ? 'Yakında' : short ? `En az ${g.minPlayers} kişi` : tooMany ? `Sadece ${g.maxPlayers} kişilik` : g.minPlayers === g.maxPlayers ? `${g.minPlayers} kişi` : `${g.minPlayers}-${g.maxPlayers} kişi`}</span>
+      <span class="mt-auto pt-2 text-xs font-extrabold">${!g.ready ? 'Yakında' : short ? `En az ${g.minPlayers} kişi` : tooMany ? `Sadece ${g.maxPlayers} kişilik` : g.minPlayers === g.maxPlayers ? `${g.minPlayers} kişi` : `${g.minPlayers}-${g.maxPlayers} kişi`}${YATAY.has(g.id) ? `<span class="gyon" title="Telefon yan çevrilerek oynanır">${YON_IKON}Yatay</span>` : ''}</span>
     </button>`;
 }
 

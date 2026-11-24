@@ -1,6 +1,6 @@
 // Düğün Planla — salon kat planı (SVG, metre ölçeğinde): çizim, kaydırma/yakınlaştırma, dokunma, sürükleme
-import { OGELER, sahneOf } from './cekirdek.js?v=2026-11-22-c';
-import { esc } from './ui.js?v=2026-11-22-c';
+import { OGELER, sahneOf } from './cekirdek.js?v=2026-11-24-a';
+import { esc } from './ui.js?v=2026-11-24-a';
 
 const OGE_AD = Object.fromEntries(OGELER);
 let SAY = 0;

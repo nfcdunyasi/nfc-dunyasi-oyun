@@ -1,14 +1,14 @@
 // Randevu Vaktim — NFC Dünyası yönetici paneli (yalnız sizin hesabınız: Okut ve Oyna ve Düğün Planla ile aynı giriş).
 // İşletmeler, temalar, hizmetler, ustalar ve giriş hesapları, randevu kuralları, aylık ücret ve ödemeler, bağlantı ve QR.
-import * as C from './cekirdek.js?v=2026-11-22-c';
-import { api, yerel, TK } from './api.js?v=2026-11-22-c';
+import * as C from './cekirdek.js?v=2026-11-24-a';
+import { api, yerel, TK } from './api.js?v=2026-11-24-a';
 import {
   $, $$, esc, TL, sayiYaz, ikon, markaIkon, bildir, cekmece, onayla, kopyala, waLink, git, href, temaUygula, URUN_TEMA, avatar, logo, yukleniyor, hataKutu,
   metaRobots, paylasLink, qrSvg, indir, gorselSec, zamanOnce, durumRozet, saatAraligi, hizmetYazi, ONIZLEME,
-} from './rui.js?v=2026-11-22-c';
-import { haftaDuzenleyici } from './panel.js?v=2026-11-22-c';
-import * as D from './duzen.js?v=2026-11-22-c';
-import * as RP from './rapor.js?v=2026-11-22-c';
+} from './rui.js?v=2026-11-24-a';
+import { haftaDuzenleyici } from './panel.js?v=2026-11-24-a';
+import * as D from './duzen.js?v=2026-11-24-a';
+import * as RP from './rapor.js?v=2026-11-24-a';
 
 let Y = null; // { token, v, E (düzenlenen kopya), kirli }
 let koruma = null;

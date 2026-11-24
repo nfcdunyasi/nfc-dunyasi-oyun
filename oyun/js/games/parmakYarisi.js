@@ -3,8 +3,8 @@
 // yeşile dönünce düğmeye durmadan basılır: her basış arabayı biraz ileri iter, 50. basışta araba bitiş çizgisini geçer ve
 // paraşütünü açar. Bitiş süresini bu cihaz ölçer (yeşilin çizildiği an → son basış). Basışlar toplu gönderilir.
 // Masa kiti (masa3d.js) ve Kurye Yarışı motoruyla çizilir; WebGL yoksa 2D görünüm gösterilir.
-import { _masa } from './masa3d.js?v=2026-11-22-c';
-import * as sfx from '../sfx.js?v=2026-11-22-c';
+import { _masa } from './masa3d.js?v=2026-11-24-a';
+import * as sfx from '../sfx.js?v=2026-11-24-a';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs, sst, trophyModel } = K;

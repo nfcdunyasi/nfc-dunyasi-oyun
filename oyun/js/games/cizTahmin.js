@@ -4,8 +4,8 @@
 // belirir, çizen karakter elindeki kalemle tahtayı gösterir. Süre ilerledikçe birkaç harf açılır; çok yaklaşan tahmine
 // "çok yakın" denir. Tur bitince kelime damga gibi sayfaya basılır ve sayfa tahtanın üstünden arkaya çevrilir.
 // Masa kiti (masa3d.js) ve Kurye Yarışı motoruyla çizilir; WebGL yoksa 2D görünümde aynı tahtaya çizilir.
-import { _masa } from './masa3d.js?v=2026-11-22-c';
-import * as sfx from '../sfx.js?v=2026-11-22-c';
+import { _masa } from './masa3d.js?v=2026-11-24-a';
+import * as sfx from '../sfx.js?v=2026-11-24-a';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs, trophyModel, xfP } = K;

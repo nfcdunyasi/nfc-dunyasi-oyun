@@ -46,7 +46,7 @@ export function demoSifirla() { try { localStorage.removeItem('rv-demo-4'); for 
 export async function istek(yontem, yol, govde = null, token = '') {
   if (DEMO) {
     // sunucu kodu yalnız önizlemede indirilir; gerçek sitede tarayıcıya gelmez
-    const { isle } = await import('./sunucu.js?v=2026-11-22-c');
+    const { isle } = await import('./sunucu.js?v=2026-11-24-a');
     const [p, q] = yol.split('?');
     const r = await isle({ yontem, yol: p, sorgu: new URLSearchParams(q || ''), baslik: (k) => (k === 'authorization' && token ? 'Bearer ' + token : null), govde: govde ? JSON.parse(JSON.stringify(govde)) : null, ip: 'onizleme' }, demoKur());
     await new Promise((ok) => setTimeout(ok, 90));

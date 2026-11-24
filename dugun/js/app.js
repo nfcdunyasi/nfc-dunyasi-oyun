@@ -1,9 +1,9 @@
 // Düğün Planla — giriş noktası: yönlendirme, tanıtım sayfası, salon sayfası, çift girişi, demo
-import * as C from './cekirdek.js?v=2026-11-22-c';
-import { api, depoYerel, TK } from './api.js?v=2026-11-22-c';
-import { $, $$, esc, ikon, markaIkon, bildir, yol, git, href, demoYol, temaUygula, temaSifirla, cekmeceKapatHepsi, ayrilmaKoy, onayla, ONIZLEME } from './ui.js?v=2026-11-22-c';
-import { davetliAc, logoHtml, imza, hataSayfasi } from './davetli.js?v=2026-11-22-c';
-import { planSvg } from './harita.js?v=2026-11-22-c';
+import * as C from './cekirdek.js?v=2026-11-24-a';
+import { api, depoYerel, TK } from './api.js?v=2026-11-24-a';
+import { $, $$, esc, ikon, markaIkon, bildir, yol, git, href, demoYol, temaUygula, temaSifirla, cekmeceKapatHepsi, ayrilmaKoy, onayla, ONIZLEME } from './ui.js?v=2026-11-24-a';
+import { davetliAc, logoHtml, imza, hataSayfasi } from './davetli.js?v=2026-11-24-a';
+import { planSvg } from './harita.js?v=2026-11-24-a';
 
 const kok = document.getElementById('uygulama');
 const WA = 'https://wa.me/905432250512?text=' + encodeURIComponent('Merhaba, salonumuz için Düğün Planla hakkında bilgi almak istiyorum.');
@@ -29,9 +29,9 @@ async function yonlendir(zorla = false) {
   if (aktifPlan) { aktifPlan.ctl.kapat(); aktifPlan = null; }
   ayrilmaKoy(null); window.scrollTo(0, 0); document.title = 'Düğün Planla · NFC Dünyası';
   if (P[0] === 'd' && P[1]) { temaSifirla(); return davetliAc(kok, P[1].toLowerCase()); }
-  if (P[0] === 'salon' && P[1] && P[2] === 'yonetim') { const { yonetimAc } = await import('./yonetim.js?v=2026-11-22-c'); return yonetimAc(kok, { rol: 'salon', slug: P[1].toLowerCase(), alt: P.slice(3).join('/') }); }
+  if (P[0] === 'salon' && P[1] && P[2] === 'yonetim') { const { yonetimAc } = await import('./yonetim.js?v=2026-11-24-a'); return yonetimAc(kok, { rol: 'salon', slug: P[1].toLowerCase(), alt: P.slice(3).join('/') }); }
   if (P[0] === 'salon' && P[1]) return salonSayfasi(P[1].toLowerCase());
-  if (P[0] === 'yonetim') { const { yonetimAc } = await import('./yonetim.js?v=2026-11-22-c'); return yonetimAc(kok, { rol: 'yonetici', alt: P.slice(1).join('/') }); }
+  if (P[0] === 'yonetim') { const { yonetimAc } = await import('./yonetim.js?v=2026-11-24-a'); return yonetimAc(kok, { rol: 'yonetici', alt: P.slice(1).join('/') }); }
   temaSifirla();
   if (demo) return demoMerkez();
   return acilis({ isletme: P[1] === 'giris' && /[?&](salon|isletme)\b/.test(location.search + location.hash) });
@@ -59,7 +59,7 @@ async function planAc(kod, sekme) {
   pinEkrani(kod, genel, sekme);
 }
 async function planBaslat(kod, token, r, sekme, genel) {
-  const { planlayiciAc } = await import('./planlayici.js?v=2026-11-22-c');
+  const { planlayiciAc } = await import('./planlayici.js?v=2026-11-24-a');
   document.title = `${C.ciftAdi(r.dugun.bilgi)} · Düğün Planla`;
   aktifPlan = {
     kod, ctl: planlayiciAc(kok, {

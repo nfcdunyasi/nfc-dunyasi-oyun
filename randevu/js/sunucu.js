@@ -8,7 +8,7 @@
 //   g/<slug>/<personel>/<tarih>    o günün randevuları { r: [...], k: [kapalı saatler] } — koşullu yazma ile çakışma önlenir
 //   rid/<id>                       randevu → gün belgesi; bek/<slug>/<personel>/<id> ödeme onayı bekleyenler
 //   gorsel/<slug>/<ad>             logo, kapak, personel fotoğrafı (data: URL)
-import * as C from './cekirdek.js?v=2026-11-22-c';
+import * as C from './cekirdek.js?v=2026-11-24-a';
 
 const GUN = 864e5;
 export class Hata extends Error { constructor(m, durum = 400, ek = null) { super(m); this.durum = durum; this.ek = ek; } }

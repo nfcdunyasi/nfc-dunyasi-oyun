@@ -1,6 +1,6 @@
 // Randevu Vaktim — fotoğraf ayarlama: seçilen fotoğraf çerçeveye sürüklenir, yakınlaştırılır (kaydırma, iki parmak,
 // sürgü), 90° döndürülür; istenirse oran seçilir (kare, dikey, yatay…). Çıktı, çerçevedeki kısım; en fazla "max" piksel.
-import { esc, bildir, cekmece, ikon } from '/dugun/js/ui.js?v=2026-11-22-c';
+import { esc, bildir, cekmece, ikon } from '/dugun/js/ui.js?v=2026-11-24-a';
 
 export const ORANLAR = { kare: [1, 'Kare'], dikey: [4 / 5, 'Dikey'], yatay: [4 / 3, 'Yatay'], genis: [2, 'Geniş'], tamami: [0, 'Tamamı'] };
 

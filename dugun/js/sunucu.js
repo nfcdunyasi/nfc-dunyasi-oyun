@@ -2,7 +2,7 @@
 // isle(I, O) → { durum, veri | ham, basliklar }
 //   I: { yontem, yol, sorgu: URLSearchParams, baslik(k), govde, ip }
 //   O: { depo(), kripto (WebCrypto), simdi(), adminDogrula?(token), gorselUrl(slug, tur, surum) }
-import * as C from './cekirdek.js?v=2026-11-22-c';
+import * as C from './cekirdek.js?v=2026-11-24-a';
 
 const GUN = 864e5;
 const yanit = (veri, durum = 200, basliklar = {}) => ({ durum, veri, basliklar });

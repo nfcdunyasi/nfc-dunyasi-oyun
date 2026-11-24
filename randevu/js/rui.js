@@ -1,9 +1,9 @@
 // Randevu Vaktim — arayüz yardımcıları: yönlendirme, tema, simgeler, ortak parçalar.
 // Temel parçalar (çekmece, bildirim, QR, kopyalama) Düğün Planla ile ortaktır.
-import { $, $$, esc, TL, sayiYaz, ikon as dIkon, bildir, cekmece, onayla, qrSvg, kopyala, indir, waLink, resimKucult, bekle, gecikmeli, zamanOnce } from '/dugun/js/ui.js?v=2026-11-22-c';
-import * as C from './cekirdek.js?v=2026-11-22-c';
-import { ONIZLEME } from './api.js?v=2026-11-22-c';
-import { fotoSec } from './kirp.js?v=2026-11-22-c';
+import { $, $$, esc, TL, sayiYaz, ikon as dIkon, bildir, cekmece, onayla, qrSvg, kopyala, indir, waLink, resimKucult, bekle, gecikmeli, zamanOnce } from '/dugun/js/ui.js?v=2026-11-24-a';
+import * as C from './cekirdek.js?v=2026-11-24-a';
+import { ONIZLEME } from './api.js?v=2026-11-24-a';
+import { fotoSec } from './kirp.js?v=2026-11-24-a';
 export { $, $$, esc, TL, sayiYaz, bildir, cekmece, onayla, qrSvg, kopyala, indir, waLink, resimKucult, bekle, gecikmeli, zamanOnce, ONIZLEME };
 
 export const SITE = ONIZLEME || location.hostname.endsWith('nfcdunyasi.com') || !/^(localhost|127\.)/.test(location.hostname) ? 'https://nfcdunyasi.com' : location.origin;

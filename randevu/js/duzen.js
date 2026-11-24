@@ -1,9 +1,9 @@
 // Randevu Vaktim — işletme düzenleyicileri: hizmetler ve fiyatlar, ürünler, bilgiler, görünüm.
 // İşletme yöneticisi kendi panelinden, NFC Dünyası yöneticisi yönetim panelinden aynı ekranları kullanır.
 // Her düzenleyici taslağı (E) yerinde değiştirir ve her değişiklikte degisti() çağırır; kaydetmek çağıranın işidir.
-import * as C from './cekirdek.js?v=2026-11-22-c';
-import { esc, TL, ikon, cekmece, onayla, bildir, gorselSec, logo, kapakStil, avatar } from './rui.js?v=2026-11-22-c';
-import { fotolarSec } from './kirp.js?v=2026-11-22-c';
+import * as C from './cekirdek.js?v=2026-11-24-a';
+import { esc, TL, ikon, cekmece, onayla, bildir, gorselSec, logo, kapakStil, avatar } from './rui.js?v=2026-11-24-a';
+import { fotolarSec } from './kirp.js?v=2026-11-24-a';
 
 const alan = (ad, ic, ek = '') => `<label class="alan"><span>${ad}</span>${ic}${ek}</label>`;
 const fiyatGirdi = (v, ek = '') => `<span class="rv-tl-girdi"><input class="girdi" type="number" inputmode="numeric" min="0" step="1" value="${+v || ''}" placeholder="0" ${ek}><i>₺</i></span>`;

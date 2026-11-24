@@ -1,12 +1,12 @@
 // Randevu Vaktim — personel paneli. Her usta kendi kullanıcı adıyla girer; "işletme yöneticisi" yetkili usta tüm ekibi görür,
 // işletme bilgilerini, hizmetleri ve randevu kurallarını düzenler. Panel işletmenin temasıyla açılır.
-import * as C from './cekirdek.js?v=2026-11-22-c';
-import { api, yerel, TK } from './api.js?v=2026-11-22-c';
-import * as D from './duzen.js?v=2026-11-22-c';
+import * as C from './cekirdek.js?v=2026-11-24-a';
+import { api, yerel, TK } from './api.js?v=2026-11-24-a';
+import * as D from './duzen.js?v=2026-11-24-a';
 import {
   $, $$, esc, TL, sayiYaz, ikon, bildir, cekmece, onayla, kopyala, waLink, git, href, temaUygula, avatar, logo, durumRozet, saatAraligi, hizmetYazi,
   randevuNo, yukleniyor, hataKutu, metaRobots, paylasLink, qrSvg, indir, gorselSec, zamanOnce, ONIZLEME,
-} from './rui.js?v=2026-11-22-c';
+} from './rui.js?v=2026-11-24-a';
 
 let P = null; // { token, v, sec: '*'|pid, tarih, yenile }
 export function temizle() { if (P?.yenile) { clearInterval(P.yenile); P.yenile = null; } korumaKaldir(); }
