@@ -1,5 +1,5 @@
 // Düğün Planla — ortak arayüz yardımcıları: ikonlar, çekmece, onay, bildirim, tema, QR, yönlendirme
-import { qrMatris } from '/yonetim/qr.js?v=2026-11-21-g';
+import { qrMatris } from '/yonetim/qr.js?v=2026-11-22-c';
 
 export const $ = (s, r = document) => r.querySelector(s);
 export const $$ = (s, r = document) => [...r.querySelectorAll(s)];

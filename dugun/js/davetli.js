@@ -1,8 +1,8 @@
 // Düğün Planla — misafirin gördüğü sayfa: davetiye, katılım bildirimi (LCV) ve düğün günü masa bulucu
-import * as C from './cekirdek.js?v=2026-11-21-g';
-import { api, depoYerel } from './api.js?v=2026-11-21-g';
-import { $, esc, ikon, temaUygula, href, indir } from './ui.js?v=2026-11-21-g';
-import { harita } from './harita.js?v=2026-11-21-g';
+import * as C from './cekirdek.js?v=2026-11-22-c';
+import { api, depoYerel } from './api.js?v=2026-11-22-c';
+import { $, esc, ikon, temaUygula, href, indir } from './ui.js?v=2026-11-22-c';
+import { harita } from './harita.js?v=2026-11-22-c';
 
 let Z = null;
 const TUR = Object.fromEntries(C.TURLER);

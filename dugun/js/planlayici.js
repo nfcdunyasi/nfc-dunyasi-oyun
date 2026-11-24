@@ -1,9 +1,9 @@
 // Düğün Planla — çift paneli: özet, davetliler, oturma planı, görevler ve akış, paylaş/yazdır, ayarlar
-import * as C from './cekirdek.js?v=2026-11-21-g';
-import { api, Senkron, depoYerel, TK } from './api.js?v=2026-11-21-g';
-import { $, $$, esc, ikon, bildir, cekmece, onayla, temaUygula, qrSvg, kopyala, indir, href, git, SITE, paylasLink, zamanOnce, gecikmeli, waLink, ONIZLEME, sayiYaz } from './ui.js?v=2026-11-21-g';
-import { harita } from './harita.js?v=2026-11-21-g';
-import { yazdir, davetliCsv, csvOku, qrPng } from './yazdir.js?v=2026-11-21-g';
+import * as C from './cekirdek.js?v=2026-11-22-c';
+import { api, Senkron, depoYerel, TK } from './api.js?v=2026-11-22-c';
+import { $, $$, esc, ikon, bildir, cekmece, onayla, temaUygula, qrSvg, kopyala, indir, href, git, SITE, paylasLink, zamanOnce, gecikmeli, waLink, ONIZLEME, sayiYaz } from './ui.js?v=2026-11-22-c';
+import { harita } from './harita.js?v=2026-11-22-c';
+import { yazdir, davetliCsv, csvOku, qrPng } from './yazdir.js?v=2026-11-22-c';
 
 let S = null, SURUKLE = false;
 const D = () => S.sen.d;

@@ -1,6 +1,6 @@
 // Oyun arayüzlerinin ortak parçaları
-import { countdownTick } from '../sfx.js?v=2026-11-21-g';
-import { esc, fmtTime } from '../ui.js?v=2026-11-21-g';
+import { countdownTick } from '../sfx.js?v=2026-11-22-c';
+import { esc, fmtTime } from '../ui.js?v=2026-11-22-c';
 
 const TONES = {
   limon: 'bg-limon text-murekkep',

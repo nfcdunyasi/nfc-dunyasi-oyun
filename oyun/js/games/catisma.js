@@ -1,9 +1,9 @@
 // Çatışma — birinci şahıs takım savaşı (NFC Dünyası Oyun)
 // Telefon için tasarlandı: sol kol yürüme, sağ taraf nişan, ateş / dürbün / şarjör / zıpla / eğil, oto ateş ve nişan yardımı.
 // Hareket ve nişan istemcide; can, isabet doğrulama, skor ve botlar sunucuda. Harita ve silah tanımları sunucuyla ortak (GEN).
-import { _eng } from './kuryeYarisi.js?v=2026-11-21-g';
-import { _masa } from './masa3d.js?v=2026-11-21-g';
-import * as sfx from '../sfx.js?v=2026-11-21-g';
+import { _eng } from './kuryeYarisi.js?v=2026-11-22-c';
+import { _masa } from './masa3d.js?v=2026-11-22-c';
+import * as sfx from '../sfx.js?v=2026-11-22-c';
 const { limb, EmoteUI, Snd, esc, pcol, vibrate, medal, injectStyle, clamp, lerp, damp, hexRGB, C, shade, M, makeGL, MB, freeMesh, drawMesh, drawSky, drawDynamic, emitSoft, useProg, shadowBegin, shadowCast, shadowEnd, shadowSet, aoOn, detailOn, postFX, norm3, brandInfo, ONE3, autoRes, podiumHTML } = _eng();
 const { styleOf } = _masa();
 

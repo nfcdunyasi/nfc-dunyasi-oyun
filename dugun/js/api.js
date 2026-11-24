@@ -1,8 +1,8 @@
 // Düğün Planla — arka uç erişimi. Gerçek sitede /dugun-api (Netlify fonksiyonu); demoda aynı sunucu kodu tarayıcıda, bellek deposuyla çalışır.
-import * as C from './cekirdek.js?v=2026-11-21-g';
-import { isle, demoKod } from './sunucu.js?v=2026-11-21-g';
-import { davetliUret, DEMO_SALON, demoAlanlar } from './demo.js?v=2026-11-21-g';
-import { bekle, gecikmeli } from './ui.js?v=2026-11-21-g';
+import * as C from './cekirdek.js?v=2026-11-22-c';
+import { isle, demoKod } from './sunucu.js?v=2026-11-22-c';
+import { davetliUret, DEMO_SALON, demoAlanlar } from './demo.js?v=2026-11-22-c';
+import { bekle, gecikmeli } from './ui.js?v=2026-11-22-c';
 
 let DEMO = false;
 const BELLEK = new Map();

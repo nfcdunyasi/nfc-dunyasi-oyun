@@ -36,3 +36,23 @@
   for = "/dugun/fonts/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+# Randevu Vaktim: usta paneli, giriş ve yönetim arama motorlarına kapalı
+[[headers]]
+  for = "/randevu/panel/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "no-referrer"
+
+[[headers]]
+  for = "/randevu/yonetim/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "no-referrer"
+
+[[headers]]
+  for = "/randevu/giris"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"

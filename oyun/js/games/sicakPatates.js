@@ -1,8 +1,8 @@
 // Sıcak Patates — elden ele patates oyunu (NFC Dünyası Oyun)
 // Gece kamp ateşi sahnesi (Kurye Yarışı'nın küçük WebGL motoruyla). WebGL yoksa düz DOM görünümüne döner.
-import { _eng } from './kuryeYarisi.js?v=2026-11-21-g';
-import { _masa } from './masa3d.js?v=2026-11-21-g';
-import * as sfx from '../sfx.js?v=2026-11-21-g';
+import { _eng } from './kuryeYarisi.js?v=2026-11-22-c';
+import { _masa } from './masa3d.js?v=2026-11-22-c';
+import * as sfx from '../sfx.js?v=2026-11-22-c';
 const { podiumHTML, emitSoft, EmoteUI, Snd, detailOn, KIT, drawToon, postFX, esc, pcol, vibrate, medal, injectStyle, clamp, lerp, damp, hexRGB, C, shade, M, makeGL, MB, freeMesh, drawMesh, drawSky, drawDynamic, useProg, norm3, brandInfo, Res, ONE3, autoRes, makeTexture, updateTexture } = _eng();
 
 const STYLE = `

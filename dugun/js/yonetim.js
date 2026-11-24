@@ -1,10 +1,10 @@
 // Düğün Planla — yönetici paneli (tüm salonlar) ve salon paneli (tek salon): salonlar, temalar, salon planları, düğünler, ödemeler, istatistik
-import * as C from './cekirdek.js?v=2026-11-21-g';
-import { api, depoYerel, TK } from './api.js?v=2026-11-21-g';
-import { $, $$, esc, ikon, markaIkon, bildir, cekmece, onayla, temaUygula, temaSifirla, STILLER, VURGULAR, stilAdi, qrSvg, kopyala, href, git, SITE, paylasLink, TL, sayiYaz, resimKucult, waLink, ayrilmaKoy, ONIZLEME, tamYol } from './ui.js?v=2026-11-21-g';
-import { harita, planSvg } from './harita.js?v=2026-11-21-g';
-import { qrPng } from './yazdir.js?v=2026-11-21-g';
-import * as U from './ucret.js?v=2026-11-21-g';
+import * as C from './cekirdek.js?v=2026-11-22-c';
+import { api, depoYerel, TK } from './api.js?v=2026-11-22-c';
+import { $, $$, esc, ikon, markaIkon, bildir, cekmece, onayla, temaUygula, temaSifirla, STILLER, VURGULAR, stilAdi, qrSvg, kopyala, href, git, SITE, paylasLink, TL, sayiYaz, resimKucult, waLink, ayrilmaKoy, ONIZLEME, tamYol } from './ui.js?v=2026-11-22-c';
+import { harita, planSvg } from './harita.js?v=2026-11-22-c';
+import { qrPng } from './yazdir.js?v=2026-11-22-c';
+import * as U from './ucret.js?v=2026-11-22-c';
 
 let Y = null, E = null;
 const yolY = (p = '') => Y.taban + (p ? '/' + p : '');

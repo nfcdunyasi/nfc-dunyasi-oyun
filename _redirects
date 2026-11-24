@@ -13,3 +13,7 @@
 /dugun/giris      /dugun/index.html   200
 /dugun/yonetim    /dugun/index.html   200
 /dugun/yonetim/*  /dugun/index.html   200
+
+# Randevu Vaktim: işletmenin randevu sayfası, randevu durumu, usta paneli ve yönetim aynı sayfa uygulamasında açılır
+# (js/css/img dosyaları gerçek dosya olduğu için önce onlar sunulur)
+/randevu/*        /randevu/index.html  200

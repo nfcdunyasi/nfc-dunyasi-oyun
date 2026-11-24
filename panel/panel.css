@@ -3,8 +3,10 @@
 .nfc-panel .yon-ust .marka img { width: 26px; height: 26px; flex: none; }
 .nfc-panel .icerik { padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px)); }
 
-.urunler { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
-@media (max-width: 860px) { .urunler { grid-template-columns: minmax(0, 1fr); } }
+.urunler { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 16px; }
+@media (max-width: 1120px) { .urunler { grid-template-columns: repeat(2, minmax(0, 1fr)); } .urunler > :last-child { grid-column: 1 / -1; } }
+@media (max-width: 860px) { .urunler { grid-template-columns: minmax(0, 1fr); } .urunler > :last-child { grid-column: auto; } }
+svg.urun-ikon { display: block; }
 .urun-kart { display: grid; gap: 16px; align-content: start; }
 .urun-bas { display: flex; align-items: center; gap: 14px; color: inherit; text-decoration: none; min-width: 0; }
 .urun-bas > span { flex: 1; min-width: 0; display: grid; gap: 2px; }

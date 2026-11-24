@@ -1,10 +1,12 @@
 // NFC Dünyası · Yönetici paneli (nfcdunyasi.com/panel)
-// Tek girişle iki ürünün özeti: Okut ve Oyna (/api, işletmeler ve aylık ödemeler) ve Düğün Planla (/dugun-api, salonlar,
-// düğünler ve düğün başı ücret). Oturum anahtarı iki panelle ortaktır (localStorage 'yonetim-token').
-import { THEMES } from '/oyun/js/themes.js?v=2026-11-21-g';
-import { $, esc, ikon, markaIkon, bildir, onayla, TL, sayiYaz } from '/dugun/js/ui.js?v=2026-11-21-g';
-import * as C from '/dugun/js/cekirdek.js?v=2026-11-21-g';
-import * as U from '/dugun/js/ucret.js?v=2026-11-21-g';
+// Tek girişle üç ürünün özeti: Okut ve Oyna (/api, işletmeler ve aylık ödemeler), Düğün Planla (/dugun-api, salonlar,
+// düğünler ve düğün başı ücret) ve Randevu Vaktim (/randevu-api, işletmeler, randevular ve aylık ücret).
+// Oturum anahtarı üç panelle ortaktır (localStorage 'yonetim-token').
+import { THEMES } from '/oyun/js/themes.js?v=2026-11-22-c';
+import { $, esc, ikon, markaIkon, bildir, onayla, TL, sayiYaz } from '/dugun/js/ui.js?v=2026-11-22-c';
+import * as C from '/dugun/js/cekirdek.js?v=2026-11-22-c';
+import * as U from '/dugun/js/ucret.js?v=2026-11-22-c';
+import * as RC from '/randevu/js/cekirdek.js?v=2026-11-22-c';
 
 const ANAHTAR = 'yonetim-token';
 const kok = $('#uygulama');
@@ -24,7 +26,7 @@ function girisEkrani(mesaj = '') {
   document.title = 'Giriş · Yönetici Paneli · NFC Dünyası';
   kok.innerHTML = `<div class="giris-sayfa"><div class="giris-kart">
     <img class="giris-ikon nfc-ikon" src="/images/mark.png" alt="NFC Dünyası" width="64" height="64">
-    <div><h1>Yönetici Paneli</h1><p class="soluk" style="margin-top:6px">NFC Dünyası · Okut ve Oyna ve Düğün Planla tek yerden.</p></div>
+    <div><h1>Yönetici Paneli</h1><p class="soluk" style="margin-top:6px">NFC Dünyası · Okut ve Oyna, Düğün Planla ve Randevu Vaktim tek yerden.</p></div>
     <form id="gF" autocomplete="on">
       <label class="alan"><span>Kullanıcı adı</span><input class="girdi" name="kullanici" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required></label>
       <label class="alan"><span>Şifre</span><input class="girdi" name="sifre" type="password" autocomplete="current-password" required></label>
@@ -92,47 +94,68 @@ function dugunHesap(V, bugun) {
   return { T, satir, alacak, geciken, sonrakiAy: V.dugunler.filter((d) => (d.tarih || '').startsWith(U.ayEkle(buAy, 1))).length };
 }
 
+// ---------------------------------------------------------------- Randevu Vaktim hesabı (aylık sabit + personel başı; Randevu Vaktim paneliyle aynı kurallar)
+function randevuHesap(V, bugun) {
+  const buAy = bugun.slice(0, 7), aylar = Array.from({ length: 12 }, (_, i) => U.ayEkle(buAy, -i));
+  const satir = [], buAyR = [];
+  for (const s of V.isletmeler) for (const ay of aylar) {
+    const r = RC.aboneAy(s, ay, bugun); if (!r) continue;
+    if (ay === buAy) buAyR.push(r);
+    if (r.kalan > 0 && (ay === buAy || r.durum === 'gecikti')) satir.push({ urun: 'randevu', x: s, r, detay: `${U.ayAdi(ay)} aylık ücreti${r.kisi ? ` · ${r.kisi} personel` : ''}`, git: `/randevu/yonetim/isletme/${s.slug}/ucret` });
+  }
+  const oz = Object.values(V.ozet || {});
+  return {
+    satir, isletme: V.isletmeler.length, aktif: V.isletmeler.filter((s) => s.aktif !== false).length,
+    bugun: oz.reduce((n, o) => n + (o.bugun || 0), 0), bekleyen: oz.reduce((n, o) => n + (o.bekleyen || 0), 0),
+    buAyTutar: buAyR.reduce((n, r) => n + r.tutar, 0), buAyOdenen: buAyR.reduce((n, r) => n + Math.min(r.odenen, r.tutar || r.odenen), 0),
+    alacak: satir.reduce((n, x) => n + x.r.kalan, 0), geciken: satir.filter((x) => x.r.durum === 'gecikti').reduce((n, x) => n + x.r.kalan, 0),
+  };
+}
+
 // ---------------------------------------------------------------- görünüm
 const logo = (urun, x) => {
   const l = urun === 'okut' ? x.tema?.logo || THEMES[x.slug]?.logo || '' : x.tema?.logo || '';
   return l ? `<span class="logo-k"><img src="${esc(l)}" alt=""></span>` : `<span class="logo-k">${esc((x.ad || '?').trim().charAt(0).toLocaleUpperCase('tr'))}</span>`;
 };
-const URUN = { okut: 'Okut ve Oyna', dugun: 'Düğün Planla' };
+const URUN = { okut: 'Okut ve Oyna', dugun: 'Düğün Planla', randevu: 'Randevu Vaktim' };
+const rvIkon = (px = 44) => `<svg class="urun-ikon" width="${px}" height="${px}" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7.4" fill="#1d1d1f"/><circle cx="16" cy="17.2" r="8.4" fill="none" stroke="#fff" stroke-width="2.1"/><path d="M16 12.6v4.8l3.1 2" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 5.8h6" stroke="#fff" stroke-width="2.1" stroke-linecap="round"/><circle cx="23.2" cy="10" r="1.6" fill="#3fbf8f"/></svg>`;
 const mini = (b, a, cls = '') => `<div class="mini${cls ? ' ' + cls : ''}"><b>${b}</b><span>${a}</span></div>`;
 const durumYazi = (r) => (r.durum === 'gecikti' ? 'gecikti' : `son gün ${C.tarihYaz(r.vade, { yil: false })}`);
 
 function iskelet() {
   kok.innerHTML = `<div class="kabuk yon nfc-panel"><header class="yon-ust"><div class="ic"><a class="marka" href="/panel/"><img src="/images/mark.png" alt="" width="26" height="26"><span>Yönetici Paneli</span></a>
-    <nav><a class="on" href="/panel/">Genel bakış</a><a href="/yonetim/">Okut ve Oyna</a><a href="/dugun/yonetim">Düğün Planla</a></nav><span class="bosluk"></span>
+    <nav><a class="on" href="/panel/">Genel bakış</a><a href="/yonetim/">Okut ve Oyna</a><a href="/dugun/yonetim">Düğün Planla</a><a href="/randevu/yonetim">Randevu Vaktim</a></nav><span class="bosluk"></span>
     <button class="dg ikon-d" type="button" data-y="yenile" aria-label="Yenile">${ikon('yenile')}</button><button class="dg ikon-d" type="button" data-y="cikis" aria-label="Çıkış">${ikon('cikis')}</button></div></header>
     <main class="icerik" id="pI"><div class="yukleniyor"><i></i></div></main></div>`;
-  kok.querySelector('[data-y=cikis]').onclick = async () => { if (await onayla({ baslik: 'Çıkış yapılsın mı?', metin: 'Okut ve Oyna ve Düğün Planla yönetici panellerinden de çıkılır.', evet: 'Çıkış yap' })) { tokenYaz(''); girisEkrani(); } };
+  kok.querySelector('[data-y=cikis]').onclick = async () => { if (await onayla({ baslik: 'Çıkış yapılsın mı?', metin: 'Okut ve Oyna, Düğün Planla ve Randevu Vaktim yönetici panellerinden de çıkılır.', evet: 'Çıkış yap' })) { tokenYaz(''); girisEkrani(); } };
   kok.querySelector('[data-y=yenile]').onclick = () => yukle(true);
 }
 
 async function yukle(sessiz = false) {
   if (!token) return girisEkrani();
   if (!$('#pI')) iskelet(); else if (!sessiz) $('#pI').innerHTML = '<div class="yukleniyor"><i></i></div>';
-  const [ok, dp] = await Promise.allSettled([istek('/api/yonetim'), istek('/dugun-api/yonetim')]);
+  const [ok, dp, rv] = await Promise.allSettled([istek('/api/yonetim'), istek('/dugun-api/yonetim'), istek('/randevu-api/yonetim')]);
   if (ok.status === 'rejected' && ok.reason.durum === 401) { tokenYaz(''); return girisEkrani('Oturumun süresi doldu, yeniden giriş yapın.'); }
-  if (ok.status === 'rejected' && dp.status === 'rejected') {
+  if (ok.status === 'rejected' && dp.status === 'rejected' && rv.status === 'rejected') {
     $('#pI').innerHTML = `<div class="kart bos"><span class="serif">Bağlanılamadı</span>${esc(ok.reason.message)}<br><button class="dg ana" type="button" onclick="location.reload()">Tekrar dene</button></div>`; return;
   }
-  goster(ok.status === 'fulfilled' ? ok.value : null, dp.status === 'fulfilled' ? dp.value : null, ok.reason, dp.reason);
+  goster(ok.status === 'fulfilled' ? ok.value : null, dp.status === 'fulfilled' ? dp.value : null, ok.reason, dp.reason, rv.status === 'fulfilled' ? rv.value : null, rv.reason);
   if (sessiz) bildir('Güncellendi');
 }
 
-function goster(okV, dpV, okH, dpH) {
+function goster(okV, dpV, okH, dpH, rvV, rvH) {
   document.title = 'Yönetici Paneli · NFC Dünyası';
   const bugun = C.trBugun(), buAy = bugun.slice(0, 7), ayAd = U.ayAdi(buAy, { yil: false });
   const isl = okV ? okutIsletmeler(okV.isletmeler) : [], O = okV ? okutHesap(isl, bugun) : null;
   const V = dpV ? { salonlar: dpV.salonlar || [], dugunler: dpV.dugunler || [] } : null, D = V ? dugunHesap(V, bugun) : null;
-  // bu ay kasaya giren (iki ürün): ödeme tarihi bu ay olanlar
-  const alinanlar = [...isl.flatMap((x) => x.odemeler.map((p) => ({ urun: 'okut', x, p }))), ...(V ? V.salonlar.flatMap((s) => (s.odemeler || []).map((p) => ({ urun: 'dugun', x: s, p }))) : [])]
+  const RV = rvV ? { isletmeler: rvV.isletmeler || [], ozet: rvV.ozet || {} } : null, R = RV ? randevuHesap(RV, bugun) : null;
+  // bu ay kasaya giren (üç ürün): ödeme tarihi bu ay olanlar
+  const alinanlar = [...isl.flatMap((x) => x.odemeler.map((p) => ({ urun: 'okut', x, p }))), ...(V ? V.salonlar.flatMap((s) => (s.odemeler || []).map((p) => ({ urun: 'dugun', x: s, p }))) : []),
+    ...(RV ? RV.isletmeler.flatMap((s) => (s.odemeler || []).map((p) => ({ urun: 'randevu', x: s, p }))) : [])]
     .filter((a) => a.p.tarih).sort((a, b) => b.p.tarih.localeCompare(a.p.tarih));
   const buAyGiren = alinanlar.filter((a) => a.p.tarih.startsWith(buAy)).reduce((n, a) => n + (+a.p.tutar || 0), 0);
-  const alacak = (O?.alacak || 0) + (D?.alacak || 0), geciken = (O?.geciken || 0) + (D?.geciken || 0);
-  const odenecek = [...(O?.satir || []), ...(D?.satir || [])].sort((a, b) => (b.r.durum === 'gecikti') - (a.r.durum === 'gecikti') || a.r.vade.localeCompare(b.r.vade));
+  const alacak = (O?.alacak || 0) + (D?.alacak || 0) + (R?.alacak || 0), geciken = (O?.geciken || 0) + (D?.geciken || 0) + (R?.geciken || 0);
+  const odenecek = [...(O?.satir || []), ...(D?.satir || []), ...(R?.satir || [])].sort((a, b) => (b.r.durum === 'gecikti') - (a.r.durum === 'gecikti') || a.r.vade.localeCompare(b.r.vade));
   const yak = V ? V.dugunler.filter((d) => d.tarih && d.tarih >= bugun && d.tarih <= C.gunEkle(bugun, 14)) : [];
   const salonAd = (slug) => V?.salonlar.find((s) => s.slug === slug)?.ad || '';
   const hataKart = (ad, h) => `<p class="uyari-kutu hata">${ikon('uyari', 'k')}<span>${esc(ad)} verileri alınamadı: ${esc(h?.message || 'bilinmeyen hata')}</span></p>`;
@@ -154,7 +177,12 @@ function goster(okV, dpV, okH, dpH) {
         <a class="urun-bas" href="/dugun/yonetim">${markaIkon(44, 'urun-ikon')}<span><b>Düğün Planla</b><small>Salonlar, düğünler · düğün başı ücret</small></span>${ikon('sag', 'kk')}</a>
         ${D ? `<div class="mini-izgara">${mini(V.salonlar.length, `salon · ${V.salonlar.filter((s) => s.aktif !== false).length} etkin`)}${mini(D.T.dugun, `düğün ${esc(ayAd)} ayında · ${D.sonrakiAy} gelecek ay`)}${mini(TL(D.T.tutar), `${esc(ayAd)} hesabı`)}${mini(TL(D.alacak), D.geciken ? `alacak · ${TL(D.geciken)} gecikti` : 'alacak', D.geciken ? 'kirmizi' : '')}</div>` : hataKart('Düğün Planla', dpH)}
         <div class="urun-bag"><a href="/dugun/yonetim/salonlar">Salonlar</a><a href="/dugun/yonetim/dugunler">Düğünler</a><a href="/dugun/yonetim/gelir">Gelir</a><a href="/dugun/yonetim/istatistik">İstatistik</a></div>
-        <a class="dg ana tam" href="/dugun/yonetim">Düğün Planla paneli</a></section></div>
+        <a class="dg ana tam" href="/dugun/yonetim">Düğün Planla paneli</a></section>
+      <section class="kart urun-kart">
+        <a class="urun-bas" href="/randevu/yonetim">${rvIkon(44)}<span><b>Randevu Vaktim</b><small>Berber ve kuaförlere online randevu · aylık ücret</small></span>${ikon('sag', 'kk')}</a>
+        ${R ? `<div class="mini-izgara">${mini(R.isletme, `işletme · ${R.aktif} açık`)}${mini(R.bugun, `randevu bugün${R.bekleyen ? ` · ${R.bekleyen} ödeme onayı bekliyor` : ''}`)}${mini(TL(R.buAyTutar), `${esc(ayAd)} hesabı`)}${mini(TL(R.alacak), R.geciken ? `alacak · ${TL(R.geciken)} gecikti` : 'alacak', R.geciken ? 'kirmizi' : '')}</div>` : hataKart('Randevu Vaktim', rvH)}
+        <div class="urun-bag"><a href="/randevu/yonetim/isletmeler">İşletmeler</a><a href="/randevu/yonetim/odemeler">Ödemeler</a><a href="/randevu" target="_blank" rel="noopener">Tanıtım sayfası</a></div>
+        <a class="dg ana tam" href="/randevu/yonetim">Randevu Vaktim paneli</a></section></div>
 
     ${D && V.salonlar.length ? `<section class="kart hub-salonlar" style="margin-top:16px"><div class="kart-bas"><h2>Düğün Planla · salonlar</h2><span class="bosluk"></span><a class="dg sade kucuk" href="/dugun/yonetim/istatistik">Ayrıntı</a></div>
       <div class="tablo-kaydir"><table class="tablo salon-tablo"><thead><tr><th>Salon</th><th>Ücret</th><th class="sag">Düğün</th><th class="sag">${esc(ayAd)}</th><th class="sag">Yaklaşan</th><th class="sag">${esc(ayAd)} hesabı</th><th class="sag">Alacak</th></tr></thead><tbody>
@@ -172,7 +200,7 @@ function goster(okV, dpV, okH, dpH) {
         <section class="kart"><div class="kart-bas"><h2>Son alınan ödemeler</h2></div>
           ${alinanlar.length ? alinanlar.slice(0, 6).map((a) => `<div class="satir">${logo(a.urun, a.x)}<span class="ana"><b>${esc(a.x.ad)}</b><small>${esc(C.tarihYaz(a.p.tarih, { yil: false }))} · ${URUN[a.urun]}${a.p.donem ? ' · ' + esc(U.ayAdi(a.p.donem, { yil: false })) + ' hesabı' : ''}</small></span><b class="sayi-yazi">${TL(a.p.tutar)}</b></div>`).join('') : '<p class="soluk">Henüz ödeme kaydı yok.</p>'}</section></div></div>
 
-    <div class="panel-alt"><a href="/yonetim/#/ayarlar">${ikon('kilit', 'kk')} Şifreyi değiştir</a><a href="/">${ikon('sol', 'kk')} nfcdunyasi.com</a><span>Okut ve Oyna ve Düğün Planla aynı yönetici hesabını kullanır.</span></div>`;
+    <div class="panel-alt"><a href="/yonetim/#/ayarlar">${ikon('kilit', 'kk')} Şifreyi değiştir</a><a href="/">${ikon('sol', 'kk')} nfcdunyasi.com</a><span>Okut ve Oyna, Düğün Planla ve Randevu Vaktim aynı yönetici hesabını kullanır.</span></div>`;
 }
 
 yukle();

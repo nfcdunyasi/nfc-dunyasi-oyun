@@ -3,8 +3,8 @@
 // herkes eli zilin üstünde bekler. Lamba yeşile dönüp kapak açılınca tost havaya fırlar: zile en hızlı vuran tostu kapar
 // ve afiyetle yer. Yeşilden önce vuran o turu yakar. Tepki süresini bu cihaz ölçer (yeşilin çizildiği an → dokunuş).
 // Masa kiti (masa3d.js) ve Kurye Yarışı motoruyla çizilir; WebGL yoksa 2D görünüm gösterilir.
-import { _masa } from './masa3d.js?v=2026-11-21-g';
-import * as sfx from '../sfx.js?v=2026-11-21-g';
+import { _masa } from './masa3d.js?v=2026-11-22-c';
+import * as sfx from '../sfx.js?v=2026-11-22-c';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs, sst, trophyModel } = K;

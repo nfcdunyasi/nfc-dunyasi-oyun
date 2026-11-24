@@ -4,8 +4,8 @@
 // başının üstünde ipucu balonu çıkar. Oylamada herkes casus sandığını seçer; açılışta herkes oy verdiğini gösterir, oklar
 // masaya düşer, lamba casusa döner ve casus güneş gözlüklerini takar. Yakalanan casus masanın kelimesini bilirse kazanır.
 // Masa kiti (masa3d.js) ve Kurye Yarışı motoruyla çizilir; WebGL yoksa 2D görünüm gösterilir.
-import { _masa } from './masa3d.js?v=2026-11-21-g';
-import * as sfx from '../sfx.js?v=2026-11-21-g';
+import { _masa } from './masa3d.js?v=2026-11-22-c';
+import * as sfx from '../sfx.js?v=2026-11-22-c';
 
 const K = _masa();
 const { E, TableGame, MasaSnd, TABLE_Y, TAU, hs, HC, HR, trophyModel } = K;

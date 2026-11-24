@@ -1,8 +1,8 @@
 // Mutfak Kaosu — 3D ortak mutfak oyunu (NFC Dünyası Oyun)
 // Kurye Yarışı'nın küçük WebGL motorunu yeniden kullanır. Sim sunucuda döner (30 Hz); telefon girdi + tek tuş gönderir,
 // kendi karakterini tahmin eder, diğerlerini yumuşatarak gösterir.
-import { _eng } from './kuryeYarisi.js?v=2026-11-21-g';
-import { _masa } from './masa3d.js?v=2026-11-21-g';
+import { _eng } from './kuryeYarisi.js?v=2026-11-22-c';
+import { _masa } from './masa3d.js?v=2026-11-22-c';
 const { ctx2d, podiumHTML, placeLabels, EmoteUI, aoOn, detailOn, KIT, drawToon, postFX, shadowBegin, shadowCast, shadowEnd, autoRes, sfx, clamp, lerp, damp, esc, hexRGB, C, shade, mixc, M, makeGL, MB, freeMesh, makeTexture, updateTexture, drawMesh, drawSky, drawDynamic, useProg, TOD, norm3, brandInfo, Res, Snd, pcol, vibrate, medal, ONE3, injectStyle, FOOD_EMOJI, FOOD_NAME, fmtSec, DES, limb } = _eng();
 let MA = null;
 const AV_K = 1.1;   // aşçıların ölçeği (mutfak ve karakter yarıçapına göre)
