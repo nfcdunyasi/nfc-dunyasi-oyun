@@ -17,3 +17,11 @@
 # Randevu Vaktim: işletmenin randevu sayfası, randevu durumu, usta paneli ve yönetim aynı sayfa uygulamasında açılır
 # (js/css/img dosyaları gerçek dosya olduğu için önce onlar sunulur)
 /randevu/*        /randevu/index.html  200
+
+# Sekme simgesi: tarayıcılar ve arama motorları /favicon.ico adresini kendiliğinden ister
+/favicon.ico      /images/favicon.png   200
+
+# Eski sitenin hâlâ ziyaret edilen mağaza adresleri ana sayfaya gider
+/magaza           /   301
+/magaza/*         /   301
+/en/*             /   301
